@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ממליצה לך – המלצות מוצרים</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --cream:#faf7f2; --warm:#fff9f3; --blush:#f2c4b0; --rose:#d4847a;
+  --deep-rose:#a85c52; --choco:#3d2217; --taupe:#8a7060;
+  --text:#2a1a10; --soft:#6b4e3d; --border:#e8ddd5;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Heebo',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
+
+/* ===== HEADER ===== */
+header{background:var(--warm);border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:100;}
+.header-inner{max-width:1100px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.logo{font-size:1.5rem;font-weight:900;color:var(--choco);text-decoration:none;}
+.logo em{font-style:normal;color:var(--rose);}
+nav{display:flex;gap:20px;flex-wrap:wrap;}
+nav a{text-decoration:none;color:var(--soft);font-size:.9rem;font-weight:600;transition:color .2s;cursor:pointer;}
+nav a:hover,nav a.active{color:var(--rose);}
+.admin-toggle{background:var(--choco);color:#fff;border:none;border-radius:30px;padding:8px 18px;font-family:'Heebo',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .2s;}
+.admin-toggle:hover{background:var(--deep-rose);}
+
+/* ===== HERO ===== */
+.hero{background:linear-gradient(135deg,#fdf0e8,#fce4d6 60%,#f9d5c5);padding:64px 24px 50px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(242,196,176,.35),transparent 70%);top:-180px;left:50%;transform:translateX(-50%);pointer-events:none;}
+.hero-badge{display:inline-block;background:var(--rose);color:#fff;font-size:.72rem;font-weight:700;letter-spacing:1.5px;padding:5px 16px;border-radius:40px;margin-bottom:18px;text-transform:uppercase;}
+.hero h1{font-size:clamp(2rem,6vw,3.4rem);font-weight:900;color:var(--choco);line-height:1.15;margin-bottom:14px;}
+.hero h1 em{font-style:normal;color:var(--rose);}
+.hero p{font-size:1rem;color:var(--soft);max-width:480px;margin:0 auto 28px;line-height:1.7;}
+.hero-cta{display:inline-block;background:var(--choco);color:#fff;padding:13px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.95rem;transition:background .2s,transform .15s;}
+.hero-cta:hover{background:var(--deep-rose);transform:translateY(-2px);}
+
+/* ===== CATEGORIES ===== */
+.section{max-width:1100px;margin:0 auto;padding:0 24px;}
+.sec-title{font-size:1.35rem;font-weight:800;color:var(--choco);margin-bottom:16px;}
+.sec-title span{color:var(--rose);}
+.cats{display:flex;gap:10px;flex-wrap:wrap;margin:40px auto 0;max-width:1100px;padding:0 24px;}
+.cat-btn{background:#fff;border:1.5px solid var(--border);color:var(--soft);font-size:.88rem;font-weight:600;padding:8px 18px;border-radius:40px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;font-family:'Heebo',sans-serif;}
+.cat-btn:hover,.cat-btn.active{background:var(--rose);border-color:var(--rose);color:#fff;}
+
+/* ===== GRID ===== */
+.products-wrap{max-width:1100px;margin:32px auto 60px;padding:0 24px;}
+.grid-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.prod-count{font-size:.88rem;color:var(--taupe);}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px;}
+.empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--taupe);}
+.empty-state .big{font-size:3rem;margin-bottom:12px;}
+.empty-state p{font-size:1rem;}
+
+/* ===== CARD ===== */
+.card{background:#fff;border-radius:16px;overflow:hidden;border:1.5px solid var(--border);transition:transform .2s,box-shadow .2s;animation:fadeUp .45s ease both;}
+.card:hover{transform:translateY(-5px);box-shadow:0 14px 36px rgba(61,34,23,.11);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.card-thumb{width:100%;height:190px;object-fit:cover;display:block;background:linear-gradient(135deg,#fce4d6,#f9d5c5);}
+.card-thumb-placeholder{width:100%;height:190px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;}
+.card-body{padding:16px 16px 12px;}
+.card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
+.tag{font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:20px;}
+.tag-cat{background:#fce4d6;color:var(--deep-rose);}
+.tag-yes{background:#d4f4dd;color:#1a7a3a;}
+.tag-no{background:#ffe0dc;color:#b33a2a;}
+.stars{color:#f5a623;font-size:.82rem;margin-bottom:4px;}
+.card-title{font-size:1rem;font-weight:700;color:var(--choco);margin-bottom:6px;line-height:1.4;}
+.card-desc{font-size:.84rem;color:var(--soft);line-height:1.6;margin-bottom:12px;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:10px;}
+.card-price{font-size:.95rem;font-weight:800;color:var(--choco);}
+.orig{font-size:.77rem;font-weight:400;color:var(--taupe);text-decoration:line-through;margin-right:4px;}
+.card-btn{background:var(--rose);color:#fff;border:none;border-radius:30px;padding:7px 16px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;text-decoration:none;display:inline-block;}
+.card-btn:hover{background:var(--deep-rose);}
+
+/* ===== FOOTER ===== */
+footer{background:#2a1a10;color:rgba(255,255,255,.5);text-align:center;padding:26px 24px;font-size:.85rem;}
+footer a{color:var(--blush);text-decoration:none;}
+
+/* ===== ADMIN PANEL ===== */
+.admin-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto;}
+.admin-overlay.open{display:flex;}
+.admin-panel{background:#fff;border-radius:20px;width:100%;max-width:680px;padding:32px;position:relative;}
+.admin-panel h2{font-size:1.4rem;font-weight:800;color:var(--choco);margin-bottom:4px;}
+.admin-panel .sub{font-size:.88rem;color:var(--taupe);margin-bottom:24px;}
+.close-btn{position:absolute;top:18px;left:18px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--taupe);}
+
+/* product list in admin */
+.admin-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;max-height:320px;overflow-y:auto;}
+.admin-item{display:flex;align-items:center;justify-content:space-between;background:var(--cream);border-radius:10px;padding:10px 14px;gap:10px;}
+.admin-item-info{flex:1;min-width:0;}
+.admin-item-name{font-weight:700;font-size:.9rem;color:var(--choco);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.admin-item-cat{font-size:.75rem;color:var(--taupe);}
+.admin-item-btns{display:flex;gap:6px;flex-shrink:0;}
+.btn-edit,.btn-del{border:none;border-radius:8px;padding:5px 12px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;}
+.btn-edit{background:#e8f0ff;color:#3355cc;}
+.btn-edit:hover{background:#c8d8ff;}
+.btn-del{background:#ffe0dc;color:#b33a2a;}
+.btn-del:hover{background:#ffbdb5;}
+
+/* form */
+.divider{height:1px;background:var(--border);margin:20px 0;}
+.form-title{font-size:1rem;font-weight:700;color:var(--choco);margin-bottom:14px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-full{grid-column:1/-1;}
+label{font-size:.82rem;font-weight:600;color:var(--soft);display:block;margin-bottom:4px;}
+input,textarea,select{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:10px;font-family:'Heebo',sans-serif;font-size:.9rem;color:var(--text);background:#fff;transition:border-color .2s;direction:rtl;}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--rose);}
+textarea{resize:vertical;min-height:70px;}
+.form-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+.btn-primary{background:var(--rose);color:#fff;border:none;border-radius:30px;padding:11px 26px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;}
+.btn-primary:hover{background:var(--deep-rose);}
+.btn-secondary{background:var(--cream);color:var(--soft);border:1.5px solid var(--border);border-radius:30px;padding:11px 22px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Heebo',sans-serif;}
+.btn-export{background:var(--choco);color:#fff;border:none;border-radius:30px;padding:11px 26px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;}
+.btn-export:hover{background:#5c3322;}
+
+.notice{background:#d4f4dd;color:#1a7a3a;border-radius:10px;padding:10px 14px;font-size:.85rem;font-weight:600;margin-top:14px;display:none;}
+
+/* rating stars interactive */
+.star-row{display:flex;gap:4px;direction:ltr;width:fit-content;}
+.star-btn{background:none;border:none;font-size:1.4rem;cursor:pointer;color:#ddd;transition:color .15s;}
+.star-btn.lit,.star-btn:hover~.star-btn,.star-btn:hover{color:#f5a623;}
+/* reverse hover trick */
+.star-row{flex-direction:row-reverse;justify-content:flex-end;}
+.star-row .star-btn:hover,.star-row .star-btn:hover~.star-btn{color:#f5a623;}
+
+@media(max-width:600px){
+  .header-inner{flex-wrap:wrap;gap:10px;}
+  nav{gap:12px;}
+  .form-grid{grid-template-columns:1fr;}
+  .grid{grid-template-columns:1fr;}
+  .admin-panel{padding:22px 16px;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#">✨ <em>ממליצה</em> לך</a>
+    <nav id="nav-cats">
+      <a class="active" onclick="filterCat(this,'all')">הכל</a>
+      <a onclick="filterCat(this,'beauty')">💄 ביוטי</a>
+      <a onclick="filterCat(this,'fashion')">👗 אופנה</a>
+      <a onclick="filterCat(this,'home')">🏠 בית</a>
+      <a onclick="filterCat(this,'food')">🍽️ אוכל</a>
+      <a onclick="filterCat(this,'tech')">📱 טכנולוגיה</a>
+    </nav>
+    <button class="admin-toggle" onclick="openAdmin()">⚙️ ניהול</button>
+  </div>
+</header>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">מוצרים שבאמת שווים</div>
+  <h1>אני בודקת,<br/><em>אתן מחליטות</em></h1>
+  <p>רק מוצרים שעברו מבחן אמיתי — בלי ספונסרים מוסווים, בלי בולשיט.</p>
+  <a href="#products" class="hero-cta" onclick="scrollToProducts(event)">לכל ההמלצות ↓</a>
+</section>
+
+<!-- CATEGORIES pills -->
+<div class="cats">
+  <button class="cat-btn active" onclick="filterCat2(this,'all')">✨ הכל</button>
+  <button class="cat-btn" onclick="filterCat2(this,'beauty')">💄 ביוטי</button>
+  <button class="cat-btn" onclick="filterCat2(this,'fashion')">👗 אופנה</button>
+  <button class="cat-btn" onclick="filterCat2(this,'home')">🏠 בית</button>
+  <button class="cat-btn" onclick="filterCat2(this,'food')">🍽️ אוכל</button>
+  <button class="cat-btn" onclick="filterCat2(this,'tech')">📱 טכנולוגיה</button>
+</div>
+
+<!-- PRODUCTS -->
+<div class="products-wrap" id="products">
+  <div class="grid-header">
+    <div class="sec-title" style="margin:0">המלצות <span>❤️</span></div>
+    <span class="prod-count" id="prod-count"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<footer>
+  <p>© 2026 ממליצה לך · כל הזכויות שמורות</p>
+</footer>
+
+<!-- ===== ADMIN PANEL ===== -->
+<div class="admin-overlay" id="adminOverlay" onclick="overlayClick(event)">
+  <div class="admin-panel">
+    <button class="close-btn" onclick="closeAdmin()">✕</button>
+    <h2>⚙️ פאנל ניהול</h2>
+    <p class="sub">הוסיפי / ערכי מוצרים, ואז הורידי קובץ HTML מעודכן לפרסום.</p>
+
+    <!-- Product List -->
+    <div class="admin-list" id="admin-list"></div>
+
+    <div class="divider"></div>
+
+    <!-- Form -->
+    <div class="form-title" id="form-title">➕ הוספת מוצר חדש</div>
+    <div class="form-grid">
+      <div>
+        <label>שם המוצר *</label>
+        <input id="f-name" type="text" placeholder="למשל: סרום ויטמין C"/>
+      </div>
+      <div>
+        <label>קטגוריה *</label>
+        <select id="f-cat">
+          <option value="">בחרי קטגוריה</option>
+          <option value="beauty">💄 ביוטי</option>
+          <option value="fashion">👗 אופנה</option>
+          <option value="home">🏠 בית</option>
+          <option value="food">🍽️ אוכל</option>
+          <option value="tech">📱 טכנולוגיה</option>
+        </select>
+      </div>
+      <div class="form-full">
+        <label>תיאור קצר</label>
+        <textarea id="f-desc" placeholder="כמה מילים על המוצר..."></textarea>
+      </div>
+      <div>
+        <label>מחיר (₪)</label>
+        <input id="f-price" type="text" placeholder="למשל: 149"/>
+      </div>
+      <div>
+        <label>מחיר מקורי (₪) – אופציונלי</label>
+        <input id="f-orig" type="text" placeholder="למשל: 200"/>
+      </div>
+      <div class="form-full">
+        <label>🔗 לינק אפיליאציה שלך *</label>
+        <input id="f-link" type="url" placeholder="https://..."/>
+      </div>
+      <div class="form-full">
+        <label>אימוג'י לתמונה (אופציונלי)</label>
+        <input id="f-emoji" type="text" placeholder="למשל: 💄 או 👗"/>
+      </div>
+      <div class="form-full">
+        <label>דירוג</label>
+        <div class="star-row" id="star-row">
+          <button type="button" class="star-btn" data-v="5" onclick="setStars(5)">★</button>
+          <button type="button" class="star-btn" data-v="4" onclick="setStars(4)">★</button>
+          <button type="button" class="star-btn" data-v="3" onclick="setStars(3)">★</button>
+          <button type="button" class="star-btn" data-v="2" onclick="setStars(2)">★</button>
+          <button type="button" class="star-btn" data-v="1" onclick="setStars(1)">★</button>
+        </div>
+      </div>
+      <div class="form-full">
+        <label>המלצה</label>
+        <select id="f-rec">
+          <option value="yes">✅ ממליצה!</option>
+          <option value="no">❌ לא ממליצה</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-primary" onclick="saveProduct()">💾 שמור מוצר</button>
+      <button class="btn-secondary" onclick="resetForm()">ביטול</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="form-actions">
+      <button class="btn-export" onclick="exportSite()">⬇️ הורד אתר מעודכן (HTML)</button>
+    </div>
+    <div class="notice" id="notice">✅ הקובץ הורד! העלי אותו לאתר שלך.</div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA =====================
+// PRODUCTS_DATA_START
+var PRODUCTS = [];
+// PRODUCTS_DATA_END
+
+var currentCat = 'all';
+var editingId = null;
+var currentStars = 5;
+var catLabels = {beauty:'💄 ביוטי',fashion:'👗 אופנה',home:'🏠 בית',food:'🍽️ אוכל',tech:'📱 טכנולוגיה'};
+var catBg = {beauty:'linear-gradient(135deg,#fce4d6,#f4b8a0)',fashion:'linear-gradient(135deg,#d5e8f9,#b0cde8)',home:'linear-gradient(135deg,#e8f5e0,#c3e8b0)',food:'linear-gradient(135deg,#fdf5d0,#f5e090)',tech:'linear-gradient(135deg,#dce8ff,#b0c8f5)'};
+
+// ===================== RENDER =====================
+function render() {
+  var grid = document.getElementById('grid');
+  var filtered = currentCat === 'all' ? PRODUCTS : PRODUCTS.filter(function(p){return p.cat === currentCat;});
+  document.getElementById('prod-count').textContent = filtered.length + ' מוצרים';
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><div class="big">🛍️</div><p>עדיין אין מוצרים כאן.<br/>פתחי את פאנל הניהול והוסיפי!</p></div>';
+    return;
+  }
+
+  grid.innerHTML = filtered.map(function(p, i) {
+    var bg = catBg[p.cat] || 'linear-gradient(135deg,#fce4d6,#f9d5c5)';
+    var thumb = p.emoji
+      ? '<div class="card-thumb-placeholder" style="background:'+bg+'">'+p.emoji+'</div>'
+      : '<div class="card-thumb-placeholder" style="background:'+bg+'">🛍️</div>';
+    var stars = '';
+    for(var s=1;s<=5;s++) stars += s<=p.stars ? '★' : '☆';
+    var recTag = p.rec==='yes'
+      ? '<span class="tag tag-yes">✓ ממליצה!</span>'
+      : '<span class="tag tag-no">✗ לא ממליצה</span>';
+    var origHtml = p.orig ? '<span class="orig">₪'+p.orig+'</span>' : '';
+    var priceHtml = p.price ? origHtml+'₪'+p.price : '';
+    return '<div class="card" style="animation-delay:'+(.05*(i%6))+'s" data-cat="'+p.cat+'">'
+      + thumb
+      + '<div class="card-body">'
+      + '<div class="card-tags"><span class="tag tag-cat">'+(catLabels[p.cat]||p.cat)+'</span>'+recTag+'</div>'
+      + '<div class="stars">'+stars+'</div>'
+      + '<div class="card-title">'+escHtml(p.name)+'</div>'
+      + (p.desc?'<div class="card-desc">'+escHtml(p.desc)+'</div>':'')
+      + '<div class="card-footer">'
+      + '<div class="card-price">'+priceHtml+'</div>'
+      + (p.link?'<a class="card-btn" href="'+p.link+'" target="_blank" rel="noopener">לקנייה →</a>':'')
+      + '</div></div></div>';
+  }).join('');
+}
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ===================== FILTER =====================
+function filterCat(el, cat) {
+  currentCat = cat;
+  document.querySelectorAll('#nav-cats a').forEach(function(a){a.classList.remove('active');});
+  el.classList.add('active');
+  document.querySelectorAll('.cat-btn').forEach(function(b,i){
+    var cats=['all','beauty','fashion','home','food','tech'];
+    b.classList.toggle('active', cats[i]===cat);
+  });
+  render();
+}
+function filterCat2(el, cat) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('active');});
+  el.classList.add('active');
+  var cats=['all','beauty','fashion','home','food','tech'];
+  document.querySelectorAll('#nav-cats a').forEach(function(a,i){
+    a.classList.toggle('active', cats[i]===cat);
+  });
+  render();
+}
+
+// ===================== ADMIN =====================
+function openAdmin(){
+  renderAdminList();
+  document.getElementById('adminOverlay').classList.add('open');
+}
+function closeAdmin(){document.getElementById('adminOverlay').classList.remove('open');}
+function overlayClick(e){if(e.target===document.getElementById('adminOverlay'))closeAdmin();}
+
+function renderAdminList(){
+  var list = document.getElementById('admin-list');
+  if(PRODUCTS.length===0){list.innerHTML='<p style="color:var(--taupe);font-size:.88rem;text-align:center;padding:14px">אין מוצרים עדיין</p>';return;}
+  list.innerHTML = PRODUCTS.map(function(p){
+    return '<div class="admin-item">'
+      +'<div class="admin-item-info"><div class="admin-item-name">'+escHtml(p.name)+'</div>'
+      +'<div class="admin-item-cat">'+(catLabels[p.cat]||p.cat)+' · '+(p.rec==='yes'?'ממליצה':'לא ממליצה')+'</div></div>'
+      +'<div class="admin-item-btns">'
+      +'<button class="btn-edit" onclick="editProduct(\''+p.id+'\')">✏️ ערוך</button>'
+      +'<button class="btn-del" onclick="deleteProduct(\''+p.id+'\')">🗑️</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function setStars(n){
+  currentStars = n;
+  document.querySelectorAll('.star-btn').forEach(function(b){
+    b.classList.toggle('lit', parseInt(b.dataset.v) <= n);
+  });
+}
+
+function saveProduct(){
+  var name = document.getElementById('f-name').value.trim();
+  var cat  = document.getElementById('f-cat').value;
+  var link = document.getElementById('f-link').value.trim();
+  if(!name){alert('נא להכניס שם מוצר');return;}
+  if(!cat){alert('נא לבחור קטגוריה');return;}
+  if(!link){alert('נא להכניס לינק אפיליאציה');return;}
+
+  var prod = {
+    id: editingId || ('p'+Date.now()),
+    name: name,
+    cat:  cat,
+    desc: document.getElementById('f-desc').value.trim(),
+    price:document.getElementById('f-price').value.trim(),
+    orig: document.getElementById('f-orig').value.trim(),
+    link: link,
+    emoji:document.getElementById('f-emoji').value.trim(),
+    stars:currentStars,
+    rec:  document.getElementById('f-rec').value
+  };
+
+  if(editingId){
+    var idx = PRODUCTS.findIndex(function(p){return p.id===editingId;});
+    if(idx!==-1) PRODUCTS[idx]=prod;
+  } else {
+    PRODUCTS.push(prod);
+  }
+
+  resetForm();
+  renderAdminList();
+  render();
+}
+
+function editProduct(id){
+  var p = PRODUCTS.find(function(x){return x.id===id;});
+  if(!p) return;
+  editingId = id;
+  document.getElementById('f-name').value  = p.name||'';
+  document.getElementById('f-cat').value   = p.cat||'';
+  document.getElementById('f-desc').value  = p.desc||'';
+  document.getElementById('f-price').value = p.price||'';
+  document.getElementById('f-orig').value  = p.orig||'';
+  document.getElementById('f-link').value  = p.link||'';
+  document.getElementById('f-emoji').value = p.emoji||'';
+  document.getElementById('f-rec').value   = p.rec||'yes';
+  setStars(p.stars||5);
+  document.getElementById('form-title').textContent = '✏️ עריכת מוצר';
+  document.getElementById('f-name').scrollIntoView({behavior:'smooth'});
+}
+
+function deleteProduct(id){
+  if(!confirm('למחוק את המוצר?')) return;
+  PRODUCTS = PRODUCTS.filter(function(p){return p.id!==id;});
+  renderAdminList();
+  render();
+}
+
+function resetForm(){
+  editingId = null;
+  ['f-name','f-cat','f-desc','f-price','f-orig','f-link','f-emoji'].forEach(function(id){
+    document.getElementById(id).value='';
+  });
+  document.getElementById('f-rec').value='yes';
+  setStars(5);
+  document.getElementById('form-title').textContent='➕ הוספת מוצר חדש';
+}
+
+// ===================== EXPORT =====================
+function exportSite(){
+  var src = document.documentElement.outerHTML;
+  // Replace the products data in the source
+  var jsonData = JSON.stringify(PRODUCTS, null, 2);
+  src = src.replace(
+    /\/\/ PRODUCTS_DATA_START[\s\S]*?\/\/ PRODUCTS_DATA_END/,
+    '// PRODUCTS_DATA_START\nvar PRODUCTS = ' + jsonData + ';\n// PRODUCTS_DATA_END'
+  );
+  var blob = new Blob([src], {type:'text/html;charset=utf-8'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'mamleecha-lach.html';
+  a.click();
+  document.getElementById('notice').style.display = 'block';
+  setTimeout(function(){document.getElementById('notice').style.display='none';},4000);
+}
+
+function scrollToProducts(e){
+  e.preventDefault();
+  document.getElementById('products').scrollIntoView({behavior:'smooth'});
+}
+
+// Init
+setStars(5);
+render();
+</script>
+</body>
+</html>
