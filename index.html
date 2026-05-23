@@ -3,133 +3,204 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ממליצה לך – המלצות מוצרים</title>
+<title>שוק הטעמים – מוצרי אוכל ומטבח מאלי אקספרס</title>
+<meta name="description" content="מוצרי אוכל ומטבח מומלצים מאלי אקספרס – כלי מטבח, תבלינים, חטיפים ועוד במחירים הכי טובים"/>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;900&display=swap" rel="stylesheet"/>
 <style>
 :root {
-  --cream:#faf7f2; --warm:#fff9f3; --blush:#f2c4b0; --rose:#d4847a;
-  --deep-rose:#a85c52; --choco:#3d2217; --taupe:#8a7060;
-  --text:#2a1a10; --soft:#6b4e3d; --border:#e8ddd5;
+  --cream:#fff8f0; --warm:#fffbf5; --orange:#ff6b35; --deep-orange:#e85d04;
+  --gold:#f9a825; --amber:#ff8c00; --dark:#1a0a00; --text:#2d1600;
+  --soft:#7a4400; --border:#ffd8b0; --green:#00a86b; --light-green:#d4f5e5;
+  --card-bg:#ffffff; --overlay:rgba(26,10,0,.55);
 }
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Heebo',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
 
 /* ===== HEADER ===== */
-header{background:var(--warm);border-bottom:1.5px solid var(--border);position:sticky;top:0;z-index:100;}
-.header-inner{max-width:1100px;margin:0 auto;padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;}
-.logo{font-size:1.5rem;font-weight:900;color:var(--choco);text-decoration:none;}
-.logo em{font-style:normal;color:var(--rose);}
-nav{display:flex;gap:20px;flex-wrap:wrap;}
-nav a{text-decoration:none;color:var(--soft);font-size:.9rem;font-weight:600;transition:color .2s;cursor:pointer;}
-nav a:hover,nav a.active{color:var(--rose);}
-.admin-toggle{background:var(--choco);color:#fff;border:none;border-radius:30px;padding:8px 18px;font-family:'Heebo',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:background .2s;}
-.admin-toggle:hover{background:var(--deep-rose);}
+header{background:var(--dark);position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(0,0,0,.35);}
+.header-inner{max-width:1200px;margin:0 auto;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-icon{width:44px;height:44px;background:linear-gradient(135deg,var(--orange),var(--gold));border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.35rem;flex-shrink:0;box-shadow:0 2px 10px rgba(255,107,53,.4);}
+.logo-text{display:flex;flex-direction:column;line-height:1;}
+.logo-main{font-size:1.3rem;font-weight:900;color:#fff;}
+.logo-main em{font-style:normal;color:var(--gold);}
+.logo-sub{font-size:.6rem;color:rgba(255,255,255,.45);letter-spacing:.6px;margin-top:2px;}
+nav{display:flex;gap:4px;flex-wrap:wrap;}
+nav a{text-decoration:none;color:rgba(255,255,255,.6);font-size:.8rem;font-weight:600;transition:color .2s;cursor:pointer;padding:4px 6px;border-radius:6px;}
+nav a:hover,nav a.active{color:var(--gold);}
+.admin-toggle{background:var(--orange);color:#fff;border:none;border-radius:30px;padding:9px 20px;font-family:'Heebo',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap;box-shadow:0 2px 10px rgba(255,107,53,.3);}
+.admin-toggle:hover{background:var(--deep-orange);transform:translateY(-1px);}
 
 /* ===== HERO ===== */
-.hero{background:linear-gradient(135deg,#fdf0e8,#fce4d6 60%,#f9d5c5);padding:64px 24px 50px;text-align:center;position:relative;overflow:hidden;}
-.hero::before{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(242,196,176,.35),transparent 70%);top:-180px;left:50%;transform:translateX(-50%);pointer-events:none;}
-.hero-badge{display:inline-block;background:var(--rose);color:#fff;font-size:.72rem;font-weight:700;letter-spacing:1.5px;padding:5px 16px;border-radius:40px;margin-bottom:18px;text-transform:uppercase;}
-.hero h1{font-size:clamp(2rem,6vw,3.4rem);font-weight:900;color:var(--choco);line-height:1.15;margin-bottom:14px;}
-.hero h1 em{font-style:normal;color:var(--rose);}
-.hero p{font-size:1rem;color:var(--soft);max-width:480px;margin:0 auto 28px;line-height:1.7;}
-.hero-cta{display:inline-block;background:var(--choco);color:#fff;padding:13px 32px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.95rem;transition:background .2s,transform .15s;}
-.hero-cta:hover{background:var(--deep-rose);transform:translateY(-2px);}
+.hero{background:linear-gradient(135deg,#1a0a00 0%,#3a1a00 55%,#5c2e00 100%);padding:72px 24px 58px;text-align:center;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(255,107,53,.12),transparent 70%);pointer-events:none;}
+.hero::after{content:'🍳 🌶️ 🍿 ☕ 🧁 🔥 🍽️ 🥄 🫕 🥘';position:absolute;bottom:-10px;left:0;right:0;font-size:1.8rem;opacity:.06;letter-spacing:8px;white-space:nowrap;overflow:hidden;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,53,.15);border:1.5px solid rgba(255,107,53,.35);color:var(--orange);font-size:.75rem;font-weight:700;letter-spacing:1px;padding:5px 16px;border-radius:40px;margin-bottom:22px;}
+.hero h1{font-size:clamp(2.2rem,6vw,3.8rem);font-weight:900;color:#fff;line-height:1.15;margin-bottom:18px;}
+.hero h1 em{font-style:normal;color:var(--gold);}
+.hero h1 strong{font-style:normal;color:var(--orange);}
+.hero p{font-size:1rem;color:rgba(255,255,255,.6);max-width:500px;margin:0 auto 32px;line-height:1.8;}
+.hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.hero-cta{display:inline-block;background:var(--orange);color:#fff;padding:14px 36px;border-radius:50px;text-decoration:none;font-weight:800;font-size:.95rem;transition:all .2s;box-shadow:0 4px 22px rgba(255,107,53,.45);}
+.hero-cta:hover{background:var(--deep-orange);transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,107,53,.55);}
+.hero-cta-2{display:inline-block;background:transparent;color:#fff;padding:14px 36px;border-radius:50px;text-decoration:none;font-weight:700;font-size:.95rem;border:1.5px solid rgba(255,255,255,.25);transition:all .2s;}
+.hero-cta-2:hover{border-color:var(--gold);color:var(--gold);}
+
+/* ===== STATS BAR ===== */
+.stats-bar{background:var(--orange);padding:13px 24px;}
+.stats-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:center;gap:28px;flex-wrap:wrap;}
+.stat{display:flex;align-items:center;gap:7px;color:#fff;font-size:.86rem;font-weight:600;}
+.stat span{opacity:.8;font-weight:400;}
 
 /* ===== CATEGORIES ===== */
-.section{max-width:1100px;margin:0 auto;padding:0 24px;}
-.sec-title{font-size:1.35rem;font-weight:800;color:var(--choco);margin-bottom:16px;}
-.sec-title span{color:var(--rose);}
-.cats{display:flex;gap:10px;flex-wrap:wrap;margin:40px auto 0;max-width:1100px;padding:0 24px;}
-.cat-btn{background:#fff;border:1.5px solid var(--border);color:var(--soft);font-size:.88rem;font-weight:600;padding:8px 18px;border-radius:40px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;font-family:'Heebo',sans-serif;}
-.cat-btn:hover,.cat-btn.active{background:var(--rose);border-color:var(--rose);color:#fff;}
+.cats-section{background:var(--warm);border-bottom:1.5px solid var(--border);padding:14px 24px;position:sticky;top:68px;z-index:80;box-shadow:0 2px 8px rgba(0,0,0,.04);}
+.cats{display:flex;gap:8px;flex-wrap:wrap;max-width:1200px;margin:0 auto;}
+.cat-btn{background:#fff;border:1.5px solid var(--border);color:var(--soft);font-size:.84rem;font-weight:600;padding:8px 16px;border-radius:40px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:5px;font-family:'Heebo',sans-serif;white-space:nowrap;}
+.cat-btn:hover{border-color:var(--orange);color:var(--orange);}
+.cat-btn.active{background:var(--orange);border-color:var(--orange);color:#fff;box-shadow:0 2px 12px rgba(255,107,53,.3);}
 
 /* ===== GRID ===== */
-.products-wrap{max-width:1100px;margin:32px auto 60px;padding:0 24px;}
-.grid-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-.prod-count{font-size:.88rem;color:var(--taupe);}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px;}
-.empty-state{grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--taupe);}
-.empty-state .big{font-size:3rem;margin-bottom:12px;}
-.empty-state p{font-size:1rem;}
+.products-wrap{max-width:1200px;margin:38px auto 72px;padding:0 24px;}
+.grid-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;}
+.sec-title{font-size:1.4rem;font-weight:900;color:var(--dark);}
+.sec-title span{color:var(--orange);}
+.prod-count{font-size:.84rem;color:var(--soft);background:var(--warm);padding:5px 14px;border-radius:20px;border:1px solid var(--border);font-weight:600;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:24px;}
+.empty-state{grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--soft);}
+.empty-state .big{font-size:4.5rem;margin-bottom:16px;}
+.empty-state h3{font-size:1.25rem;font-weight:800;color:var(--dark);margin-bottom:10px;}
+.empty-state p{font-size:.9rem;opacity:.7;line-height:1.6;}
+.empty-state .empty-btn{display:inline-block;margin-top:20px;background:var(--orange);color:#fff;padding:11px 26px;border-radius:30px;font-size:.9rem;font-weight:700;cursor:pointer;border:none;font-family:'Heebo',sans-serif;}
 
 /* ===== CARD ===== */
-.card{background:#fff;border-radius:16px;overflow:hidden;border:1.5px solid var(--border);transition:transform .2s,box-shadow .2s;animation:fadeUp .45s ease both;}
-.card:hover{transform:translateY(-5px);box-shadow:0 14px 36px rgba(61,34,23,.11);}
-@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
-.card-thumb{width:100%;height:190px;object-fit:cover;display:block;background:linear-gradient(135deg,#fce4d6,#f9d5c5);}
-.card-thumb-placeholder{width:100%;height:190px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;}
-.card-body{padding:16px 16px 12px;}
-.card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;}
-.tag{font-size:.7rem;font-weight:700;padding:3px 9px;border-radius:20px;}
-.tag-cat{background:#fce4d6;color:var(--deep-rose);}
-.tag-yes{background:#d4f4dd;color:#1a7a3a;}
-.tag-no{background:#ffe0dc;color:#b33a2a;}
-.stars{color:#f5a623;font-size:.82rem;margin-bottom:4px;}
-.card-title{font-size:1rem;font-weight:700;color:var(--choco);margin-bottom:6px;line-height:1.4;}
-.card-desc{font-size:.84rem;color:var(--soft);line-height:1.6;margin-bottom:12px;}
-.card-footer{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:10px;}
-.card-price{font-size:.95rem;font-weight:800;color:var(--choco);}
-.orig{font-size:.77rem;font-weight:400;color:var(--taupe);text-decoration:line-through;margin-right:4px;}
-.card-btn{background:var(--rose);color:#fff;border:none;border-radius:30px;padding:7px 16px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;text-decoration:none;display:inline-block;}
-.card-btn:hover{background:var(--deep-rose);}
+.card{background:var(--card-bg);border-radius:18px;overflow:hidden;border:1.5px solid var(--border);transition:transform .22s,box-shadow .22s;animation:fadeUp .45s ease both;display:flex;flex-direction:column;}
+.card:hover{transform:translateY(-6px);box-shadow:0 18px 44px rgba(255,107,53,.14);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+.card-media{width:100%;height:210px;object-fit:cover;display:block;}
+.card-media-placeholder{width:100%;height:210px;display:flex;align-items:center;justify-content:center;font-size:4.5rem;}
+.card-video{width:100%;height:210px;object-fit:cover;display:block;background:#111;}
+.card-body{padding:16px 16px 14px;flex:1;display:flex;flex-direction:column;}
+.card-tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px;}
+.tag{font-size:.67rem;font-weight:700;padding:3px 9px;border-radius:20px;display:inline-flex;align-items:center;gap:3px;}
+.tag-cat{background:#fff0e6;color:var(--deep-orange);border:1px solid #ffd0a0;}
+.tag-sale{background:#fff3cd;color:#856404;border:1px solid #ffdb6b;}
+.tag-new{background:#d1f0fb;color:#0c6480;border:1px solid #b0dff5;}
+.tag-top{background:#f0e8ff;color:#6030a0;border:1px solid #d0b0ff;}
+.tag-rec{background:var(--light-green);color:#006b3c;border:1px solid #a0e8c0;}
+.tag-ali{background:#fff0e6;color:#cc3000;}
+.stars{color:var(--gold);font-size:.84rem;margin-bottom:6px;display:flex;align-items:center;gap:4px;}
+.stars-count{font-size:.73rem;color:var(--soft);font-weight:400;}
+.card-title{font-size:1rem;font-weight:800;color:var(--dark);margin-bottom:7px;line-height:1.4;}
+.card-desc{font-size:.83rem;color:var(--soft);line-height:1.6;margin-bottom:12px;flex:1;}
+.card-footer{display:flex;align-items:flex-end;justify-content:space-between;border-top:1px solid var(--border);padding-top:12px;margin-top:auto;gap:8px;}
+.card-price{display:flex;flex-direction:column;gap:2px;}
+.price-current{font-size:1.1rem;font-weight:900;color:var(--dark);}
+.price-orig{font-size:.73rem;font-weight:400;color:var(--soft);text-decoration:line-through;}
+.price-discount{font-size:.7rem;font-weight:700;color:var(--green);background:var(--light-green);padding:2px 7px;border-radius:8px;display:inline-block;}
+.card-btn{background:linear-gradient(135deg,#e62014,var(--orange));color:#fff;border:none;border-radius:30px;padding:9px 18px;font-size:.82rem;font-weight:800;cursor:pointer;font-family:'Heebo',sans-serif;transition:all .2s;text-decoration:none;display:inline-flex;align-items:center;gap:5px;white-space:nowrap;box-shadow:0 2px 10px rgba(230,32,20,.25);}
+.card-btn:hover{transform:scale(1.06);box-shadow:0 4px 16px rgba(230,32,20,.4);}
 
 /* ===== FOOTER ===== */
-footer{background:#2a1a10;color:rgba(255,255,255,.5);text-align:center;padding:26px 24px;font-size:.85rem;}
-footer a{color:var(--blush);text-decoration:none;}
+footer{background:var(--dark);color:rgba(255,255,255,.4);text-align:center;padding:36px 24px;font-size:.84rem;}
+.footer-logo{font-size:1.4rem;font-weight:900;color:#fff;margin-bottom:8px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.footer-logo em{font-style:normal;color:var(--gold);}
+footer p{margin-top:6px;line-height:1.7;}
+footer a{color:var(--orange);text-decoration:none;}
+footer a:hover{text-decoration:underline;}
+.footer-disclaimer{margin-top:16px;font-size:.73rem;opacity:.4;max-width:600px;margin-left:auto;margin-right:auto;line-height:1.5;}
 
 /* ===== ADMIN PANEL ===== */
-.admin-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto;}
+.admin-overlay{display:none;position:fixed;inset:0;background:var(--overlay);z-index:200;align-items:flex-start;justify-content:center;padding:24px 16px;overflow-y:auto;}
 .admin-overlay.open{display:flex;}
-.admin-panel{background:#fff;border-radius:20px;width:100%;max-width:680px;padding:32px;position:relative;}
-.admin-panel h2{font-size:1.4rem;font-weight:800;color:var(--choco);margin-bottom:4px;}
-.admin-panel .sub{font-size:.88rem;color:var(--taupe);margin-bottom:24px;}
-.close-btn{position:absolute;top:18px;left:18px;background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--taupe);}
+.admin-panel{background:#fff;border-radius:22px;width:100%;max-width:730px;padding:34px;position:relative;margin:auto;}
+.admin-panel h2{font-size:1.55rem;font-weight:900;color:var(--dark);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.admin-panel .sub{font-size:.86rem;color:var(--soft);margin-bottom:24px;line-height:1.6;}
+.close-btn{position:absolute;top:20px;left:20px;background:var(--cream);border:none;border-radius:50%;width:36px;height:36px;font-size:1rem;cursor:pointer;color:var(--soft);display:flex;align-items:center;justify-content:center;transition:background .2s;font-family:'Heebo',sans-serif;}
+.close-btn:hover{background:var(--border);}
+
+/* Tabs */
+.admin-tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:2px solid var(--border);}
+.admin-tab{background:none;border:none;padding:10px 18px;font-family:'Heebo',sans-serif;font-size:.88rem;font-weight:600;color:var(--soft);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;}
+.admin-tab.active{color:var(--orange);border-bottom-color:var(--orange);}
+.admin-tab-content{display:none;}
+.admin-tab-content.active{display:block;}
 
 /* product list in admin */
-.admin-list{display:flex;flex-direction:column;gap:10px;margin-bottom:24px;max-height:320px;overflow-y:auto;}
-.admin-item{display:flex;align-items:center;justify-content:space-between;background:var(--cream);border-radius:10px;padding:10px 14px;gap:10px;}
+.admin-list{display:flex;flex-direction:column;gap:8px;margin-bottom:20px;max-height:320px;overflow-y:auto;padding-left:4px;}
+.admin-list::-webkit-scrollbar{width:4px;}
+.admin-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.admin-item{display:flex;align-items:center;gap:10px;background:var(--cream);border-radius:12px;padding:10px 14px;border:1px solid var(--border);}
+.admin-item-thumb{width:46px;height:46px;border-radius:9px;object-fit:cover;flex-shrink:0;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;overflow:hidden;}
 .admin-item-info{flex:1;min-width:0;}
-.admin-item-name{font-weight:700;font-size:.9rem;color:var(--choco);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.admin-item-cat{font-size:.75rem;color:var(--taupe);}
+.admin-item-name{font-weight:700;font-size:.9rem;color:var(--dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.admin-item-cat{font-size:.73rem;color:var(--soft);margin-top:2px;}
 .admin-item-btns{display:flex;gap:6px;flex-shrink:0;}
-.btn-edit,.btn-del{border:none;border-radius:8px;padding:5px 12px;font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;}
-.btn-edit{background:#e8f0ff;color:#3355cc;}
+.btn-edit,.btn-del{border:none;border-radius:8px;padding:5px 12px;font-size:.78rem;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;}
+.btn-edit{background:#e8f0ff;color:#2244bb;}
 .btn-edit:hover{background:#c8d8ff;}
 .btn-del{background:#ffe0dc;color:#b33a2a;}
 .btn-del:hover{background:#ffbdb5;}
 
 /* form */
-.divider{height:1px;background:var(--border);margin:20px 0;}
-.form-title{font-size:1rem;font-weight:700;color:var(--choco);margin-bottom:14px;}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.form-title{font-size:1rem;font-weight:800;color:var(--dark);margin-bottom:18px;display:flex;align-items:center;gap:6px;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .form-full{grid-column:1/-1;}
-label{font-size:.82rem;font-weight:600;color:var(--soft);display:block;margin-bottom:4px;}
-input,textarea,select{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:10px;font-family:'Heebo',sans-serif;font-size:.9rem;color:var(--text);background:#fff;transition:border-color .2s;direction:rtl;}
-input:focus,textarea:focus,select:focus{outline:none;border-color:var(--rose);}
-textarea{resize:vertical;min-height:70px;}
-.form-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
-.btn-primary{background:var(--rose);color:#fff;border:none;border-radius:30px;padding:11px 26px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;}
-.btn-primary:hover{background:var(--deep-rose);}
-.btn-secondary{background:var(--cream);color:var(--soft);border:1.5px solid var(--border);border-radius:30px;padding:11px 22px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Heebo',sans-serif;}
-.btn-export{background:var(--choco);color:#fff;border:none;border-radius:30px;padding:11px 26px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;}
-.btn-export:hover{background:#5c3322;}
+label{font-size:.79rem;font-weight:700;color:var(--soft);display:flex;align-items:center;gap:4px;margin-bottom:5px;}
+input,textarea,select{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:10px;font-family:'Heebo',sans-serif;font-size:.9rem;color:var(--text);background:#fff;transition:border-color .2s,box-shadow .2s;direction:rtl;}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,107,53,.1);}
+textarea{resize:vertical;min-height:75px;}
 
-.notice{background:#d4f4dd;color:#1a7a3a;border-radius:10px;padding:10px 14px;font-size:.85rem;font-weight:600;margin-top:14px;display:none;}
+/* media upload */
+.media-upload-area{border:2px dashed var(--border);border-radius:14px;padding:22px 16px;text-align:center;cursor:pointer;transition:all .2s;background:var(--cream);}
+.media-upload-area:hover,.media-upload-area.dragover{border-color:var(--orange);background:#fff5f0;}
+.media-upload-area input[type=file]{display:none;}
+.media-upload-icon{font-size:2.2rem;margin-bottom:7px;}
+.media-upload-text{font-size:.87rem;color:var(--soft);font-weight:700;}
+.media-upload-hint{font-size:.74rem;color:#bbb;margin-top:5px;}
+.media-preview{margin-top:14px;border-radius:10px;overflow:hidden;max-height:160px;display:none;}
+.media-preview img,.media-preview video{width:100%;max-height:160px;object-fit:cover;border-radius:10px;display:block;}
+.media-clear{background:var(--cream);border:1px solid var(--border);border-radius:8px;padding:4px 12px;font-size:.75rem;color:var(--soft);cursor:pointer;margin-top:8px;display:none;font-family:'Heebo',sans-serif;transition:background .2s;}
+.media-clear:hover{background:var(--border);}
 
-/* rating stars interactive */
-.star-row{display:flex;gap:4px;direction:ltr;width:fit-content;}
-.star-btn{background:none;border:none;font-size:1.4rem;cursor:pointer;color:#ddd;transition:color .15s;}
-.star-btn.lit,.star-btn:hover~.star-btn,.star-btn:hover{color:#f5a623;}
-/* reverse hover trick */
-.star-row{flex-direction:row-reverse;justify-content:flex-end;}
-.star-row .star-btn:hover,.star-row .star-btn:hover~.star-btn{color:#f5a623;}
+/* ali link field */
+.ali-link-wrap{position:relative;}
+.ali-badge-input{position:absolute;top:50%;transform:translateY(-50%);left:12px;background:linear-gradient(135deg,#e62014,var(--orange));color:#fff;font-size:.6rem;font-weight:800;padding:2px 7px;border-radius:6px;letter-spacing:.5px;pointer-events:none;}
+.ali-link-wrap input{padding-left:72px;}
 
-@media(max-width:600px){
+.form-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;}
+.btn-primary{background:var(--orange);color:#fff;border:none;border-radius:30px;padding:11px 28px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.btn-primary:hover{background:var(--deep-orange);}
+.btn-secondary{background:var(--cream);color:var(--soft);border:1.5px solid var(--border);border-radius:30px;padding:11px 22px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:'Heebo',sans-serif;transition:background .2s;}
+.btn-secondary:hover{background:var(--border);}
+.btn-export{background:var(--dark);color:#fff;border:none;border-radius:30px;padding:11px 28px;font-size:.9rem;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.btn-export:hover{background:#3d1f00;}
+
+.notice{border-radius:10px;padding:11px 16px;font-size:.85rem;font-weight:600;margin-top:16px;display:none;}
+.notice.success{background:#d4f5e5;color:#006b3c;}
+.notice.error{background:#ffe0dc;color:#b33a2a;}
+
+/* interactive stars */
+.star-row{display:flex;flex-direction:row-reverse;justify-content:flex-end;gap:6px;width:fit-content;}
+.star-btn{background:none;border:none;font-size:1.6rem;cursor:pointer;color:#e0d0c0;transition:color .15s;line-height:1;}
+.star-btn.lit{color:var(--gold);}
+
+/* export info box */
+.export-info{background:var(--cream);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:22px;font-size:.86rem;color:var(--soft);line-height:1.7;}
+.export-info strong{color:var(--dark);}
+.export-info ul{margin-top:8px;padding-right:18px;}
+.export-info li{margin-top:4px;}
+
+@media(max-width:660px){
   .header-inner{flex-wrap:wrap;gap:10px;}
-  nav{gap:12px;}
+  nav{gap:4px;}
+  nav a{font-size:.75rem;}
   .form-grid{grid-template-columns:1fr;}
   .grid{grid-template-columns:1fr;}
   .admin-panel{padding:22px 16px;}
+  .cats-section{top:60px;}
+  .hero{padding:50px 20px 40px;}
+  .stats-inner{gap:14px;}
+  .hero-btns{flex-direction:column;align-items:center;}
 }
 </style>
 </head>
@@ -138,130 +209,202 @@ textarea{resize:vertical;min-height:70px;}
 <!-- HEADER -->
 <header>
   <div class="header-inner">
-    <a class="logo" href="#">✨ <em>ממליצה</em> לך</a>
+    <a class="logo" href="#">
+      <div class="logo-icon">🍽️</div>
+      <div class="logo-text">
+        <span class="logo-main">שוק <em>הטעמים</em></span>
+        <span class="logo-sub">מוצרי אוכל ומטבח מאלי אקספרס</span>
+      </div>
+    </a>
     <nav id="nav-cats">
       <a class="active" onclick="filterCat(this,'all')">הכל</a>
-      <a onclick="filterCat(this,'beauty')">💄 ביוטי</a>
-      <a onclick="filterCat(this,'fashion')">👗 אופנה</a>
-      <a onclick="filterCat(this,'home')">🏠 בית</a>
-      <a onclick="filterCat(this,'food')">🍽️ אוכל</a>
-      <a onclick="filterCat(this,'tech')">📱 טכנולוגיה</a>
+      <a onclick="filterCat(this,'kitchen')">🍳 מטבח</a>
+      <a onclick="filterCat(this,'spices')">🌶️ תבלינים</a>
+      <a onclick="filterCat(this,'snacks')">🍿 חטיפים</a>
+      <a onclick="filterCat(this,'drinks')">☕ שתייה</a>
+      <a onclick="filterCat(this,'baking')">🧁 אפייה</a>
+      <a onclick="filterCat(this,'bbq')">🔥 גריל</a>
     </nav>
-    <button class="admin-toggle" onclick="openAdmin()">⚙️ ניהול</button>
+    <button class="admin-toggle" onclick="openAdmin()">⚙️ ניהול מוצרים</button>
   </div>
 </header>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-badge">מוצרים שבאמת שווים</div>
-  <h1>אני בודקת,<br/><em>אתן מחליטות</em></h1>
-  <p>רק מוצרים שעברו מבחן אמיתי — בלי ספונסרים מוסווים, בלי בולשיט.</p>
-  <a href="#products" class="hero-cta" onclick="scrollToProducts(event)">לכל ההמלצות ↓</a>
+  <div class="hero-badge">🔥 מוצרי אוכל ומטבח מומלצים</div>
+  <h1>הטעמים הכי <em>שווים</em><br/>מ<strong>אלי אקספרס</strong></h1>
+  <p>בדקתי, טעמתי, ובחרתי עבורכם — רק המוצרים שבאמת שווים כל שקל.<br/>כלי מטבח, תבלינים, חטיפים, שתייה ועוד.</p>
+  <div class="hero-btns">
+    <a href="#products" class="hero-cta" onclick="scrollToProducts(event)">🛒 לכל המוצרים</a>
+    <a href="#" class="hero-cta-2" onclick="openAdmin();return false;">➕ הוסף מוצר</a>
+  </div>
 </section>
 
+<!-- STATS BAR -->
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat">🚀 <span>משלוח מהיר מאלי אקספרס</span></div>
+    <div class="stat">✅ <span>מוצרים שנבדקו אישית</span></div>
+    <div class="stat">💸 <span>מחירים הכי טובים ברשת</span></div>
+    <div class="stat">⭐ <span>דירוג והמלצות אמיתיות</span></div>
+  </div>
+</div>
+
 <!-- CATEGORIES pills -->
-<div class="cats">
-  <button class="cat-btn active" onclick="filterCat2(this,'all')">✨ הכל</button>
-  <button class="cat-btn" onclick="filterCat2(this,'beauty')">💄 ביוטי</button>
-  <button class="cat-btn" onclick="filterCat2(this,'fashion')">👗 אופנה</button>
-  <button class="cat-btn" onclick="filterCat2(this,'home')">🏠 בית</button>
-  <button class="cat-btn" onclick="filterCat2(this,'food')">🍽️ אוכל</button>
-  <button class="cat-btn" onclick="filterCat2(this,'tech')">📱 טכנולוגיה</button>
+<div class="cats-section">
+  <div class="cats">
+    <button class="cat-btn active" onclick="filterCat2(this,'all')">✨ הכל</button>
+    <button class="cat-btn" onclick="filterCat2(this,'kitchen')">🍳 כלי מטבח</button>
+    <button class="cat-btn" onclick="filterCat2(this,'spices')">🌶️ תבלינים ורטבים</button>
+    <button class="cat-btn" onclick="filterCat2(this,'snacks')">🍿 חטיפים ונשנושים</button>
+    <button class="cat-btn" onclick="filterCat2(this,'drinks')">☕ שתייה</button>
+    <button class="cat-btn" onclick="filterCat2(this,'baking')">🧁 אפייה</button>
+    <button class="cat-btn" onclick="filterCat2(this,'bbq')">🔥 גריל וברביקיו</button>
+  </div>
 </div>
 
 <!-- PRODUCTS -->
 <div class="products-wrap" id="products">
   <div class="grid-header">
-    <div class="sec-title" style="margin:0">המלצות <span>❤️</span></div>
+    <div class="sec-title">המוצרים שלנו <span>🛒</span></div>
     <span class="prod-count" id="prod-count"></span>
   </div>
   <div class="grid" id="grid"></div>
 </div>
 
+<!-- FOOTER -->
 <footer>
-  <p>© 2026 ממליצה לך · כל הזכויות שמורות</p>
+  <div class="footer-logo">🍽️ שוק <em>הטעמים</em></div>
+  <p>מוצרי אוכל ומטבח מומלצים מאלי אקספרס</p>
+  <p style="margin-top:10px">© 2026 שוק הטעמים &nbsp;·&nbsp; <a href="#">מדיניות פרטיות</a> &nbsp;·&nbsp; <a href="#">יצירת קשר</a></p>
+  <p class="footer-disclaimer">* האתר מכיל לינקים אפיליאציה של אלי אקספרס. ברכישה דרך הלינקים, אני מקבל/ת עמלה קטנה ללא עלות נוספת עליך.</p>
 </footer>
 
 <!-- ===== ADMIN PANEL ===== -->
 <div class="admin-overlay" id="adminOverlay" onclick="overlayClick(event)">
   <div class="admin-panel">
     <button class="close-btn" onclick="closeAdmin()">✕</button>
-    <h2>⚙️ פאנל ניהול</h2>
-    <p class="sub">הוסיפי / ערכי מוצרים, ואז הורידי קובץ HTML מעודכן לפרסום.</p>
+    <h2>⚙️ ניהול מוצרים</h2>
+    <p class="sub">הוסף מוצרים עם תמונה או סרטון + לינק אפיליאציה מאלי אקספרס, ואז הורד קובץ HTML מלא לפרסום.</p>
 
-    <!-- Product List -->
-    <div class="admin-list" id="admin-list"></div>
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchTab(this,'tab-list')">📋 המוצרים שלי (<span id="prod-tab-count">0</span>)</button>
+      <button class="admin-tab" onclick="switchTab(this,'tab-add')">➕ הוסף / ערוך</button>
+      <button class="admin-tab" onclick="switchTab(this,'tab-export')">⬇️ ייצוא אתר</button>
+    </div>
 
-    <div class="divider"></div>
+    <!-- TAB: LIST -->
+    <div class="admin-tab-content active" id="tab-list">
+      <div class="admin-list" id="admin-list"></div>
+      <button class="btn-primary" onclick="startAddProduct()">➕ הוסף מוצר חדש</button>
+    </div>
 
-    <!-- Form -->
-    <div class="form-title" id="form-title">➕ הוספת מוצר חדש</div>
-    <div class="form-grid">
-      <div>
-        <label>שם המוצר *</label>
-        <input id="f-name" type="text" placeholder="למשל: סרום ויטמין C"/>
-      </div>
-      <div>
-        <label>קטגוריה *</label>
-        <select id="f-cat">
-          <option value="">בחרי קטגוריה</option>
-          <option value="beauty">💄 ביוטי</option>
-          <option value="fashion">👗 אופנה</option>
-          <option value="home">🏠 בית</option>
-          <option value="food">🍽️ אוכל</option>
-          <option value="tech">📱 טכנולוגיה</option>
-        </select>
-      </div>
-      <div class="form-full">
-        <label>תיאור קצר</label>
-        <textarea id="f-desc" placeholder="כמה מילים על המוצר..."></textarea>
-      </div>
-      <div>
-        <label>מחיר (₪)</label>
-        <input id="f-price" type="text" placeholder="למשל: 149"/>
-      </div>
-      <div>
-        <label>מחיר מקורי (₪) – אופציונלי</label>
-        <input id="f-orig" type="text" placeholder="למשל: 200"/>
-      </div>
-      <div class="form-full">
-        <label>🔗 לינק אפיליאציה שלך *</label>
-        <input id="f-link" type="url" placeholder="https://..."/>
-      </div>
-      <div class="form-full">
-        <label>אימוג'י לתמונה (אופציונלי)</label>
-        <input id="f-emoji" type="text" placeholder="למשל: 💄 או 👗"/>
-      </div>
-      <div class="form-full">
-        <label>דירוג</label>
-        <div class="star-row" id="star-row">
-          <button type="button" class="star-btn" data-v="5" onclick="setStars(5)">★</button>
-          <button type="button" class="star-btn" data-v="4" onclick="setStars(4)">★</button>
-          <button type="button" class="star-btn" data-v="3" onclick="setStars(3)">★</button>
-          <button type="button" class="star-btn" data-v="2" onclick="setStars(2)">★</button>
-          <button type="button" class="star-btn" data-v="1" onclick="setStars(1)">★</button>
+    <!-- TAB: ADD/EDIT -->
+    <div class="admin-tab-content" id="tab-add">
+      <div class="form-title" id="form-title">➕ הוספת מוצר חדש</div>
+      <div class="form-grid">
+
+        <div>
+          <label>📝 שם המוצר *</label>
+          <input id="f-name" type="text" placeholder="למשל: מסחטת לימון אוטומטית"/>
         </div>
+        <div>
+          <label>📂 קטגוריה *</label>
+          <select id="f-cat">
+            <option value="">בחר קטגוריה</option>
+            <option value="kitchen">🍳 כלי מטבח</option>
+            <option value="spices">🌶️ תבלינים ורטבים</option>
+            <option value="snacks">🍿 חטיפים ונשנושים</option>
+            <option value="drinks">☕ שתייה</option>
+            <option value="baking">🧁 אפייה</option>
+            <option value="bbq">🔥 גריל וברביקיו</option>
+          </select>
+        </div>
+
+        <div class="form-full">
+          <label>📸 תמונה / סרטון של המוצר</label>
+          <div class="media-upload-area" id="media-drop" onclick="document.getElementById('f-media').click()">
+            <input type="file" id="f-media" accept="image/*,video/*" onchange="handleMedia(this)"/>
+            <div class="media-upload-icon">📷</div>
+            <div class="media-upload-text">לחץ להעלאת תמונה או סרטון</div>
+            <div class="media-upload-hint">JPG, PNG, GIF, WebP, MP4, MOV · עד 15MB</div>
+            <div class="media-preview" id="media-preview"></div>
+            <button type="button" class="media-clear" id="media-clear" onclick="clearMedia(event)">✕ הסר מדיה</button>
+          </div>
+        </div>
+
+        <div class="form-full">
+          <label>📝 תיאור קצר</label>
+          <textarea id="f-desc" placeholder="ספר קצת על המוצר — למה הוא שווה? מה מייחד אותו?"></textarea>
+        </div>
+
+        <div>
+          <label>💰 מחיר (₪)</label>
+          <input id="f-price" type="text" placeholder="למשל: 49"/>
+        </div>
+        <div>
+          <label>💸 מחיר מקורי (₪) – לפני הנחה</label>
+          <input id="f-orig" type="text" placeholder="למשל: 89"/>
+        </div>
+
+        <div class="form-full">
+          <label>🔗 לינק אפיליאציה מאלי אקספרס *</label>
+          <div class="ali-link-wrap">
+            <span class="ali-badge-input">ALI</span>
+            <input id="f-link" type="url" placeholder="https://s.click.aliexpress.com/e/..."/>
+          </div>
+        </div>
+
+        <div>
+          <label>🏷️ תגית מיוחדת</label>
+          <select id="f-badge">
+            <option value="">ללא תגית</option>
+            <option value="sale">🔥 מבצע</option>
+            <option value="new">🆕 חדש</option>
+            <option value="top">⭐ הכי נמכר</option>
+            <option value="rec">✅ ממליץ</option>
+          </select>
+        </div>
+        <div>
+          <label>🎨 אימוג'י (אם אין תמונה)</label>
+          <input id="f-emoji" type="text" placeholder="למשל: 🍳"/>
+        </div>
+
+        <div class="form-full">
+          <label>⭐ דירוג</label>
+          <div class="star-row" id="star-row">
+            <button type="button" class="star-btn" data-v="5" onclick="setStars(5)">★</button>
+            <button type="button" class="star-btn" data-v="4" onclick="setStars(4)">★</button>
+            <button type="button" class="star-btn" data-v="3" onclick="setStars(3)">★</button>
+            <button type="button" class="star-btn" data-v="2" onclick="setStars(2)">★</button>
+            <button type="button" class="star-btn" data-v="1" onclick="setStars(1)">★</button>
+          </div>
+        </div>
+
       </div>
-      <div class="form-full">
-        <label>המלצה</label>
-        <select id="f-rec">
-          <option value="yes">✅ ממליצה!</option>
-          <option value="no">❌ לא ממליצה</option>
-        </select>
+      <div class="form-actions">
+        <button class="btn-primary" onclick="saveProduct()">💾 שמור מוצר</button>
+        <button class="btn-secondary" onclick="cancelEdit()">ביטול</button>
       </div>
     </div>
 
-    <div class="form-actions">
-      <button class="btn-primary" onclick="saveProduct()">💾 שמור מוצר</button>
-      <button class="btn-secondary" onclick="resetForm()">ביטול</button>
+    <!-- TAB: EXPORT -->
+    <div class="admin-tab-content" id="tab-export">
+      <div class="export-info">
+        <strong>⬇️ הורד קובץ HTML מלא של האתר</strong>
+        <ul>
+          <li>כל המוצרים שהוספת כלולים בקובץ</li>
+          <li>תמונות וסרטונים <strong>מוטמעים בתוך הקובץ</strong> — ניתן לפרסם ללא שרת מיוחד</li>
+          <li>העלה את הקובץ לכל שירות אחסון: GitHub Pages, Netlify, Wix, וכו'</li>
+          <li>לינקי האפיליאציה שלך שמורים בתוך הקובץ</li>
+        </ul>
+      </div>
+      <div class="form-actions">
+        <button class="btn-export" onclick="exportSite()">⬇️ הורד אתר מלא (HTML)</button>
+      </div>
+      <div class="notice success" id="notice">✅ הקובץ הורד בהצלחה! פרסם אותו באתר שלך.</div>
     </div>
 
-    <div class="divider"></div>
-
-    <div class="form-actions">
-      <button class="btn-export" onclick="exportSite()">⬇️ הורד אתר מעודכן (HTML)</button>
-    </div>
-    <div class="notice" id="notice">✅ הקובץ הורד! העלי אותו לאתר שלך.</div>
   </div>
 </div>
 
@@ -274,123 +417,264 @@ var PRODUCTS = [];
 var currentCat = 'all';
 var editingId = null;
 var currentStars = 5;
-var catLabels = {beauty:'💄 ביוטי',fashion:'👗 אופנה',home:'🏠 בית',food:'🍽️ אוכל',tech:'📱 טכנולוגיה'};
-var catBg = {beauty:'linear-gradient(135deg,#fce4d6,#f4b8a0)',fashion:'linear-gradient(135deg,#d5e8f9,#b0cde8)',home:'linear-gradient(135deg,#e8f5e0,#c3e8b0)',food:'linear-gradient(135deg,#fdf5d0,#f5e090)',tech:'linear-gradient(135deg,#dce8ff,#b0c8f5)'};
+var currentMediaData = null;
+var currentMediaType = null;
 
-// ===================== RENDER =====================
+var catLabels = {
+  kitchen:'🍳 כלי מטבח',
+  spices:'🌶️ תבלינים ורטבים',
+  snacks:'🍿 חטיפים ונשנושים',
+  drinks:'☕ שתייה',
+  baking:'🧁 אפייה',
+  bbq:'🔥 גריל וברביקיו'
+};
+var catBg = {
+  kitchen:'linear-gradient(135deg,#fff0e0,#ffd4a0)',
+  spices:'linear-gradient(135deg,#ffe8e0,#ffb8a0)',
+  snacks:'linear-gradient(135deg,#fff8d0,#ffe090)',
+  drinks:'linear-gradient(135deg,#e0f4ff,#b0d8f5)',
+  baking:'linear-gradient(135deg,#f5e0ff,#ddb0ff)',
+  bbq:'linear-gradient(135deg,#ffe4d0,#ff9060)'
+};
+var badgeClasses = {sale:'tag-sale',new:'tag-new',top:'tag-top',rec:'tag-rec'};
+var badgeLabels = {sale:'🔥 מבצע',new:'🆕 חדש',top:'⭐ הכי נמכר',rec:'✅ ממליץ'};
+
+// ===================== RENDER GRID =====================
 function render() {
   var grid = document.getElementById('grid');
   var filtered = currentCat === 'all' ? PRODUCTS : PRODUCTS.filter(function(p){return p.cat === currentCat;});
   document.getElementById('prod-count').textContent = filtered.length + ' מוצרים';
 
   if (filtered.length === 0) {
-    grid.innerHTML = '<div class="empty-state"><div class="big">🛍️</div><p>עדיין אין מוצרים כאן.<br/>פתחי את פאנל הניהול והוסיפי!</p></div>';
+    grid.innerHTML = '<div class="empty-state">'
+      + '<div class="big">🍽️</div>'
+      + '<h3>עדיין אין מוצרים' + (currentCat !== 'all' ? ' בקטגוריה זו' : '') + '</h3>'
+      + '<p>פתח את פאנל הניהול, הוסף מוצרים<br/>עם תמונות ולינקי אפיליאציה מאלי אקספרס!</p>'
+      + '<button class="empty-btn" onclick="openAdmin()">➕ הוסף מוצר ראשון</button>'
+      + '</div>';
     return;
   }
 
   grid.innerHTML = filtered.map(function(p, i) {
-    var bg = catBg[p.cat] || 'linear-gradient(135deg,#fce4d6,#f9d5c5)';
-    var thumb = p.emoji
-      ? '<div class="card-thumb-placeholder" style="background:'+bg+'">'+p.emoji+'</div>'
-      : '<div class="card-thumb-placeholder" style="background:'+bg+'">🛍️</div>';
+    var bg = catBg[p.cat] || 'linear-gradient(135deg,#fff0e0,#ffd4a0)';
+    var mediaHtml;
+    if (p.mediaData) {
+      if (p.mediaType === 'video') {
+        mediaHtml = '<video class="card-video" src="' + p.mediaData + '" autoplay loop muted playsinline></video>';
+      } else {
+        mediaHtml = '<img class="card-media" src="' + p.mediaData + '" alt="' + escHtml(p.name) + '" loading="lazy"/>';
+      }
+    } else {
+      mediaHtml = '<div class="card-media-placeholder" style="background:' + bg + '">' + (p.emoji || catEmoji(p.cat)) + '</div>';
+    }
+
     var stars = '';
-    for(var s=1;s<=5;s++) stars += s<=p.stars ? '★' : '☆';
-    var recTag = p.rec==='yes'
-      ? '<span class="tag tag-yes">✓ ממליצה!</span>'
-      : '<span class="tag tag-no">✗ לא ממליצה</span>';
-    var origHtml = p.orig ? '<span class="orig">₪'+p.orig+'</span>' : '';
-    var priceHtml = p.price ? origHtml+'₪'+p.price : '';
-    return '<div class="card" style="animation-delay:'+(.05*(i%6))+'s" data-cat="'+p.cat+'">'
-      + thumb
+    for (var s = 1; s <= 5; s++) stars += s <= (p.stars || 5) ? '★' : '☆';
+
+    var tagsHtml = '<span class="tag tag-cat">' + (catLabels[p.cat] || p.cat) + '</span>';
+    if (p.badge && badgeLabels[p.badge]) {
+      tagsHtml += '<span class="tag ' + (badgeClasses[p.badge] || 'tag-sale') + '">' + badgeLabels[p.badge] + '</span>';
+    }
+    tagsHtml += '<span class="tag tag-ali">🛒 AliExpress</span>';
+
+    var priceHtml = '<div></div>';
+    if (p.price) {
+      var discHtml = '';
+      if (p.orig && parseFloat(p.orig) > parseFloat(p.price)) {
+        var pct = Math.round((1 - parseFloat(p.price) / parseFloat(p.orig)) * 100);
+        discHtml = '<span class="price-discount">חסכון ' + pct + '%</span>';
+      }
+      priceHtml = '<div class="card-price">'
+        + (p.orig ? '<span class="price-orig">₪' + p.orig + '</span>' : '')
+        + '<span class="price-current">₪' + p.price + '</span>'
+        + discHtml + '</div>';
+    }
+
+    return '<div class="card" style="animation-delay:' + (.06 * (i % 6)) + 's" data-cat="' + p.cat + '">'
+      + mediaHtml
       + '<div class="card-body">'
-      + '<div class="card-tags"><span class="tag tag-cat">'+(catLabels[p.cat]||p.cat)+'</span>'+recTag+'</div>'
-      + '<div class="stars">'+stars+'</div>'
-      + '<div class="card-title">'+escHtml(p.name)+'</div>'
-      + (p.desc?'<div class="card-desc">'+escHtml(p.desc)+'</div>':'')
+      + '<div class="card-tags">' + tagsHtml + '</div>'
+      + '<div class="stars">' + stars + ' <span class="stars-count">(' + (p.stars || 5) + '/5)</span></div>'
+      + '<div class="card-title">' + escHtml(p.name) + '</div>'
+      + (p.desc ? '<div class="card-desc">' + escHtml(p.desc) + '</div>' : '<div class="card-desc"></div>')
       + '<div class="card-footer">'
-      + '<div class="card-price">'+priceHtml+'</div>'
-      + (p.link?'<a class="card-btn" href="'+p.link+'" target="_blank" rel="noopener">לקנייה →</a>':'')
+      + priceHtml
+      + (p.link ? '<a class="card-btn" href="' + escHtml(p.link) + '" target="_blank" rel="noopener sponsored">קנה עכשיו →</a>' : '')
       + '</div></div></div>';
   }).join('');
 }
 
-function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function catEmoji(cat) {
+  return {kitchen:'🍳',spices:'🌶️',snacks:'🍿',drinks:'☕',baking:'🧁',bbq:'🔥'}[cat] || '🍽️';
+}
+
+function escHtml(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 // ===================== FILTER =====================
 function filterCat(el, cat) {
   currentCat = cat;
   document.querySelectorAll('#nav-cats a').forEach(function(a){a.classList.remove('active');});
   el.classList.add('active');
-  document.querySelectorAll('.cat-btn').forEach(function(b,i){
-    var cats=['all','beauty','fashion','home','food','tech'];
-    b.classList.toggle('active', cats[i]===cat);
-  });
+  syncCatPills(cat);
   render();
 }
 function filterCat2(el, cat) {
   currentCat = cat;
   document.querySelectorAll('.cat-btn').forEach(function(b){b.classList.remove('active');});
   el.classList.add('active');
-  var cats=['all','beauty','fashion','home','food','tech'];
+  var cats = ['all','kitchen','spices','snacks','drinks','baking','bbq'];
   document.querySelectorAll('#nav-cats a').forEach(function(a,i){
-    a.classList.toggle('active', cats[i]===cat);
+    a.classList.toggle('active', cats[i] === cat);
   });
   render();
 }
+function syncCatPills(cat) {
+  var cats = ['all','kitchen','spices','snacks','drinks','baking','bbq'];
+  document.querySelectorAll('.cat-btn').forEach(function(b,i){
+    b.classList.toggle('active', cats[i] === cat);
+  });
+}
+
+// ===================== TABS =====================
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.admin-tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.admin-tab-content').forEach(function(c){c.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById(tabId).classList.add('active');
+  if (tabId === 'tab-list') renderAdminList();
+}
+function switchTabByIdx(idx) {
+  var tabs = document.querySelectorAll('.admin-tab');
+  var contents = document.querySelectorAll('.admin-tab-content');
+  tabs.forEach(function(t){t.classList.remove('active');});
+  contents.forEach(function(c){c.classList.remove('active');});
+  if (tabs[idx]) { tabs[idx].classList.add('active'); contents[idx].classList.add('active'); }
+}
 
 // ===================== ADMIN =====================
-function openAdmin(){
+function openAdmin() {
   renderAdminList();
   document.getElementById('adminOverlay').classList.add('open');
 }
-function closeAdmin(){document.getElementById('adminOverlay').classList.remove('open');}
-function overlayClick(e){if(e.target===document.getElementById('adminOverlay'))closeAdmin();}
+function closeAdmin() {
+  document.getElementById('adminOverlay').classList.remove('open');
+}
+function overlayClick(e) {
+  if (e.target === document.getElementById('adminOverlay')) closeAdmin();
+}
+function updateTabCount() {
+  document.getElementById('prod-tab-count').textContent = PRODUCTS.length;
+}
 
-function renderAdminList(){
+function renderAdminList() {
+  updateTabCount();
   var list = document.getElementById('admin-list');
-  if(PRODUCTS.length===0){list.innerHTML='<p style="color:var(--taupe);font-size:.88rem;text-align:center;padding:14px">אין מוצרים עדיין</p>';return;}
-  list.innerHTML = PRODUCTS.map(function(p){
+  if (PRODUCTS.length === 0) {
+    list.innerHTML = '<p style="color:var(--soft);font-size:.87rem;text-align:center;padding:24px 0">אין מוצרים עדיין. לחץ "הוסף מוצר חדש" למטה.</p>';
+    return;
+  }
+  list.innerHTML = PRODUCTS.map(function(p) {
+    var thumbHtml;
+    if (p.mediaData) {
+      if (p.mediaType === 'video') {
+        thumbHtml = '<div class="admin-item-thumb" style="background:#000;"><video src="' + p.mediaData + '" style="width:46px;height:46px;object-fit:cover;"></video></div>';
+      } else {
+        thumbHtml = '<img class="admin-item-thumb" src="' + p.mediaData + '" style="width:46px;height:46px;object-fit:cover;border-radius:9px;"/>';
+      }
+    } else {
+      thumbHtml = '<div class="admin-item-thumb">' + (p.emoji || catEmoji(p.cat)) + '</div>';
+    }
     return '<div class="admin-item">'
-      +'<div class="admin-item-info"><div class="admin-item-name">'+escHtml(p.name)+'</div>'
-      +'<div class="admin-item-cat">'+(catLabels[p.cat]||p.cat)+' · '+(p.rec==='yes'?'ממליצה':'לא ממליצה')+'</div></div>'
-      +'<div class="admin-item-btns">'
-      +'<button class="btn-edit" onclick="editProduct(\''+p.id+'\')">✏️ ערוך</button>'
-      +'<button class="btn-del" onclick="deleteProduct(\''+p.id+'\')">🗑️</button>'
-      +'</div></div>';
+      + thumbHtml
+      + '<div class="admin-item-info">'
+      + '<div class="admin-item-name">' + escHtml(p.name) + '</div>'
+      + '<div class="admin-item-cat">' + (catLabels[p.cat] || p.cat) + (p.price ? ' · ₪' + p.price : '') + '</div>'
+      + '</div>'
+      + '<div class="admin-item-btns">'
+      + '<button class="btn-edit" onclick="editProduct(\'' + p.id + '\')">✏️ ערוך</button>'
+      + '<button class="btn-del" onclick="deleteProduct(\'' + p.id + '\')">🗑️</button>'
+      + '</div></div>';
   }).join('');
 }
 
-function setStars(n){
+// ===================== MEDIA =====================
+function handleMedia(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 15 * 1024 * 1024) {
+    alert('הקובץ גדול מ-15MB. אנא בחר קובץ קטן יותר.');
+    input.value = '';
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    currentMediaData = e.target.result;
+    currentMediaType = file.type.startsWith('video') ? 'video' : 'image';
+    var preview = document.getElementById('media-preview');
+    if (currentMediaType === 'video') {
+      preview.innerHTML = '<video src="' + currentMediaData + '" controls style="max-height:160px;width:100%;border-radius:10px;display:block;"></video>';
+    } else {
+      preview.innerHTML = '<img src="' + currentMediaData + '" style="max-height:160px;width:100%;object-fit:cover;border-radius:10px;display:block;"/>';
+    }
+    preview.style.display = 'block';
+    document.getElementById('media-clear').style.display = 'inline-block';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearMedia(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
+  currentMediaData = null;
+  currentMediaType = null;
+  document.getElementById('f-media').value = '';
+  var preview = document.getElementById('media-preview');
+  preview.style.display = 'none';
+  preview.innerHTML = '';
+  document.getElementById('media-clear').style.display = 'none';
+}
+
+// ===================== STARS =====================
+function setStars(n) {
   currentStars = n;
-  document.querySelectorAll('.star-btn').forEach(function(b){
+  document.querySelectorAll('#star-row .star-btn').forEach(function(b) {
     b.classList.toggle('lit', parseInt(b.dataset.v) <= n);
   });
 }
 
-function saveProduct(){
+// ===================== SAVE / EDIT / DELETE =====================
+function startAddProduct() {
+  resetForm();
+  switchTabByIdx(1);
+}
+
+function saveProduct() {
   var name = document.getElementById('f-name').value.trim();
   var cat  = document.getElementById('f-cat').value;
   var link = document.getElementById('f-link').value.trim();
-  if(!name){alert('נא להכניס שם מוצר');return;}
-  if(!cat){alert('נא לבחור קטגוריה');return;}
-  if(!link){alert('נא להכניס לינק אפיליאציה');return;}
+  if (!name) { alert('נא להכניס שם מוצר'); return; }
+  if (!cat)  { alert('נא לבחור קטגוריה'); return; }
+  if (!link) { alert('נא להכניס לינק אפיליאציה מאלי אקספרס'); return; }
 
   var prod = {
-    id: editingId || ('p'+Date.now()),
-    name: name,
-    cat:  cat,
-    desc: document.getElementById('f-desc').value.trim(),
-    price:document.getElementById('f-price').value.trim(),
-    orig: document.getElementById('f-orig').value.trim(),
-    link: link,
-    emoji:document.getElementById('f-emoji').value.trim(),
-    stars:currentStars,
-    rec:  document.getElementById('f-rec').value
+    id:        editingId || ('p' + Date.now()),
+    name:      name,
+    cat:       cat,
+    desc:      document.getElementById('f-desc').value.trim(),
+    price:     document.getElementById('f-price').value.trim(),
+    orig:      document.getElementById('f-orig').value.trim(),
+    link:      link,
+    emoji:     document.getElementById('f-emoji').value.trim(),
+    badge:     document.getElementById('f-badge').value,
+    stars:     currentStars,
+    mediaData: currentMediaData,
+    mediaType: currentMediaType
   };
 
-  if(editingId){
-    var idx = PRODUCTS.findIndex(function(p){return p.id===editingId;});
-    if(idx!==-1) PRODUCTS[idx]=prod;
+  if (editingId) {
+    var idx = PRODUCTS.findIndex(function(p){return p.id === editingId;});
+    if (idx !== -1) PRODUCTS[idx] = prod;
   } else {
     PRODUCTS.push(prod);
   }
@@ -398,66 +682,88 @@ function saveProduct(){
   resetForm();
   renderAdminList();
   render();
+  switchTabByIdx(0);
 }
 
-function editProduct(id){
-  var p = PRODUCTS.find(function(x){return x.id===id;});
-  if(!p) return;
+function editProduct(id) {
+  var p = PRODUCTS.find(function(x){return x.id === id;});
+  if (!p) return;
   editingId = id;
-  document.getElementById('f-name').value  = p.name||'';
-  document.getElementById('f-cat').value   = p.cat||'';
-  document.getElementById('f-desc').value  = p.desc||'';
-  document.getElementById('f-price').value = p.price||'';
-  document.getElementById('f-orig').value  = p.orig||'';
-  document.getElementById('f-link').value  = p.link||'';
-  document.getElementById('f-emoji').value = p.emoji||'';
-  document.getElementById('f-rec').value   = p.rec||'yes';
-  setStars(p.stars||5);
-  document.getElementById('form-title').textContent = '✏️ עריכת מוצר';
-  document.getElementById('f-name').scrollIntoView({behavior:'smooth'});
+  switchTabByIdx(1);
+
+  document.getElementById('f-name').value  = p.name  || '';
+  document.getElementById('f-cat').value   = p.cat   || '';
+  document.getElementById('f-desc').value  = p.desc  || '';
+  document.getElementById('f-price').value = p.price || '';
+  document.getElementById('f-orig').value  = p.orig  || '';
+  document.getElementById('f-link').value  = p.link  || '';
+  document.getElementById('f-emoji').value = p.emoji || '';
+  document.getElementById('f-badge').value = p.badge || '';
+  setStars(p.stars || 5);
+
+  currentMediaData = p.mediaData || null;
+  currentMediaType = p.mediaType || null;
+  if (p.mediaData) {
+    var preview = document.getElementById('media-preview');
+    if (p.mediaType === 'video') {
+      preview.innerHTML = '<video src="' + p.mediaData + '" controls style="max-height:160px;width:100%;border-radius:10px;display:block;"></video>';
+    } else {
+      preview.innerHTML = '<img src="' + p.mediaData + '" style="max-height:160px;width:100%;object-fit:cover;border-radius:10px;display:block;"/>';
+    }
+    preview.style.display = 'block';
+    document.getElementById('media-clear').style.display = 'inline-block';
+  }
+  document.getElementById('form-title').textContent = '✏️ עריכת: ' + p.name;
 }
 
-function deleteProduct(id){
-  if(!confirm('למחוק את המוצר?')) return;
-  PRODUCTS = PRODUCTS.filter(function(p){return p.id!==id;});
+function deleteProduct(id) {
+  if (!confirm('למחוק את המוצר?')) return;
+  PRODUCTS = PRODUCTS.filter(function(p){return p.id !== id;});
   renderAdminList();
   render();
 }
 
-function resetForm(){
+function cancelEdit() {
+  resetForm();
+  switchTabByIdx(0);
+}
+
+function resetForm() {
   editingId = null;
-  ['f-name','f-cat','f-desc','f-price','f-orig','f-link','f-emoji'].forEach(function(id){
-    document.getElementById(id).value='';
+  ['f-name','f-desc','f-price','f-orig','f-link','f-emoji'].forEach(function(id){
+    document.getElementById(id).value = '';
   });
-  document.getElementById('f-rec').value='yes';
+  document.getElementById('f-cat').value   = '';
+  document.getElementById('f-badge').value = '';
   setStars(5);
-  document.getElementById('form-title').textContent='➕ הוספת מוצר חדש';
+  clearMedia(null);
+  document.getElementById('form-title').textContent = '➕ הוספת מוצר חדש';
 }
 
 // ===================== EXPORT =====================
-function exportSite(){
+function exportSite() {
   var src = document.documentElement.outerHTML;
-  // Replace the products data in the source
   var jsonData = JSON.stringify(PRODUCTS, null, 2);
   src = src.replace(
     /\/\/ PRODUCTS_DATA_START[\s\S]*?\/\/ PRODUCTS_DATA_END/,
     '// PRODUCTS_DATA_START\nvar PRODUCTS = ' + jsonData + ';\n// PRODUCTS_DATA_END'
   );
-  var blob = new Blob([src], {type:'text/html;charset=utf-8'});
+  var blob = new Blob([src], {type: 'text/html;charset=utf-8'});
   var a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = 'mamleecha-lach.html';
+  a.download = 'shuk-hataamim.html';
   a.click();
-  document.getElementById('notice').style.display = 'block';
-  setTimeout(function(){document.getElementById('notice').style.display='none';},4000);
+  var notice = document.getElementById('notice');
+  notice.style.display = 'block';
+  setTimeout(function(){notice.style.display = 'none';}, 5000);
 }
 
-function scrollToProducts(e){
+function scrollToProducts(e) {
   e.preventDefault();
-  document.getElementById('products').scrollIntoView({behavior:'smooth'});
+  document.getElementById('products').scrollIntoView({behavior: 'smooth'});
 }
 
-// Init
+// ===== INIT =====
 setStars(5);
 render();
 </script>
