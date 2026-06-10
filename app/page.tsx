@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import CitySelector from '@/components/CitySelector';
 import ChannelCard  from '@/components/ChannelCard';
-import { MUNICIPALITIES, getMunicipalityById } from '@/data/municipalities';
+import { getMunicipalityById } from '@/data/municipalities';
 import {
   VEHICLE_LABELS, DAMAGE_LABELS, CHANNEL_META,
   type VehicleType, type DamageLevel, type VehicleReport,
@@ -162,10 +162,12 @@ export default function HomePage() {
     const meta = channel ? CHANNEL_META[channel.type] : null;
     const messages: Record<string, string> = {
       email:    'הדיווח נשלח לעירייה במייל. תשובה תגיע בדרך כלל תוך 2–5 ימי עסקים.',
-      whatsapp: 'הדיווח הוכן ונשלח לוואטסאפ של העירייה. שמור את השיחה לעיון עתידי.',
+      whatsapp: 'הדיווח הוכן — לחץ שלח בחלון וואטסאפ שנפתח. שמור את השיחה לעיון עתידי.',
       form:     'הועברת לטופס המקוון של העירייה. מלא את הפרטים ולחץ שלח.',
-      phone:    `התקשר ל-${channel?.value ?? '106'} ותדווח בע"פ על הרכב.`,
+      phone:    `התקשר לעירייה ותדווח בע"פ על הרכב.`,
     };
+
+    const phoneNum = (channel?.type === 'phone' ? channel.value : '').replace(/[^0-9+]/g, '');
 
     return (
       <main className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
@@ -180,6 +182,18 @@ export default function HomePage() {
           <p className="text-slate-600 text-sm leading-relaxed mb-6">
             {messages[submit.channel] ?? ''}
           </p>
+
+          {/* Phone: big call button */}
+          {submit.channel === 'phone' && phoneNum && (
+            <a
+              href={`tel:${phoneNum}`}
+              className="flex items-center justify-center gap-2 w-full bg-green-600 hover:bg-green-700
+                text-white font-bold py-4 rounded-xl transition-colors text-base mb-3"
+            >
+              📞 התקשר עכשיו — {channel?.value}
+            </a>
+          )}
+
           <button
             onClick={() => { setForm(EMPTY); setStep(0); setSubmit({ status: 'idle' }); }}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors"
@@ -291,6 +305,7 @@ export default function HomePage() {
                 value={form.firstSeen}
                 max={todayStr()}
                 onChange={e => set('firstSeen', e.target.value)}
+                dir="ltr"
                 className="text-left"
               />
               {is60Days && (

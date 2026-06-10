@@ -55,7 +55,8 @@ export const MUNICIPALITIES: Municipality[] = [
     district: 'מחוז תל אביב',
     channels: [
       // TODO: verify this WhatsApp number before production use
-      { type: 'whatsapp', value: '9720546106106', label: 'WhatsApp עירייה' },
+      // TODO: verify this number before production — format: 972 + local without leading 0
+      { type: 'whatsapp', value: '972546106106', label: 'WhatsApp עירייה' },
       { type: 'phone',    value: '106',           label: 'מוקד עירוני 106' },
     ],
   },
