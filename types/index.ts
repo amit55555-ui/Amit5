@@ -1,52 +1,57 @@
-export type Category = 'kitchen' | 'spices' | 'snacks' | 'drinks' | 'baking' | 'bbq';
-export type Badge = 'sale' | 'new' | 'top' | 'rec' | '';
-export type SwipeDirection = 'right' | 'left' | 'up';
+export type ReportingChannel = 'email' | 'whatsapp' | 'form' | 'phone';
 
-export interface Product {
-  id: string;
-  name: string;
-  cat: Category;
-  desc: string;
-  price?: string;
-  orig?: string;
-  link: string;
-  emoji?: string;
-  badge?: Badge;
-  stars: number;
-  mediaData?: string | null;
-  mediaType?: 'image' | 'video' | null;
+export interface ChannelInfo {
+  type: ReportingChannel;
+  value: string;
+  label: string;
 }
 
-export const CAT_LABELS: Record<Category, string> = {
-  kitchen: 'כלי מטבח',
-  spices:  'תבלינים',
-  snacks:  'חטיפים',
-  drinks:  'שתייה',
-  baking:  'אפייה',
-  bbq:     'גריל',
+export interface Municipality {
+  id: string;
+  name: string;
+  district: string;
+  channels: ChannelInfo[];
+}
+
+export type VehicleType = 'car' | 'motorcycle' | 'truck' | 'trailer' | 'other';
+export type DamageLevel = 'none' | 'minor' | 'major' | 'burnt';
+
+export const VEHICLE_LABELS: Record<VehicleType, string> = {
+  car:        '🚗 רכב פרטי',
+  motorcycle: '🏍️ אופנוע / קטנוע',
+  truck:      '🚛 משאית / רכב מסחרי',
+  trailer:    '🚐 נגרר / קרוון',
+  other:      '🚙 אחר',
 };
 
-export const CAT_EMOJI: Record<Category, string> = {
-  kitchen: '🍳',
-  spices:  '🌶️',
-  snacks:  '🍿',
-  drinks:  '☕',
-  baking:  '🧁',
-  bbq:     '🔥',
+export const DAMAGE_LABELS: Record<DamageLevel, string> = {
+  none:  'ללא נזק נראה לעין',
+  minor: 'נזק קל (שריטות / שברים)',
+  major: 'נזק חמור (ריסוק / חלקים חסרים)',
+  burnt: '🔥 שרוף',
 };
 
-export const CAT_BG: Record<Category, string> = {
-  kitchen: 'linear-gradient(135deg,#fff0e0,#ffd4a0)',
-  spices:  'linear-gradient(135deg,#ffe8e0,#ffb8a0)',
-  snacks:  'linear-gradient(135deg,#fff8d0,#ffe090)',
-  drinks:  'linear-gradient(135deg,#e0f4ff,#b0d8f5)',
-  baking:  'linear-gradient(135deg,#f5e0ff,#ddb0ff)',
-  bbq:     'linear-gradient(135deg,#ffe4d0,#ff9060)',
+export const CHANNEL_META: Record<ReportingChannel, { icon: string; label: string; bgClass: string; textClass: string; borderClass: string }> = {
+  email:    { icon: '✉️', label: 'מייל לעירייה',   bgClass: 'bg-blue-50',   textClass: 'text-blue-800',   borderClass: 'border-blue-200'   },
+  whatsapp: { icon: '💬', label: 'WhatsApp',        bgClass: 'bg-green-50',  textClass: 'text-green-800',  borderClass: 'border-green-200'  },
+  form:     { icon: '📋', label: 'טופס מקוון',     bgClass: 'bg-purple-50', textClass: 'text-purple-800', borderClass: 'border-purple-200' },
+  phone:    { icon: '📞', label: 'טלפון / 106',    bgClass: 'bg-slate-50',  textClass: 'text-slate-700',  borderClass: 'border-slate-200'  },
 };
 
-export const BADGE_CONFIG: Record<string, { label: string; cls: string }> = {
-  sale: { label: '🔥 מבצע',      cls: 'bg-amber-100 text-amber-800 border-amber-200' },
-  new:  { label: '🆕 חדש',       cls: 'bg-sky-100 text-sky-800 border-sky-200' },
-  top:  { label: '⭐ הכי נמכר',  cls: 'bg-purple-100 text-purple-800 border-purple-200' },
-  rec:  { label: '✅ ממליץ',     cls: 'bg-green-100 text-green-800 border-green-200' },
-};
+export interface VehicleReport {
+  municipalityId: string;
+  municipalityName: string;
+  street: string;
+  houseNumber: string;
+  neighborhood: string;
+  vehicleType: VehicleType;
+  licensePlate: string;
+  vehicleColor: string;
+  firstSeen: string;       // YYYY-MM-DD
+  damageLevel: DamageLevel;
+  isBlocking: boolean;
+  description: string;
+  reporterName: string;
+  reporterPhone: string;
+  reporterEmail: string;
+}

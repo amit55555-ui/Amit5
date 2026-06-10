@@ -8,13 +8,9 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        orange:       '#ff6b35',
-        'deep-orange':'#e85d04',
-        gold:         '#f9a825',
-        dark:         '#1a0a00',
-        cream:        '#fff8f0',
-        soft:         '#7a4400',
-        border:       '#ffd8b0',
+        // civic blue palette
+        primary: '#1d4ed8',
+        'primary-dark': '#1e3a8a',
       },
       fontFamily: {
         heebo: ['var(--font-heebo)', 'sans-serif'],

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Heebo } from 'next/font/google';
 import './globals.css';
 
@@ -9,14 +9,26 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  title: 'שוק הטעמים – מוצרי אוכל ומטבח מאלי אקספרס',
-  description: 'גלה מוצרי אוכל ומטבח מומלצים מאלי אקספרס – החלק ימינה לקנייה, שמאלה לדילוג',
+  title: 'דיווח רכב נטוש',
+  description: 'דווח לעירייה על רכב נטוש בסביבתך – נתב אוטומטי לערוץ הנכון: מייל, WhatsApp, טופס מקוון, או טלפון',
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'רכב נטוש',
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#1d4ed8',
+  width: 'device-width',
+  initialScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="he" dir="rtl" className={heebo.variable}>
-      <body className="font-heebo bg-cream">{children}</body>
+      <body className="font-heebo bg-slate-50 min-h-screen">{children}</body>
     </html>
   );
 }
