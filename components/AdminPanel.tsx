@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import * as XLSX from 'xlsx';
 import { CAT_LABELS, CAT_EMOJI, type Product, type Category, type Badge } from '@/types';
 
 interface Props {
@@ -15,14 +16,66 @@ const EMPTY: Omit<Product, 'id'> = {
   mediaData: null, mediaType: null,
 };
 
+const CAT_KEYS = Object.keys(CAT_LABELS) as Category[];
+
+/* Map of readable Hebrew/English column names → Product field */
+const COL_MAP: Record<string, keyof Product> = {
+  'שם מוצר':       'name',  'name':        'name',
+  'שם':             'name',
+  'קטגוריה':       'cat',   'cat':         'cat',  'category': 'cat',
+  'תיאור':          'desc',  'desc':        'desc', 'description': 'desc',
+  'מחיר':           'price', 'price':       'price',
+  'מחיר מקורי':    'orig',  'orig':        'orig', 'original price': 'orig',
+  'לינק':           'link',  'link':        'link', 'url': 'link',
+  'אמוג\'י':        'emoji', 'emoji':       'emoji',
+  'תגית':           'badge', 'badge':       'badge',
+  'דירוג':          'stars', 'stars':       'stars', 'rating': 'stars',
+};
+
+/* Normalise a category value typed in Hebrew or English */
+const normCat = (val: string): Category => {
+  const v = String(val).trim().toLowerCase();
+  // direct English key
+  if (CAT_KEYS.includes(v as Category)) return v as Category;
+  // Hebrew label match
+  const found = CAT_KEYS.find(k => CAT_LABELS[k] === val.trim());
+  if (found) return found;
+  return 'beauty';
+};
+
+/* Normalise badge */
+const normBadge = (val: string): Badge => {
+  const v = String(val).trim().toLowerCase();
+  if (['sale','new','top','rec'].includes(v)) return v as Badge;
+  if (v.includes('מבצע')) return 'sale';
+  if (v.includes('חדש'))  return 'new';
+  if (v.includes('נמכר')) return 'top';
+  if (v.includes('ממליצ')) return 'rec';
+  return '';
+};
+
+interface ImportRow {
+  name?: string; cat?: string; desc?: string; price?: string; orig?: string;
+  link?: string; emoji?: string; badge?: string; stars?: string;
+  _ok: boolean; _err: string;
+}
+
 export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
-  const [tab, setTab]               = useState<'list' | 'add'>('list');
+  const [tab, setTab]               = useState<'list' | 'add' | 'excel'>('list');
   const [form, setForm]             = useState<Omit<Product, 'id'>>(EMPTY);
   const [editId, setEditId]         = useState<string | null>(null);
   const [stars, setStars]           = useState(5);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const fileRef   = useRef<HTMLInputElement>(null);
+  const xlsxRef   = useRef<HTMLInputElement>(null);
 
+  /* Excel import state */
+  const [xlsxRows, setXlsxRows]       = useState<ImportRow[]>([]);
+  const [xlsxName, setXlsxName]       = useState('');
+  const [importing, setImporting]     = useState(false);
+  const [importDone, setImportDone]   = useState(false);
+
+  /* ── Helpers ── */
   const field = (k: keyof typeof form, val: string) =>
     setForm(f => ({ ...f, [k]: val }));
 
@@ -71,8 +124,95 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
     if (fileRef.current) fileRef.current.value = '';
   };
 
-  const cats = (Object.keys(CAT_LABELS) as Category[]);
+  /* ── Excel: download template ── */
+  const downloadTemplate = () => {
+    const header = [
+      'שם מוצר', 'קטגוריה', 'תיאור', 'מחיר', 'מחיר מקורי',
+      'לינק', 'אמוג\'י', 'תגית', 'דירוג'
+    ];
+    const example = [
+      'סרום פנים ויטמין C', 'beauty', 'סרום שמאיר ומעניק לחות', '59', '120',
+      'https://example.com/product', '✨', 'top', '5'
+    ];
+    const catNote = [
+      '← שם חובה', 'beauty/bachelorette/bachelor/garden/balcony/jewelry/cleaning/accessories/home',
+      '', '', '', '← לינק חובה', '', 'sale/new/top/rec', '1-5'
+    ];
 
+    const ws = XLSX.utils.aoa_to_sheet([header, example, catNote]);
+
+    /* column widths */
+    ws['!cols'] = [22,22,30,10,14,40,8,12,8].map(w => ({ wch: w }));
+
+    /* style header row (best-effort – xlsx-js-style not in scope) */
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'מוצרים');
+    XLSX.writeFile(wb, 'תבנית_מוצרים_sheli.xlsx');
+  };
+
+  /* ── Excel: parse uploaded file ── */
+  const handleXlsx = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setXlsxName(file.name);
+    setImportDone(false);
+
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const data = new Uint8Array(ev.target?.result as ArrayBuffer);
+      const wb   = XLSX.read(data, { type: 'array' });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const raw  = XLSX.utils.sheet_to_json<Record<string, string>>(ws, { defval: '' });
+
+      const rows: ImportRow[] = raw.map(r => {
+        const tmp: Record<string, string> = {};
+        for (const [col, val] of Object.entries(r)) {
+          const key = COL_MAP[col.trim()] || COL_MAP[col.trim().toLowerCase()];
+          if (key) tmp[key] = String(val).trim();
+        }
+        const row: ImportRow = {
+          name: tmp.name, cat: tmp.cat, desc: tmp.desc,
+          price: tmp.price, orig: tmp.orig, link: tmp.link,
+          emoji: tmp.emoji, badge: tmp.badge, stars: tmp.stars,
+          _ok: !!(tmp.name && tmp.link),
+          _err: !tmp.name ? 'חסר שם מוצר' : !tmp.link ? 'חסר לינק' : '',
+        };
+        return row;
+      }).filter(r => r.name || r.link);
+
+      setXlsxRows(rows);
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  /* ── Excel: commit import ── */
+  const commitImport = () => {
+    setImporting(true);
+    const valid = xlsxRows.filter(r => r._ok);
+    const newProds: Product[] = valid.map((r, i) => ({
+      id:        `xl${Date.now()}_${i}`,
+      name:      r.name || '',
+      cat:       normCat(r.cat || 'beauty'),
+      desc:      r.desc || '',
+      price:     r.price || '',
+      orig:      r.orig || '',
+      link:      r.link || '',
+      emoji:     r.emoji || '',
+      badge:     normBadge(r.badge || '') as Badge,
+      stars:     Math.min(5, Math.max(1, parseInt(r.stars || '5') || 5)),
+      mediaData: null,
+      mediaType: null,
+    }));
+    onSave([...customProducts, ...newProds]);
+    setImporting(false);
+    setImportDone(true);
+    setXlsxRows([]);
+    setXlsxName('');
+    if (xlsxRef.current) xlsxRef.current.value = '';
+    setTimeout(() => setTab('list'), 1200);
+  };
+
+  /* ── Render ── */
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"
@@ -91,14 +231,18 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
         <div className="text-center mb-5 mt-1">
           <div className="text-2xl mb-1">⚙️</div>
           <h2 className="text-xl font-black" style={{ color: '#1a0816' }}>ניהול מוצרים</h2>
-          <p className="text-xs text-gray-500 mt-0.5">הוסיפי מוצרים עם תמונה/סרטון, מחיר ולינק רכישה</p>
+          <p className="text-xs text-gray-500 mt-0.5">הוסיפי מוצרים ידנית, או ייבאי קובץ Excel בלחיצה אחת</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-gray-100 mb-5 gap-1">
-          {([['list', `📋 המוצרים שלי (${customProducts.length})`], ['add', editId ? '✏️ עריכה' : '➕ מוצר חדש']] as const).map(([t, label]) => (
+        <div className="flex border-b border-gray-100 mb-5 gap-0">
+          {([
+            ['list',  `📋 המוצרים שלי (${customProducts.length})`],
+            ['add',   editId ? '✏️ עריכה' : '➕ מוצר חדש'],
+            ['excel', '📊 ייבוא Excel'],
+          ] as const).map(([t, label]) => (
             <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-2.5 text-sm font-bold border-b-2 transition-colors -mb-px ${
+              className={`px-3 py-2.5 text-xs font-bold border-b-2 transition-colors -mb-px flex-1 ${
                 tab === t
                   ? 'border-rose-500 text-rose-600'
                   : 'border-transparent text-gray-400 hover:text-gray-600'
@@ -108,14 +252,14 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
           ))}
         </div>
 
-        {/* ── LIST TAB ── */}
+        {/* ══ LIST TAB ══ */}
         {tab === 'list' && (
           <div>
             {customProducts.length === 0 ? (
               <div className="text-center py-10">
                 <div className="text-5xl mb-3">🛍️</div>
                 <p className="text-gray-500 text-sm font-semibold">עדיין אין מוצרים מותאמים אישית</p>
-                <p className="text-gray-400 text-xs mt-1">לחצי על הכפתור למטה להוספת המוצר הראשון</p>
+                <p className="text-gray-400 text-xs mt-1">הוסיפי ידנית או ייבאי קובץ Excel</p>
               </div>
             ) : (
               <div className="flex flex-col gap-2 max-h-72 overflow-y-auto mb-4 pe-1">
@@ -136,12 +280,12 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
                     </div>
                     <div className="flex gap-2 flex-shrink-0">
                       <button onClick={() => edit(p)}
-                        className="text-xs font-bold px-3 py-1.5 rounded-xl transition-colors"
+                        className="text-xs font-bold px-3 py-1.5 rounded-xl"
                         style={{ background: '#fce8f3', color: '#c14b7c' }}>
                         ערוך
                       </button>
                       <button onClick={() => del(p.id)}
-                        className="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-50 text-red-600 transition-colors hover:bg-red-100">
+                        className="text-xs font-bold px-3 py-1.5 rounded-xl bg-red-50 text-red-600 hover:bg-red-100">
                         מחק
                       </button>
                     </div>
@@ -149,18 +293,24 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
                 ))}
               </div>
             )}
-            <button onClick={() => { resetForm(); setTab('add'); }}
-              className="w-full text-white font-black py-3.5 rounded-2xl transition-all active:scale-[0.98]"
-              style={{ background: 'linear-gradient(135deg,#c14b7c,#9c3060)' }}>
-              ➕ הוסיפי מוצר חדש
-            </button>
+            <div className="flex gap-2">
+              <button onClick={() => { resetForm(); setTab('add'); }}
+                className="flex-1 text-white font-black py-3.5 rounded-2xl transition-all active:scale-[0.98]"
+                style={{ background: 'linear-gradient(135deg,#c14b7c,#9c3060)' }}>
+                ➕ הוסיפי מוצר
+              </button>
+              <button onClick={() => setTab('excel')}
+                className="flex-1 font-black py-3.5 rounded-2xl border-2 transition-all active:scale-[0.98]"
+                style={{ borderColor: '#c14b7c', color: '#c14b7c' }}>
+                📊 ייבוא Excel
+              </button>
+            </div>
           </div>
         )}
 
-        {/* ── ADD/EDIT TAB ── */}
+        {/* ══ ADD / EDIT TAB ══ */}
         {tab === 'add' && (
           <div className="flex flex-col gap-3.5">
-
             {/* Media upload */}
             <div>
               <label className="text-xs font-bold text-gray-500 mb-1.5 block">📸 תמונה / סרטון</label>
@@ -192,28 +342,23 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              {/* Product name */}
               <div className="col-span-2">
                 <label className="text-xs font-bold text-gray-500 mb-1 block">שם המוצר *</label>
                 <input value={form.name} onChange={e => field('name', e.target.value)}
-                  className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none transition-colors"
+                  className="w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none"
                   style={{ borderColor: '#f5d0e8', background: '#fdf8fb' }}
-                  onFocus={e => e.target.style.borderColor = '#c14b7c'}
-                  onBlur={e => e.target.style.borderColor = '#f5d0e8'}
                   placeholder="למשל: סרום פנים עם ויטמין C" />
               </div>
 
-              {/* Category */}
               <div>
                 <label className="text-xs font-bold text-gray-500 mb-1 block">קטגוריה *</label>
                 <select value={form.cat} onChange={e => field('cat', e.target.value as Category)}
                   className="w-full border rounded-xl px-3 py-2.5 text-sm focus:outline-none"
                   style={{ borderColor: '#f5d0e8', background: '#fdf8fb' }}>
-                  {cats.map(c => <option key={c} value={c}>{CAT_EMOJI[c]} {CAT_LABELS[c]}</option>)}
+                  {CAT_KEYS.map(c => <option key={c} value={c}>{CAT_EMOJI[c]} {CAT_LABELS[c]}</option>)}
                 </select>
               </div>
 
-              {/* Badge */}
               <div>
                 <label className="text-xs font-bold text-gray-500 mb-1 block">תגית</label>
                 <select value={form.badge || ''} onChange={e => field('badge', e.target.value as Badge)}
@@ -227,7 +372,6 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
                 </select>
               </div>
 
-              {/* Price */}
               <div>
                 <label className="text-xs font-bold text-gray-500 mb-1 block">מחיר (₪)</label>
                 <input value={form.price || ''} onChange={e => field('price', e.target.value)}
@@ -236,7 +380,6 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
                   placeholder="49" />
               </div>
 
-              {/* Orig price */}
               <div>
                 <label className="text-xs font-bold text-gray-500 mb-1 block">מחיר מקורי (₪)</label>
                 <input value={form.orig || ''} onChange={e => field('orig', e.target.value)}
@@ -245,7 +388,6 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
                   placeholder="89" />
               </div>
 
-              {/* Link */}
               <div className="col-span-2">
                 <label className="text-xs font-bold text-gray-500 mb-1 block">🔗 לינק לרכישה *</label>
                 <input value={form.link} onChange={e => field('link', e.target.value)}
@@ -254,7 +396,6 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
                   placeholder="https://..." />
               </div>
 
-              {/* Description */}
               <div className="col-span-2">
                 <label className="text-xs font-bold text-gray-500 mb-1 block">תיאור קצר</label>
                 <textarea value={form.desc || ''} onChange={e => field('desc', e.target.value)}
@@ -263,7 +404,6 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
                   rows={2} placeholder="ספרי קצת על המוצר..." />
               </div>
 
-              {/* Stars */}
               <div className="col-span-2">
                 <label className="text-xs font-bold text-gray-500 mb-2 block">דירוג</label>
                 <div className="flex gap-2">
@@ -284,10 +424,148 @@ export default function AdminPanel({ onClose, onSave, customProducts }: Props) {
                 💾 שמור מוצר
               </button>
               <button onClick={() => { resetForm(); setTab('list'); }}
-                className="px-5 bg-gray-100 text-gray-500 font-semibold py-3.5 rounded-2xl hover:bg-gray-200 transition-colors">
+                className="px-5 bg-gray-100 text-gray-500 font-semibold py-3.5 rounded-2xl hover:bg-gray-200">
                 ביטול
               </button>
             </div>
+          </div>
+        )}
+
+        {/* ══ EXCEL TAB ══ */}
+        {tab === 'excel' && (
+          <div className="flex flex-col gap-4">
+
+            {/* Step 1: Download template */}
+            <div className="rounded-2xl p-4" style={{ background: '#fdf8fb', border: '1px solid #f5d0e8' }}>
+              <div className="flex items-start gap-3">
+                <div className="text-2xl flex-shrink-0">1️⃣</div>
+                <div className="flex-1">
+                  <div className="font-black text-sm mb-0.5" style={{ color: '#1a0816' }}>הורידי תבנית Excel</div>
+                  <div className="text-xs text-gray-500 mb-3">
+                    קובץ מוכן עם כל העמודות הנדרשות + שורת דוגמא
+                  </div>
+                  <button onClick={downloadTemplate}
+                    className="flex items-center gap-2 text-xs font-black px-4 py-2 rounded-xl text-white transition-all active:scale-95"
+                    style={{ background: 'linear-gradient(135deg,#d4a843,#b8892e)' }}>
+                    ⬇️ הורד תבנית (XLSX)
+                  </button>
+                </div>
+              </div>
+
+              {/* Column legend */}
+              <div className="mt-3 pt-3 border-t" style={{ borderColor: '#f5d0e8' }}>
+                <div className="text-xs font-bold text-gray-500 mb-2">עמודות הקובץ:</div>
+                <div className="grid grid-cols-2 gap-1 text-xs">
+                  {[
+                    ['שם מוצר', 'חובה'],
+                    ['קטגוריה', 'beauty, home, jewelry...'],
+                    ['תיאור', 'אופציונלי'],
+                    ['מחיר', 'מספר בלבד'],
+                    ['מחיר מקורי', 'אופציונלי'],
+                    ['לינק', 'חובה – URL לרכישה'],
+                    ['אמוג\'י', 'אופציונלי'],
+                    ['תגית', 'sale/new/top/rec'],
+                    ['דירוג', '1–5'],
+                  ].map(([col, hint]) => (
+                    <div key={col} className="flex gap-1">
+                      <span className="font-bold" style={{ color: '#9c3060' }}>{col}:</span>
+                      <span className="text-gray-400 truncate">{hint}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2: Upload */}
+            <div className="rounded-2xl p-4" style={{ background: '#fdf8fb', border: '1px solid #f5d0e8' }}>
+              <div className="flex items-start gap-3">
+                <div className="text-2xl flex-shrink-0">2️⃣</div>
+                <div className="flex-1">
+                  <div className="font-black text-sm mb-0.5" style={{ color: '#1a0816' }}>העלי את הקובץ המלא</div>
+                  <div className="text-xs text-gray-500 mb-3">תומך בקבצי .xlsx ו-.csv</div>
+                  <div
+                    onClick={() => xlsxRef.current?.click()}
+                    className="border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition-colors hover:border-rose-400"
+                    style={{ borderColor: xlsxName ? '#c14b7c' : '#f5d0e8' }}>
+                    <input ref={xlsxRef} type="file" accept=".xlsx,.xls,.csv" onChange={handleXlsx} className="hidden" />
+                    {xlsxName ? (
+                      <div className="text-sm font-bold" style={{ color: '#c14b7c' }}>📊 {xlsxName}</div>
+                    ) : (
+                      <div className="text-gray-400">
+                        <div className="text-2xl mb-1">📊</div>
+                        <div className="text-sm font-semibold text-gray-500">לחצי לבחירת קובץ Excel</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Preview table */}
+            {xlsxRows.length > 0 && (
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm font-black" style={{ color: '#1a0816' }}>
+                    תצוגה מקדימה – {xlsxRows.filter(r => r._ok).length} מוצרים תקינים
+                    {xlsxRows.filter(r => !r._ok).length > 0 && (
+                      <span className="text-red-500 font-semibold text-xs mr-2">
+                        ({xlsxRows.filter(r => !r._ok).length} שגיאות)
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="rounded-2xl overflow-hidden border" style={{ borderColor: '#f5d0e8' }}>
+                  <div className="max-h-44 overflow-y-auto">
+                    <table className="w-full text-xs">
+                      <thead style={{ background: '#fce8f3', position: 'sticky', top: 0 }}>
+                        <tr>
+                          <th className="px-2 py-2 text-right font-black" style={{ color: '#9c3060' }}>✓</th>
+                          <th className="px-2 py-2 text-right font-black" style={{ color: '#9c3060' }}>שם</th>
+                          <th className="px-2 py-2 text-right font-black" style={{ color: '#9c3060' }}>קטגוריה</th>
+                          <th className="px-2 py-2 text-right font-black" style={{ color: '#9c3060' }}>מחיר</th>
+                          <th className="px-2 py-2 text-right font-black" style={{ color: '#9c3060' }}>לינק</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {xlsxRows.map((r, i) => (
+                          <tr key={i} style={{ background: i % 2 === 0 ? '#fff' : '#fdf8fb' }}>
+                            <td className="px-2 py-1.5 text-center">
+                              {r._ok ? <span className="text-green-500">✓</span> : <span className="text-red-500" title={r._err}>✗</span>}
+                            </td>
+                            <td className="px-2 py-1.5 font-semibold truncate max-w-[100px]">{r.name || '—'}</td>
+                            <td className="px-2 py-1.5 text-gray-500">{r.cat ? normCat(r.cat) : '—'}</td>
+                            <td className="px-2 py-1.5">{r.price ? `₪${r.price}` : '—'}</td>
+                            <td className="px-2 py-1.5 text-gray-400 truncate max-w-[80px]">
+                              {r.link ? <span className="text-green-600">✓</span> : <span className="text-red-400">חסר</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {importDone ? (
+                  <div className="mt-3 text-center py-3 rounded-2xl font-black text-green-700 bg-green-50 border border-green-200">
+                    ✅ המוצרים יובאו בהצלחה!
+                  </div>
+                ) : (
+                  <button
+                    onClick={commitImport}
+                    disabled={importing || xlsxRows.filter(r => r._ok).length === 0}
+                    className="mt-3 w-full text-white font-black py-3.5 rounded-2xl transition-all active:scale-[0.98] disabled:opacity-50"
+                    style={{ background: 'linear-gradient(135deg,#c14b7c,#9c3060)' }}>
+                    {importing ? '⏳ מייבא...' : `📥 ייבא ${xlsxRows.filter(r => r._ok).length} מוצרים`}
+                  </button>
+                )}
+              </div>
+            )}
+
+            {xlsxRows.length === 0 && !xlsxName && (
+              <div className="text-center text-xs text-gray-400 py-2">
+                💡 טיפ: ניתן גם לשנות עמודות לעברית/אנגלית – המערכת מזהה אוטומטית
+              </div>
+            )}
           </div>
         )}
       </div>
