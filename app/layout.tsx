@@ -9,14 +9,14 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  title: 'שוק הטעמים – מוצרי אוכל ומטבח מאלי אקספרס',
-  description: 'גלה מוצרי אוכל ומטבח מומלצים מאלי אקספרס – החלק ימינה לקנייה, שמאלה לדילוג',
+  title: 'Sheli – המוצרים שאני מאהבת',
+  description: 'המוצרים הכי שווים שמצאתי – ביוטי, תכשיטים, בית ועוד. החלקי ימינה לרכישה!',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="he" dir="rtl" className={heebo.variable}>
-      <body className="font-heebo bg-cream">{children}</body>
+      <body className="font-heebo bg-dark">{children}</body>
     </html>
   );
 }

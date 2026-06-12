@@ -19,19 +19,19 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
 ) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const rotate = useTransform(x, [-260, 260], [-20, 20]);
+  const rotate = useTransform(x, [-260, 260], [-18, 18]);
 
-  const likeOpacity  = useTransform(x, [30, 120], [0, 1]);
-  const nopeOpacity  = useTransform(x, [-30, -120], [0, 1]);
-  const superOpacity = useTransform(y, [-30, -120], [0, 1]);
+  const likeOpacity  = useTransform(x, [40, 130], [0, 1]);
+  const nopeOpacity  = useTransform(x, [-40, -130], [0, 1]);
+  const superOpacity = useTransform(y, [-40, -130], [0, 1]);
 
   const doSwipe = async (dir: SwipeDirection) => {
     if (dir !== 'left' && product.link) {
       window.open(product.link, '_blank', 'noopener,noreferrer');
     }
-    if (dir === 'right')     await animate(x, 700,  { duration: 0.28 });
-    else if (dir === 'left') await animate(x, -700, { duration: 0.28 });
-    else                     await animate(y, -800, { duration: 0.28 });
+    if      (dir === 'right') await animate(x, 750,  { duration: 0.3, ease: 'easeIn' });
+    else if (dir === 'left')  await animate(x, -750, { duration: 0.3, ease: 'easeIn' });
+    else                      await animate(y, -900, { duration: 0.3, ease: 'easeIn' });
     onSwipe(dir);
   };
 
@@ -39,18 +39,18 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
 
   const handleDragEnd = async (_: PointerEvent, info: PanInfo) => {
     const { offset } = info;
-    if      (offset.x >  100) await doSwipe('right');
-    else if (offset.x < -100) await doSwipe('left');
-    else if (offset.y < -100) await doSwipe('up');
+    if      (offset.x >  110) await doSwipe('right');
+    else if (offset.x < -110) await doSwipe('left');
+    else if (offset.y < -110) await doSwipe('up');
     else {
-      animate(x, 0, { type: 'spring', stiffness: 400, damping: 35 });
-      animate(y, 0, { type: 'spring', stiffness: 400, damping: 35 });
+      animate(x, 0, { type: 'spring', stiffness: 380, damping: 32 });
+      animate(y, 0, { type: 'spring', stiffness: 380, damping: 32 });
     }
   };
 
-  const badge = product.badge ? BADGE_CONFIG[product.badge] : null;
-  const bg = CAT_BG[product.cat];
-  const emoji = product.emoji || CAT_EMOJI[product.cat];
+  const badge   = product.badge ? BADGE_CONFIG[product.badge] : null;
+  const bg      = CAT_BG[product.cat];
+  const emoji   = product.emoji || CAT_EMOJI[product.cat];
   const discount = product.price && product.orig && parseFloat(product.orig) > parseFloat(product.price)
     ? Math.round((1 - parseFloat(product.price) / parseFloat(product.orig)) * 100)
     : null;
@@ -61,94 +61,127 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
       style={{ x, y, rotate, touchAction: 'none', cursor: isTop ? 'grab' : 'default' }}
       drag={isTop}
       dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-      dragElastic={0.8}
+      dragElastic={0.75}
       onDragEnd={handleDragEnd}
       whileTap={{ cursor: 'grabbing' }}
     >
       {/* LIKE overlay */}
       <motion.div
-        className="absolute inset-0 z-10 flex items-center justify-end pe-8 rounded-3xl bg-green-500/80 pointer-events-none"
+        className="absolute inset-0 z-20 flex items-center justify-end pe-8 rounded-3xl pointer-events-none overflow-hidden"
         style={{ opacity: likeOpacity }}
       >
-        <div className="text-white font-black text-3xl border-4 border-white rounded-2xl px-4 py-2 rotate-[-15deg]">
-          ❤️ אהבתי!
+        <div className="absolute inset-0 bg-gradient-to-l from-rose-500/70 to-transparent" />
+        <div className="relative text-white font-black text-2xl border-[3px] border-white rounded-2xl px-4 py-2"
+          style={{ transform: 'rotate(-12deg)', textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+          💖 רוצה!
         </div>
       </motion.div>
 
       {/* NOPE overlay */}
       <motion.div
-        className="absolute inset-0 z-10 flex items-center ps-8 rounded-3xl bg-red-500/80 pointer-events-none"
+        className="absolute inset-0 z-20 flex items-center ps-8 rounded-3xl pointer-events-none overflow-hidden"
         style={{ opacity: nopeOpacity }}
       >
-        <div className="text-white font-black text-3xl border-4 border-white rounded-2xl px-4 py-2 rotate-[15deg]">
-          ✕ דלג
+        <div className="absolute inset-0 bg-gradient-to-r from-gray-700/70 to-transparent" />
+        <div className="relative text-white font-black text-2xl border-[3px] border-white rounded-2xl px-4 py-2"
+          style={{ transform: 'rotate(12deg)', textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+          ✕ דלגי
         </div>
       </motion.div>
 
       {/* SUPER LIKE overlay */}
       <motion.div
-        className="absolute inset-0 z-10 flex items-start justify-center pt-10 rounded-3xl bg-blue-500/80 pointer-events-none"
+        className="absolute inset-0 z-20 flex items-start justify-center pt-10 rounded-3xl pointer-events-none overflow-hidden"
         style={{ opacity: superOpacity }}
       >
-        <div className="text-white font-black text-3xl border-4 border-white rounded-2xl px-4 py-2">
-          ⭐ סופר לייק!
+        <div className="absolute inset-0 bg-gradient-to-b from-amber-400/70 to-transparent" />
+        <div className="relative text-white font-black text-2xl border-[3px] border-white rounded-2xl px-5 py-2"
+          style={{ textShadow: '0 2px 8px rgba(0,0,0,0.3)' }}>
+          ⭐ חייבת!
         </div>
       </motion.div>
 
-      {/* Card body */}
-      <div className="w-full h-full rounded-3xl overflow-hidden bg-white flex flex-col"
-        style={{ boxShadow: '0 20px 60px rgba(0,0,0,0.18)' }}>
+      {/* ── CARD ── */}
+      <div className="w-full h-full rounded-3xl overflow-hidden relative"
+        style={{ boxShadow: '0 25px 65px rgba(0,0,0,0.45), 0 8px 20px rgba(0,0,0,0.3)' }}>
 
-        {/* Media */}
-        <div className="relative flex-[3] overflow-hidden" style={{ background: bg }}>
+        {/* Background / Media */}
+        <div className="absolute inset-0" style={{ background: bg }}>
           {product.mediaData ? (
             product.mediaType === 'video'
               ? <video src={product.mediaData} className="w-full h-full object-cover" autoPlay loop muted playsInline />
               : <img src={product.mediaData} alt={product.name} className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-[5rem]">{emoji}</div>
+            <div className="w-full h-full flex items-center justify-center">
+              <span style={{ fontSize: '7rem', filter: 'drop-shadow(0 8px 24px rgba(0,0,0,0.15))' }}>{emoji}</span>
+            </div>
           )}
+        </div>
 
-          {/* Chips on image */}
-          <div className="absolute top-3 start-3 bg-gradient-to-r from-red-600 to-orange-500 text-white text-xs font-black px-3 py-1 rounded-full shadow-lg">
-            🛒 AliExpress
+        {/* Full gradient overlay from bottom */}
+        <div className="absolute inset-0"
+          style={{ background: 'linear-gradient(to top, rgba(20,4,15,0.96) 0%, rgba(20,4,15,0.65) 35%, rgba(20,4,15,0.1) 60%, transparent 80%)' }} />
+
+        {/* TOP chips */}
+        <div className="absolute top-4 start-4 end-4 flex items-start justify-between gap-2 z-10">
+          {/* Category badge */}
+          <div className="glass text-white text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1.5">
+            <span>{CAT_EMOJI[product.cat]}</span>
+            <span>{CAT_LABELS[product.cat]}</span>
           </div>
+
+          {/* Badge */}
           {badge && (
-            <div className={`absolute top-3 end-3 text-xs font-black px-3 py-1 rounded-full border shadow-sm ${badge.cls}`}>
+            <div className={`text-xs font-black px-3 py-1.5 rounded-full border ${badge.cls}`}>
               {badge.label}
             </div>
           )}
         </div>
 
-        {/* Info */}
-        <div className="flex-[2] p-4 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-yellow-400 text-sm tracking-wide">
-                {'★'.repeat(product.stars)}{'☆'.repeat(5 - product.stars)}
-              </span>
-              <span className="text-xs text-soft bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-full font-semibold">
-                {CAT_EMOJI[product.cat]} {CAT_LABELS[product.cat]}
-              </span>
-            </div>
-            <h2 className="text-lg font-black text-dark leading-snug">{product.name}</h2>
-            {product.desc && (
-              <p className="text-xs text-soft mt-1 line-clamp-2 leading-relaxed">{product.desc}</p>
-            )}
+        {/* BOTTOM content */}
+        <div className="absolute bottom-0 start-0 end-0 p-5 z-10">
+          {/* Stars */}
+          <div className="flex items-center gap-0.5 mb-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <span key={i} className={`text-sm ${i < product.stars ? 'text-amber-400' : 'text-white/20'}`}>★</span>
+            ))}
           </div>
 
-          <div className="flex items-end gap-2 mt-2">
-            {product.price && (
-              <span className="text-2xl font-black text-dark">₪{product.price}</span>
-            )}
-            {product.orig && (
-              <span className="text-sm text-gray-400 line-through mb-0.5">₪{product.orig}</span>
-            )}
-            {discount && (
-              <span className="text-xs font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full mb-0.5">
-                חיסכון {discount}%
-              </span>
-            )}
+          {/* Product name */}
+          <h2 className="text-white font-black text-[1.2rem] leading-snug mb-1.5 line-clamp-2"
+            style={{ textShadow: '0 2px 8px rgba(0,0,0,0.5)' }}>
+            {product.name}
+          </h2>
+
+          {/* Description */}
+          {product.desc && (
+            <p className="text-white/65 text-xs leading-relaxed line-clamp-2 mb-3">
+              {product.desc}
+            </p>
+          )}
+
+          {/* Price row */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 flex-wrap">
+              {product.price && (
+                <span className="text-white font-black text-2xl">₪{product.price}</span>
+              )}
+              {product.orig && (
+                <span className="text-white/40 text-sm line-through">₪{product.orig}</span>
+              )}
+              {discount && (
+                <span className="text-xs font-black px-2 py-0.5 rounded-full"
+                  style={{ background: 'linear-gradient(135deg,#d4a843,#b8892e)', color: '#fff' }}>
+                  -{discount}%
+                </span>
+              )}
+            </div>
+
+            {/* CTA hint */}
+            <div className="text-white/50 text-[10px] font-bold flex items-center gap-1">
+              <span>החלקי ימינה</span>
+              <span>→</span>
+            </div>
           </div>
         </div>
       </div>
