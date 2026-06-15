@@ -159,9 +159,13 @@ export default function HomePage() {
             </div>
             <div className="leading-tight">
               <div className="font-black text-lg leading-none shine-text tracking-wide">Catchit</div>
-              <div className="text-[10px] leading-none mt-0.5 font-semibold"
-                style={{ color: 'rgba(255,255,255,0.35)' }}>
-                המוצרים שאני מאהבת
+              <div className="text-[10px] leading-none mt-0.5 font-semibold tracking-wide"
+                style={{ color: 'rgba(255,255,255,0.45)' }}>
+                Discover. Swipe. Catchit.
+              </div>
+              <div className="text-[9px] leading-none mt-0.5"
+                style={{ color: 'rgba(255,255,255,0.22)' }}>
+                כי כל מוצר טוב מחכה שיתפסו אותו
               </div>
             </div>
           </button>
