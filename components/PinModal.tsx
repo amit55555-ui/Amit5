@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const PIN_KEY = 'sheli_admin_pin';
+const PIN_KEY = 'catchit_admin_pin';
 const DEFAULT_PIN = '1234';
 
 export function getAdminPin(): string {

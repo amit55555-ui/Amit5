@@ -13,7 +13,7 @@ import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Category, type Product, type SwipeDirection } from '@/types';
 
 const CATS = Object.keys(CAT_LABELS) as Category[];
-const LS_KEY = 'sheli_custom_products';
+const LS_KEY = 'catchit_custom_products';
 
 /* ── Soft sound via Web Audio API ── */
 function playSound(type: 'like' | 'nope' | 'super') {
@@ -158,7 +158,7 @@ export default function HomePage() {
               💖
             </div>
             <div className="leading-tight">
-              <div className="font-black text-lg leading-none shine-text tracking-wide">Sheli</div>
+              <div className="font-black text-lg leading-none shine-text tracking-wide">Catchit</div>
               <div className="text-[10px] leading-none mt-0.5 font-semibold"
                 style={{ color: 'rgba(255,255,255,0.35)' }}>
                 המוצרים שאני מאהבת
