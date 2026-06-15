@@ -9,7 +9,7 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  title: 'Catchit – המוצרים שאני מאהבת',
+  title: 'Catchit – כי כל מוצר טוב מחכה שיתפסו אותו',
   description: 'המוצרים הכי שווים שמצאתי – ביוטי, תכשיטים, בית ועוד. החלקי ימינה לרכישה!',
 };
 
