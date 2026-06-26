@@ -1,4 +1,14 @@
-export type Category = 'kitchen' | 'spices' | 'snacks' | 'drinks' | 'baking' | 'bbq';
+export type Category =
+  | 'home'
+  | 'cleaning'
+  | 'kids'
+  | 'bachelorette'
+  | 'pokemon'
+  | 'gadgets'
+  | 'auto'
+  | 'camping'
+  | 'storage';
+
 export type Badge = 'sale' | 'new' | 'top' | 'rec' | '';
 export type SwipeDirection = 'right' | 'left' | 'up';
 
@@ -18,30 +28,39 @@ export interface Product {
 }
 
 export const CAT_LABELS: Record<Category, string> = {
-  kitchen: 'כלי מטבח',
-  spices:  'תבלינים',
-  snacks:  'חטיפים',
-  drinks:  'שתייה',
-  baking:  'אפייה',
-  bbq:     'גריל',
+  home:         'בית',
+  cleaning:     'ניקיון',
+  kids:         'ילדים',
+  bachelorette: 'מסיבת רווקות',
+  pokemon:      'פוקימון',
+  gadgets:      'גאדג\'טים וטכנולוגיה',
+  auto:         'רכב ואביזרים',
+  camping:      'טיול וקמפינג',
+  storage:      'בית ואחסון',
 };
 
 export const CAT_EMOJI: Record<Category, string> = {
-  kitchen: '🍳',
-  spices:  '🌶️',
-  snacks:  '🍿',
-  drinks:  '☕',
-  baking:  '🧁',
-  bbq:     '🔥',
+  home:         '🏠',
+  cleaning:     '🧹',
+  kids:         '🧸',
+  bachelorette: '💍',
+  pokemon:      '⚡',
+  gadgets:      '📱',
+  auto:         '🚗',
+  camping:      '⛺',
+  storage:      '📦',
 };
 
 export const CAT_BG: Record<Category, string> = {
-  kitchen: 'linear-gradient(135deg,#fff0e0,#ffd4a0)',
-  spices:  'linear-gradient(135deg,#ffe8e0,#ffb8a0)',
-  snacks:  'linear-gradient(135deg,#fff8d0,#ffe090)',
-  drinks:  'linear-gradient(135deg,#e0f4ff,#b0d8f5)',
-  baking:  'linear-gradient(135deg,#f5e0ff,#ddb0ff)',
-  bbq:     'linear-gradient(135deg,#ffe4d0,#ff9060)',
+  home:         'linear-gradient(135deg,#fff0e0,#ffd4a0)',
+  cleaning:     'linear-gradient(135deg,#e0f7fa,#b2ebf2)',
+  kids:         'linear-gradient(135deg,#fce4ec,#f8bbd0)',
+  bachelorette: 'linear-gradient(135deg,#f3e5f5,#e1bee7)',
+  pokemon:      'linear-gradient(135deg,#fff9c4,#fff176)',
+  gadgets:      'linear-gradient(135deg,#e8eaf6,#c5cae9)',
+  auto:         'linear-gradient(135deg,#e0f2f1,#b2dfdb)',
+  camping:      'linear-gradient(135deg,#e8f5e9,#c8e6c9)',
+  storage:      'linear-gradient(135deg,#fff8e1,#ffecb3)',
 };
 
 export const BADGE_CONFIG: Record<string, { label: string; cls: string }> = {

@@ -1,24 +1,26 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star } from 'lucide-react';
+import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star, Search, RotateCcw } from 'lucide-react';
 import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Product, type Category, type Badge } from '@/types';
 
 const ADMIN_PASSWORD = 'admin123';
-const LS_CUSTOM = 'shuk_custom_products';
-const LS_AUTH   = 'shuk_admin_auth';
+const LS_CUSTOM    = 'shuk_custom_products';
+const LS_OVERRIDES = 'shuk_overrides';   // Record<id, Product>  – edits to built-in products
+const LS_HIDDEN    = 'shuk_hidden';      // string[]             – deleted built-in product IDs
+const LS_AUTH      = 'shuk_admin_auth';
 
 const EMPTY: Omit<Product, 'id'> = {
-  name: '', cat: 'kitchen', desc: '', price: '', orig: '',
+  name: '', cat: 'home', desc: '', price: '', orig: '',
   link: '', emoji: '', badge: '', stars: 5,
   mediaData: null, mediaType: null,
 };
 
 const CATS = Object.keys(CAT_LABELS) as Category[];
 
-/* ─── LOGIN SCREEN ─── */
+/* ─── LOGIN ─── */
 function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [pw, setPw] = useState('');
   const [err, setErr] = useState(false);
@@ -47,7 +49,6 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
         </div>
         <h1 className="text-2xl font-black text-dark mb-1">לוח ניהול</h1>
         <p className="text-soft text-sm mb-6">הכנס סיסמת מנהל כדי להמשיך</p>
-
         <input
           type="password"
           value={pw}
@@ -59,14 +60,12 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
           autoFocus
         />
         {err && <p className="text-red-500 text-xs font-semibold mb-3">סיסמה שגויה, נסה שוב</p>}
-
         <button
           onClick={submit}
           className="w-full bg-orange hover:bg-deep-orange text-white font-black py-3.5 rounded-xl transition-colors shadow-lg shadow-orange/25"
         >
           כניסה
         </button>
-
         <a href="/" className="mt-4 flex items-center justify-center gap-1 text-soft text-sm hover:text-orange transition-colors">
           <ArrowRight className="w-4 h-4" />
           חזרה לאפליקציה
@@ -76,13 +75,12 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
   );
 }
 
-/* ─── FORM ─── */
+/* ─── PRODUCT FORM ─── */
 function ProductForm({
-  initial,
-  onSave,
-  onCancel,
+  initial, isBuiltIn, onSave, onCancel,
 }: {
   initial?: Product;
+  isBuiltIn?: boolean;
   onSave: (p: Omit<Product, 'id'> & { id?: string }) => void;
   onCancel: () => void;
 }) {
@@ -115,18 +113,22 @@ function ProductForm({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Name */}
+      {isBuiltIn && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 text-xs text-blue-700 font-semibold">
+          ✏️ עריכת מוצר מובנה – השינויים ישמרו מקומית ויוצגו באפליקציה
+        </div>
+      )}
+
       <div>
         <label className="text-xs font-black text-soft mb-1.5 block">שם המוצר *</label>
         <input
           value={form.name}
           onChange={e => field('name', e.target.value)}
           className="w-full border-2 border-border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-orange transition-colors"
-          placeholder="למשל: מסחטת לימון חשמלית"
+          placeholder="למשל: מנורת לד חכמה"
         />
       </div>
 
-      {/* Cat + Badge row */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-black text-soft mb-1.5 block">קטגוריה *</label>
@@ -154,7 +156,6 @@ function ProductForm({
         </div>
       </div>
 
-      {/* Price row */}
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-black text-soft mb-1.5 block">מחיר (₪)</label>
@@ -176,7 +177,6 @@ function ProductForm({
         </div>
       </div>
 
-      {/* Link */}
       <div>
         <label className="text-xs font-black text-soft mb-1.5 block">🔗 לינק אפיליאציה *</label>
         <input
@@ -188,7 +188,6 @@ function ProductForm({
         />
       </div>
 
-      {/* Description */}
       <div>
         <label className="text-xs font-black text-soft mb-1.5 block">תיאור קצר</label>
         <textarea
@@ -200,7 +199,6 @@ function ProductForm({
         />
       </div>
 
-      {/* Media upload */}
       <div>
         <label className="text-xs font-black text-soft mb-1.5 block">📸 תמונה / סרטון</label>
         <div
@@ -215,7 +213,7 @@ function ProductForm({
                 : <img src={preview} className="max-h-32 mx-auto rounded-lg object-cover" alt="" />}
               <button
                 onClick={e => { e.stopPropagation(); setPreview(null); setForm(f => ({ ...f, mediaData: null, mediaType: null })); }}
-                className="absolute top-1 end-1 bg-white rounded-full w-6 h-6 text-xs text-gray-500 shadow font-bold flex items-center justify-center"
+                className="absolute top-1 end-1 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow text-gray-500"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -230,26 +228,17 @@ function ProductForm({
         </div>
       </div>
 
-      {/* Stars */}
       <div>
         <label className="text-xs font-black text-soft mb-2 block">דירוג</label>
         <div className="flex gap-2">
           {[1, 2, 3, 4, 5].map(n => (
-            <button
-              key={n}
-              type="button"
-              onClick={() => setStars(n)}
-              className="transition-transform active:scale-90"
-            >
-              <Star
-                className={`w-7 h-7 ${n <= stars ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`}
-              />
+            <button key={n} type="button" onClick={() => setStars(n)} className="transition-transform active:scale-90">
+              <Star className={`w-7 h-7 ${n <= stars ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'}`} />
             </button>
           ))}
         </div>
       </div>
 
-      {/* Action buttons */}
       <div className="flex gap-3 pt-2">
         <button
           onClick={submit}
@@ -269,30 +258,61 @@ function ProductForm({
   );
 }
 
-/* ─── ADMIN DASHBOARD ─── */
+/* ─── DASHBOARD ─── */
 function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [customProducts, setCustomProducts] = useState<Product[]>([]);
-  const [view, setView] = useState<'list' | 'add' | 'edit'>('list');
-  const [editProduct, setEditProduct] = useState<Product | null>(null);
-  const [search, setSearch] = useState('');
+  const [overrides, setOverrides]           = useState<Record<string, Product>>({});
+  const [hidden, setHidden]                 = useState<string[]>([]);
+  const [view, setView]                     = useState<'list' | 'add' | 'edit'>('list');
+  const [editProduct, setEditProduct]       = useState<Product | null>(null);
+  const [search, setSearch]                 = useState('');
+  const [catFilter, setCatFilter]           = useState<Category | 'all'>('all');
 
+  // Load from localStorage
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_CUSTOM);
-      if (raw) setCustomProducts(JSON.parse(raw));
-    } catch { /* ignore */ }
+    try { const r = localStorage.getItem(LS_CUSTOM);    if (r) setCustomProducts(JSON.parse(r)); } catch { /**/ }
+    try { const r = localStorage.getItem(LS_OVERRIDES); if (r) setOverrides(JSON.parse(r)); }      catch { /**/ }
+    try { const r = localStorage.getItem(LS_HIDDEN);    if (r) setHidden(JSON.parse(r)); }         catch { /**/ }
   }, []);
 
-  const persist = useCallback((prods: Product[]) => {
-    setCustomProducts(prods);
-    localStorage.setItem(LS_CUSTOM, JSON.stringify(prods));
-  }, []);
+  // Persist helpers
+  const persistCustom    = useCallback((p: Product[])            => { setCustomProducts(p); localStorage.setItem(LS_CUSTOM, JSON.stringify(p)); }, []);
+  const persistOverrides = useCallback((o: Record<string, Product>) => { setOverrides(o);    localStorage.setItem(LS_OVERRIDES, JSON.stringify(o)); }, []);
+  const persistHidden    = useCallback((h: string[])             => { setHidden(h);         localStorage.setItem(LS_HIDDEN, JSON.stringify(h)); }, []);
+
+  // Merged product list: built-ins (minus hidden, with overrides applied) + custom
+  const allProducts = useMemo<(Product & { _source: 'builtin' | 'custom'; _modified: boolean })[]>(() => {
+    const builtins = PRODUCTS
+      .filter(p => !hidden.includes(p.id))
+      .map(p => ({
+        ...(overrides[p.id] ?? p),
+        _source: 'builtin' as const,
+        _modified: !!overrides[p.id],
+      }));
+    const customs = customProducts.map(p => ({ ...p, _source: 'custom' as const, _modified: false }));
+    return [...builtins, ...customs];
+  }, [overrides, hidden, customProducts]);
+
+  const filtered = useMemo(() => {
+    let list = allProducts;
+    if (catFilter !== 'all') list = list.filter(p => p.cat === catFilter);
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(p => p.name.toLowerCase().includes(q) || CAT_LABELS[p.cat].includes(q));
+    }
+    return list;
+  }, [allProducts, catFilter, search]);
 
   const handleSave = (data: Omit<Product, 'id'> & { id?: string }) => {
-    if (data.id) {
-      persist(customProducts.map(p => p.id === data.id ? { ...data, id: data.id } as Product : p));
+    if (!data.id) {
+      // New custom product
+      persistCustom([...customProducts, { ...data, id: `c${Date.now()}` } as Product]);
+    } else if (customProducts.some(p => p.id === data.id)) {
+      // Edit existing custom
+      persistCustom(customProducts.map(p => p.id === data.id ? { ...data, id: data.id } as Product : p));
     } else {
-      persist([...customProducts, { ...data, id: `c${Date.now()}` } as Product]);
+      // Edit built-in → save as override
+      persistOverrides({ ...overrides, [data.id]: { ...data, id: data.id } as Product });
     }
     setView('list');
     setEditProduct(null);
@@ -303,15 +323,33 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     setView('edit');
   };
 
-  const handleDelete = (id: string) => {
-    if (!confirm('למחוק את המוצר?')) return;
-    persist(customProducts.filter(p => p.id !== id));
+  const handleDelete = (p: Product & { _source: 'builtin' | 'custom' }) => {
+    if (!confirm('למחוק את המוצר? ניתן לשחזר בכל עת.')) return;
+    if (p._source === 'custom') {
+      persistCustom(customProducts.filter(c => c.id !== p.id));
+    } else {
+      persistHidden([...hidden, p.id]);
+      const newOv = { ...overrides };
+      delete newOv[p.id];
+      persistOverrides(newOv);
+    }
   };
 
-  const allProducts = [...PRODUCTS, ...customProducts];
-  const filtered = search
-    ? allProducts.filter(p => p.name.includes(search) || CAT_LABELS[p.cat].includes(search))
-    : allProducts;
+  const handleRestoreBuiltin = (id: string) => {
+    persistHidden(hidden.filter(h => h !== id));
+    const newOv = { ...overrides };
+    delete newOv[id];
+    persistOverrides(newOv);
+  };
+
+  const handleResetOverride = (id: string) => {
+    if (!confirm('לאפס עריכות ולחזור למוצר המקורי?')) return;
+    const newOv = { ...overrides };
+    delete newOv[id];
+    persistOverrides(newOv);
+  };
+
+  const isBuiltIn = (id: string) => PRODUCTS.some(p => p.id === id);
 
   return (
     <div className="min-h-screen bg-cream" dir="rtl">
@@ -320,24 +358,18 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         <div className="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl"
-              style={{ background: 'linear-gradient(135deg,#ff6b35,#f9a825)' }}>
-              ⚙️
-            </div>
+              style={{ background: 'linear-gradient(135deg,#ff6b35,#f9a825)' }}>⚙️</div>
             <div>
               <div className="text-white font-black text-base leading-none">לוח ניהול</div>
               <div className="text-white/40 text-[10px]">שוק הטעמים</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <a href="/"
-              className="flex items-center gap-1 text-white/60 hover:text-white text-xs font-semibold transition-colors">
+            <a href="/" className="flex items-center gap-1 text-white/60 hover:text-white text-xs font-semibold transition-colors">
               <ArrowRight className="w-4 h-4" />
               האפליקציה
             </a>
-            <button
-              onClick={onLogout}
-              className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-2 rounded-full transition-colors"
-            >
+            <button onClick={onLogout} className="flex items-center gap-1 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold px-3 py-2 rounded-full transition-colors">
               <LogOut className="w-3.5 h-3.5" />
               יציאה
             </button>
@@ -347,89 +379,140 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-4 gap-2 mb-6">
           {[
             { label: 'סה"כ מוצרים', value: allProducts.length, icon: '📦' },
             { label: 'מוצרים מותאמים', value: customProducts.length, icon: '✨' },
-            { label: 'קטגוריות', value: Object.keys(CAT_LABELS).length, icon: '🏷️' },
+            { label: 'ערוכים', value: Object.keys(overrides).length, icon: '✏️' },
+            { label: 'מוסתרים', value: hidden.length, icon: '🙈' },
           ].map(s => (
-            <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm border border-border text-center">
-              <div className="text-2xl mb-1">{s.icon}</div>
-              <div className="text-2xl font-black text-dark">{s.value}</div>
-              <div className="text-xs text-soft font-semibold">{s.label}</div>
+            <div key={s.label} className="bg-white rounded-2xl p-3 shadow-sm border border-border text-center">
+              <div className="text-xl mb-0.5">{s.icon}</div>
+              <div className="text-xl font-black text-dark">{s.value}</div>
+              <div className="text-[10px] text-soft font-semibold leading-tight">{s.label}</div>
             </div>
           ))}
         </div>
 
+        {/* Hidden products restore bar */}
+        {hidden.length > 0 && (
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 flex items-center justify-between gap-3">
+            <span className="text-xs text-amber-800 font-semibold">🙈 {hidden.length} מוצרים מוסתרים</span>
+            <button
+              onClick={() => { if (confirm('לשחזר את כל המוצרים המוסתרים?')) { persistHidden([]); } }}
+              className="text-xs bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg hover:bg-amber-700 transition-colors"
+            >
+              שחזר הכל
+            </button>
+          </div>
+        )}
+
         <AnimatePresence mode="wait">
           {view === 'list' && (
             <motion.div key="list" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              {/* Search + add */}
-              <div className="flex gap-3 mb-4">
-                <input
-                  value={search}
-                  onChange={e => setSearch(e.target.value)}
-                  placeholder="חיפוש מוצר..."
-                  className="flex-1 border-2 border-border rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-orange bg-white"
-                />
+              {/* Filters row */}
+              <div className="flex gap-2 mb-3">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 absolute top-1/2 -translate-y-1/2 end-3 text-gray-400 pointer-events-none" />
+                  <input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="חיפוש מוצר..."
+                    className="w-full border-2 border-border rounded-xl px-3.5 pe-9 py-2.5 text-sm focus:outline-none focus:border-orange bg-white"
+                  />
+                </div>
                 <button
-                  onClick={() => setView('add')}
-                  className="bg-orange hover:bg-deep-orange text-white font-black px-4 py-2.5 rounded-xl transition-colors flex items-center gap-2 shadow-lg shadow-orange/25"
+                  onClick={() => { setView('add'); setEditProduct(null); }}
+                  className="bg-orange hover:bg-deep-orange text-white font-black px-4 py-2.5 rounded-xl transition-colors flex items-center gap-1.5 shadow-lg shadow-orange/25 flex-shrink-0"
                 >
                   <Plus className="w-4 h-4" />
                   הוסף
                 </button>
               </div>
 
+              {/* Category filter scrollable */}
+              <div className="overflow-x-auto mb-4">
+                <div className="flex gap-1.5 w-max pb-1">
+                  <button
+                    onClick={() => setCatFilter('all')}
+                    className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all
+                      ${catFilter === 'all' ? 'bg-orange text-white' : 'bg-white border border-border text-soft hover:border-orange'}`}
+                  >
+                    🔥 הכל
+                  </button>
+                  {CATS.map(c => (
+                    <button
+                      key={c}
+                      onClick={() => setCatFilter(c)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all
+                        ${catFilter === c ? 'bg-orange text-white' : 'bg-white border border-border text-soft hover:border-orange'}`}
+                    >
+                      {CAT_EMOJI[c]} {CAT_LABELS[c]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Product list */}
               <div className="flex flex-col gap-2">
-                {filtered.map(product => {
-                  const isCustom = customProducts.some(p => p.id === product.id);
-                  return (
-                    <motion.div
-                      key={product.id}
-                      layout
-                      className="bg-white rounded-2xl p-3 border border-border shadow-sm flex items-center gap-3"
-                    >
-                      {/* Thumb */}
-                      <div className="w-12 h-12 rounded-xl overflow-hidden bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0">
-                        {product.mediaData && product.mediaType === 'image'
-                          ? <img src={product.mediaData} alt="" className="w-full h-full object-cover" />
-                          : (product.emoji || CAT_EMOJI[product.cat])}
-                      </div>
+                {filtered.length === 0 && (
+                  <p className="text-center text-soft py-10 text-sm">לא נמצאו מוצרים</p>
+                )}
+                {filtered.map(product => (
+                  <motion.div
+                    key={product.id}
+                    layout
+                    className="bg-white rounded-2xl p-3 border border-border shadow-sm flex items-center gap-3"
+                  >
+                    {/* Thumbnail */}
+                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0">
+                      {product.mediaData && product.mediaType === 'image'
+                        ? <img src={product.mediaData} alt="" className="w-full h-full object-cover" />
+                        : (product.emoji || CAT_EMOJI[product.cat])}
+                    </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className="font-black text-dark text-sm truncate">{product.name}</span>
-                          {isCustom && (
-                            <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">מותאם</span>
-                          )}
-                        </div>
-                        <div className="text-xs text-soft">
-                          {CAT_EMOJI[product.cat]} {CAT_LABELS[product.cat]}
-                          {product.price ? ` · ₪${product.price}` : ''}
-                        </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5 flex-wrap mb-0.5">
+                        <span className="font-black text-dark text-sm truncate">{product.name}</span>
+                        {product._source === 'custom' && (
+                          <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">מותאם</span>
+                        )}
+                        {product._modified && (
+                          <span className="text-[10px] bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-bold flex-shrink-0">ערוך</span>
+                        )}
                       </div>
+                      <div className="text-xs text-soft">
+                        {CAT_EMOJI[product.cat]} {CAT_LABELS[product.cat]}
+                        {product.price ? ` · ₪${product.price}` : ''}
+                      </div>
+                    </div>
 
-                      {isCustom && (
-                        <div className="flex gap-2 flex-shrink-0">
-                          <button
-                            onClick={() => handleEdit(product)}
-                            className="w-8 h-8 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center transition-colors"
-                          >
-                            <Pencil className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDelete(product.id)}
-                            className="w-8 h-8 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg flex items-center justify-center transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                    <div className="flex gap-1.5 flex-shrink-0">
+                      {/* Reset override (only for modified built-ins) */}
+                      {product._modified && (
+                        <button
+                          onClick={() => handleRestoreBuiltin(product.id)}
+                          className="w-8 h-8 bg-amber-50 hover:bg-amber-100 text-amber-600 rounded-lg flex items-center justify-center transition-colors"
+                          title="אפס לברירת מחדל"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                        </button>
                       )}
-                    </motion.div>
-                  );
-                })}
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="w-8 h-8 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg flex items-center justify-center transition-colors"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product)}
+                        className="w-8 h-8 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg flex items-center justify-center transition-colors"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </motion.div>
           )}
@@ -450,6 +533,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                 </div>
                 <ProductForm
                   initial={editProduct || undefined}
+                  isBuiltIn={editProduct ? isBuiltIn(editProduct.id) : false}
                   onSave={handleSave}
                   onCancel={() => { setView('list'); setEditProduct(null); }}
                 />
@@ -475,7 +559,7 @@ export default function AdminPage() {
     setAuthed(false);
   };
 
-  if (authed === null) return null; // hydration guard
+  if (authed === null) return null;
 
   return authed
     ? <Dashboard onLogout={logout} />

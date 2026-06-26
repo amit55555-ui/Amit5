@@ -10,10 +10,14 @@ interface Props {
   onClose: () => void;
   likedIds: string[];
   customProducts: Product[];
+  overrides?: Record<string, Product>;
 }
 
-export default function LikedDrawer({ open, onClose, likedIds, customProducts }: Props) {
-  const allProducts = [...PRODUCTS, ...customProducts];
+export default function LikedDrawer({ open, onClose, likedIds, customProducts, overrides = {} }: Props) {
+  const allProducts = [
+    ...PRODUCTS.map(p => overrides[p.id] ?? p),
+    ...customProducts,
+  ];
   const liked = likedIds
     .map(id => allProducts.find(p => p.id === id))
     .filter(Boolean) as Product[];

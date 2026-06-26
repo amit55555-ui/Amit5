@@ -10,7 +10,7 @@ interface Props {
 }
 
 const EMPTY: Omit<Product, 'id'> = {
-  name: '', cat: 'kitchen', desc: '', price: '', orig: '',
+  name: '', cat: 'home', desc: '', price: '', orig: '',
   link: '', emoji: '', badge: '', stars: 5,
   mediaData: null, mediaType: null,
 };

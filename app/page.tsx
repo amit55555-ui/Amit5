@@ -13,8 +13,10 @@ import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Category, type Product, type SwipeDirection } from '@/types';
 
 const CATS = Object.keys(CAT_LABELS) as Category[];
-const LS_KEY   = 'shuk_custom_products';
-const LS_LIKED = 'shuk_liked_ids';
+const LS_CUSTOM    = 'shuk_custom_products';
+const LS_LIKED     = 'shuk_liked_ids';
+const LS_OVERRIDES = 'shuk_overrides';
+const LS_HIDDEN    = 'shuk_hidden';
 
 export default function HomePage() {
   const [activeCat, setActiveCat]     = useState<Category | 'all'>('all');
@@ -23,27 +25,30 @@ export default function HomePage() {
   const [adminOpen, setAdminOpen]     = useState(false);
   const [drawerOpen, setDrawerOpen]   = useState(false);
   const [customProds, setCustomProds] = useState<Product[]>([]);
+  const [overrides, setOverrides]     = useState<Record<string, Product>>({});
+  const [hidden, setHidden]           = useState<string[]>([]);
   const [toast, setToast]             = useState('');
   const topRef = useRef<SwipeCardHandle | null>(null);
 
-  // Restore state from localStorage
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) setCustomProds(JSON.parse(raw));
-    } catch { /* ignore */ }
-    try {
-      const rawL = localStorage.getItem(LS_LIKED);
-      if (rawL) setLiked(JSON.parse(rawL));
-    } catch { /* ignore */ }
+    try { const r = localStorage.getItem(LS_CUSTOM);    if (r) setCustomProds(JSON.parse(r)); }    catch { /**/ }
+    try { const r = localStorage.getItem(LS_LIKED);     if (r) setLiked(JSON.parse(r)); }          catch { /**/ }
+    try { const r = localStorage.getItem(LS_OVERRIDES); if (r) setOverrides(JSON.parse(r)); }      catch { /**/ }
+    try { const r = localStorage.getItem(LS_HIDDEN);    if (r) setHidden(JSON.parse(r)); }         catch { /**/ }
   }, []);
 
   const saveCustom = useCallback((prods: Product[]) => {
     setCustomProds(prods);
-    localStorage.setItem(LS_KEY, JSON.stringify(prods));
+    localStorage.setItem(LS_CUSTOM, JSON.stringify(prods));
   }, []);
 
-  const allProducts = useMemo(() => [...PRODUCTS, ...customProds], [customProds]);
+  // Merge: built-ins (minus hidden, with overrides) + custom
+  const allProducts = useMemo<Product[]>(() => {
+    const builtins = PRODUCTS
+      .filter(p => !hidden.includes(p.id))
+      .map(p => overrides[p.id] ?? p);
+    return [...builtins, ...customProds];
+  }, [overrides, hidden, customProds]);
 
   const filtered = useMemo(() =>
     activeCat === 'all' ? allProducts : allProducts.filter(p => p.cat === activeCat),
@@ -65,7 +70,7 @@ export default function HomePage() {
       const newLiked = [...liked, product.id];
       setLiked(newLiked);
       localStorage.setItem(LS_LIKED, JSON.stringify(newLiked));
-      showToast('❤️ פותח לינק מאלי אקספרס...');
+      showToast('❤️ פותח לינק...');
     } else {
       showToast('👋 דלגת');
     }
@@ -82,35 +87,29 @@ export default function HomePage() {
   return (
     <div className="flex flex-col h-screen bg-cream overflow-hidden">
 
-      {/* ── ONBOARDING ── */}
       <OnboardingOverlay />
 
       {/* ── HEADER ── */}
       <header className="bg-dark flex-shrink-0 shadow-lg">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between gap-3">
-
-          {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
               style={{ background: 'linear-gradient(135deg,#ff6b35,#f9a825)' }}>
-              🍽️
+              🛍️
             </div>
             <div className="leading-tight">
               <div className="text-white font-black text-base leading-none">
                 שוק <span className="text-gold">הטעמים</span>
               </div>
-              <div className="text-white/40 text-[10px] leading-none mt-0.5">AliExpress</div>
+              <div className="text-white/40 text-[10px] leading-none mt-0.5">גלה מוצרים מדהימים</div>
             </div>
           </div>
 
-          {/* Counter */}
           <div className="text-white/50 text-xs font-semibold flex-1 text-center">
             {!done && <span>{remaining.length} מוצרים</span>}
           </div>
 
-          {/* Right buttons */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {/* Liked drawer */}
             <button
               onClick={() => setDrawerOpen(true)}
               className="relative w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
@@ -122,8 +121,6 @@ export default function HomePage() {
                 </span>
               )}
             </button>
-
-            {/* Admin */}
             <button
               onClick={() => setAdminOpen(true)}
               className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
@@ -134,7 +131,7 @@ export default function HomePage() {
         </div>
 
         {/* ── CATEGORY TABS ── */}
-        <div className="overflow-x-auto border-t border-white/10 scrollbar-none">
+        <div className="overflow-x-auto border-t border-white/10">
           <div className="flex gap-1 px-4 py-2 w-max">
             <button
               onClick={() => changeCat('all')}
@@ -161,7 +158,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* ── SWIPE HINT BAR ── */}
+      {/* ── SWIPE HINT ── */}
       <div className="flex-shrink-0 flex items-center justify-center gap-3 py-2 px-4 text-[11px] text-soft/60 select-none">
         <span>← שמאל לדלג</span>
         <span className="text-border">|</span>
@@ -182,10 +179,7 @@ export default function HomePage() {
               אהבת {liked.length} מוצרים מתוך {filtered.length}
             </p>
             {liked.length > 0 && (
-              <button
-                onClick={() => setDrawerOpen(true)}
-                className="mt-2 text-orange text-sm font-bold underline underline-offset-2"
-              >
+              <button onClick={() => setDrawerOpen(true)} className="mt-2 text-orange text-sm font-bold underline underline-offset-2">
                 ← צפה במוצרים שאהבתי
               </button>
             )}
@@ -229,7 +223,6 @@ export default function HomePage() {
         )}
       </AnimatePresence>
 
-      {/* ── LIKED DRAWER ── */}
       <LikedDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
@@ -237,7 +230,6 @@ export default function HomePage() {
         customProducts={customProds}
       />
 
-      {/* ── ADMIN PANEL (modal, quick access from main) ── */}
       {adminOpen && (
         <AdminPanel
           onClose={() => setAdminOpen(false)}
