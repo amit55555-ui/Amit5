@@ -2,30 +2,39 @@
 
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Heart, Settings } from 'lucide-react';
 import CardStack from '@/components/CardStack';
 import ActionButtons from '@/components/ActionButtons';
 import AdminPanel from '@/components/AdminPanel';
+import LikedDrawer from '@/components/LikedDrawer';
+import OnboardingOverlay from '@/components/OnboardingOverlay';
 import { type SwipeCardHandle } from '@/components/SwipeCard';
 import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Category, type Product, type SwipeDirection } from '@/types';
 
 const CATS = Object.keys(CAT_LABELS) as Category[];
-const LS_KEY = 'shuk_custom_products';
+const LS_KEY   = 'shuk_custom_products';
+const LS_LIKED = 'shuk_liked_ids';
 
 export default function HomePage() {
-  const [activeCat, setActiveCat]       = useState<Category | 'all'>('all');
-  const [idx, setIdx]                   = useState(0);
-  const [liked, setLiked]               = useState<string[]>([]);
-  const [adminOpen, setAdminOpen]       = useState(false);
-  const [customProds, setCustomProds]   = useState<Product[]>([]);
-  const [toast, setToast]               = useState('');
+  const [activeCat, setActiveCat]     = useState<Category | 'all'>('all');
+  const [idx, setIdx]                 = useState(0);
+  const [liked, setLiked]             = useState<string[]>([]);
+  const [adminOpen, setAdminOpen]     = useState(false);
+  const [drawerOpen, setDrawerOpen]   = useState(false);
+  const [customProds, setCustomProds] = useState<Product[]>([]);
+  const [toast, setToast]             = useState('');
   const topRef = useRef<SwipeCardHandle | null>(null);
 
-  // Load custom products from localStorage
+  // Restore state from localStorage
   useEffect(() => {
     try {
       const raw = localStorage.getItem(LS_KEY);
       if (raw) setCustomProds(JSON.parse(raw));
+    } catch { /* ignore */ }
+    try {
+      const rawL = localStorage.getItem(LS_LIKED);
+      if (rawL) setLiked(JSON.parse(rawL));
     } catch { /* ignore */ }
   }, []);
 
@@ -44,22 +53,24 @@ export default function HomePage() {
   const remaining = filtered.slice(idx);
   const done = remaining.length === 0;
 
-  const showToast = (msg: string) => {
+  const showToast = useCallback((msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(''), 2200);
-  };
+  }, []);
 
   const handleSwipe = useCallback((dir: SwipeDirection) => {
     const product = remaining[0];
     if (!product) return;
     if (dir === 'right' || dir === 'up') {
-      setLiked(l => [...l, product.id]);
+      const newLiked = [...liked, product.id];
+      setLiked(newLiked);
+      localStorage.setItem(LS_LIKED, JSON.stringify(newLiked));
       showToast('❤️ פותח לינק מאלי אקספרס...');
     } else {
       showToast('👋 דלגת');
     }
     setIdx(i => i + 1);
-  }, [remaining]);
+  }, [remaining, liked, showToast]);
 
   const changeCat = (cat: Category | 'all') => {
     setActiveCat(cat);
@@ -71,9 +82,13 @@ export default function HomePage() {
   return (
     <div className="flex flex-col h-screen bg-cream overflow-hidden">
 
+      {/* ── ONBOARDING ── */}
+      <OnboardingOverlay />
+
       {/* ── HEADER ── */}
       <header className="bg-dark flex-shrink-0 shadow-lg">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between gap-3">
+
           {/* Logo */}
           <div className="flex items-center gap-2 flex-shrink-0">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
@@ -89,31 +104,56 @@ export default function HomePage() {
           </div>
 
           {/* Counter */}
-          <div className="text-white/50 text-xs font-semibold flex-shrink-0">
+          <div className="text-white/50 text-xs font-semibold flex-1 text-center">
             {!done && <span>{remaining.length} מוצרים</span>}
           </div>
 
-          {/* Admin */}
-          <button onClick={() => setAdminOpen(true)}
-            className="bg-orange hover:bg-deep-orange text-white text-xs font-bold px-4 py-2 rounded-full transition-colors flex-shrink-0">
-            ⚙️ ניהול
-          </button>
+          {/* Right buttons */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Liked drawer */}
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="relative w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
+            >
+              <Heart className="w-4 h-4 text-white" />
+              {liked.length > 0 && (
+                <span className="absolute -top-1 -end-1 w-4 h-4 bg-orange rounded-full text-[9px] font-black text-white flex items-center justify-center">
+                  {liked.length > 9 ? '9+' : liked.length}
+                </span>
+              )}
+            </button>
+
+            {/* Admin */}
+            <button
+              onClick={() => setAdminOpen(true)}
+              className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
+            >
+              <Settings className="w-4 h-4 text-white" />
+            </button>
+          </div>
         </div>
 
-        {/* Category filter */}
-        <div className="overflow-x-auto border-t border-white/10">
+        {/* ── CATEGORY TABS ── */}
+        <div className="overflow-x-auto border-t border-white/10 scrollbar-none">
           <div className="flex gap-1 px-4 py-2 w-max">
             <button
               onClick={() => changeCat('all')}
               className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap
-                ${activeCat === 'all' ? 'bg-orange text-white shadow' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>
-              ✨ הכל
+                ${activeCat === 'all'
+                  ? 'bg-orange text-white shadow-lg shadow-orange/40'
+                  : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
+            >
+              🔥 הכל
             </button>
             {CATS.map(cat => (
-              <button key={cat}
+              <button
+                key={cat}
                 onClick={() => changeCat(cat)}
                 className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap
-                  ${activeCat === cat ? 'bg-orange text-white shadow' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>
+                  ${activeCat === cat
+                    ? 'bg-orange text-white shadow-lg shadow-orange/40'
+                    : 'bg-white/10 text-white/60 hover:bg-white/20'}`}
+              >
                 {CAT_EMOJI[cat]} {CAT_LABELS[cat]}
               </button>
             ))}
@@ -121,15 +161,16 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* ── HINT (first visit) ── */}
-      <div className="flex-shrink-0 text-center py-2 text-xs text-soft/60 select-none">
-        ← החלק שמאל לדלג &nbsp;|&nbsp; החלק ימינה / למעלה לקנייה →
+      {/* ── SWIPE HINT BAR ── */}
+      <div className="flex-shrink-0 flex items-center justify-center gap-3 py-2 px-4 text-[11px] text-soft/60 select-none">
+        <span>← שמאל לדלג</span>
+        <span className="text-border">|</span>
+        <span>ימינה / למעלה לקנייה →</span>
       </div>
 
       {/* ── CARD AREA ── */}
       <div className="flex-1 flex items-center justify-center px-4 min-h-0">
         {done ? (
-          /* Empty state */
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -137,17 +178,26 @@ export default function HomePage() {
           >
             <div className="text-6xl mb-4">🎉</div>
             <h2 className="text-2xl font-black text-dark mb-2">ראית הכל!</h2>
-            <p className="text-soft text-sm mb-2">
+            <p className="text-soft text-sm mb-1">
               אהבת {liked.length} מוצרים מתוך {filtered.length}
             </p>
+            {liked.length > 0 && (
+              <button
+                onClick={() => setDrawerOpen(true)}
+                className="mt-2 text-orange text-sm font-bold underline underline-offset-2"
+              >
+                ← צפה במוצרים שאהבתי
+              </button>
+            )}
+            <br />
             <button
               onClick={reset}
-              className="mt-4 bg-orange hover:bg-deep-orange text-white font-bold px-8 py-3 rounded-full transition-colors shadow-lg">
+              className="mt-4 bg-orange hover:bg-deep-orange text-white font-bold px-8 py-3 rounded-full transition-colors shadow-lg"
+            >
               🔄 התחל מחדש
             </button>
           </motion.div>
         ) : (
-          /* Card stack */
           <div className="relative w-full max-w-sm" style={{ height: 'min(72vh, 520px)' }}>
             <CardStack products={remaining} onSwipe={handleSwipe} topRef={topRef} />
           </div>
@@ -179,7 +229,15 @@ export default function HomePage() {
         )}
       </AnimatePresence>
 
-      {/* ── ADMIN PANEL ── */}
+      {/* ── LIKED DRAWER ── */}
+      <LikedDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        likedIds={liked}
+        customProducts={customProds}
+      />
+
+      {/* ── ADMIN PANEL (modal, quick access from main) ── */}
       {adminOpen && (
         <AdminPanel
           onClose={() => setAdminOpen(false)}

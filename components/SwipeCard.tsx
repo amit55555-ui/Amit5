@@ -1,7 +1,8 @@
 'use client';
 
-import { forwardRef, useImperativeHandle } from 'react';
+import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, animate, type PanInfo } from 'framer-motion';
+import { Volume2, VolumeX } from 'lucide-react';
 import { CAT_BG, CAT_EMOJI, CAT_LABELS, BADGE_CONFIG, type Product, type SwipeDirection } from '@/types';
 
 export interface SwipeCardHandle {
@@ -20,6 +21,8 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
   const x = useMotionValue(0);
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-260, 260], [-20, 20]);
+  const [muted, setMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const likeOpacity  = useTransform(x, [30, 120], [0, 1]);
   const nopeOpacity  = useTransform(x, [-30, -120], [0, 1]);
@@ -48,6 +51,14 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
     }
   };
 
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setMuted(m => {
+      if (videoRef.current) videoRef.current.muted = !m;
+      return !m;
+    });
+  };
+
   const badge = product.badge ? BADGE_CONFIG[product.badge] : null;
   const bg = CAT_BG[product.cat];
   const emoji = product.emoji || CAT_EMOJI[product.cat];
@@ -67,30 +78,30 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
     >
       {/* LIKE overlay */}
       <motion.div
-        className="absolute inset-0 z-10 flex items-center justify-end pe-8 rounded-3xl bg-green-500/80 pointer-events-none"
-        style={{ opacity: likeOpacity }}
+        className="absolute inset-0 z-10 flex items-center justify-end pe-8 rounded-3xl pointer-events-none"
+        style={{ opacity: likeOpacity, background: 'rgba(34,197,94,0.82)' }}
       >
-        <div className="text-white font-black text-3xl border-4 border-white rounded-2xl px-4 py-2 rotate-[-15deg]">
+        <div className="text-white font-black text-3xl border-4 border-white rounded-2xl px-4 py-2 rotate-[-15deg] shadow-lg">
           ❤️ אהבתי!
         </div>
       </motion.div>
 
       {/* NOPE overlay */}
       <motion.div
-        className="absolute inset-0 z-10 flex items-center ps-8 rounded-3xl bg-red-500/80 pointer-events-none"
-        style={{ opacity: nopeOpacity }}
+        className="absolute inset-0 z-10 flex items-center ps-8 rounded-3xl pointer-events-none"
+        style={{ opacity: nopeOpacity, background: 'rgba(239,68,68,0.82)' }}
       >
-        <div className="text-white font-black text-3xl border-4 border-white rounded-2xl px-4 py-2 rotate-[15deg]">
+        <div className="text-white font-black text-3xl border-4 border-white rounded-2xl px-4 py-2 rotate-[15deg] shadow-lg">
           ✕ דלג
         </div>
       </motion.div>
 
       {/* SUPER LIKE overlay */}
       <motion.div
-        className="absolute inset-0 z-10 flex items-start justify-center pt-10 rounded-3xl bg-blue-500/80 pointer-events-none"
-        style={{ opacity: superOpacity }}
+        className="absolute inset-0 z-10 flex items-start justify-center pt-10 rounded-3xl pointer-events-none"
+        style={{ opacity: superOpacity, background: 'rgba(59,130,246,0.82)' }}
       >
-        <div className="text-white font-black text-3xl border-4 border-white rounded-2xl px-4 py-2">
+        <div className="text-white font-black text-3xl border-4 border-white rounded-2xl px-4 py-2 shadow-lg">
           ⭐ סופר לייק!
         </div>
       </motion.div>
@@ -102,14 +113,32 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
         {/* Media */}
         <div className="relative flex-[3] overflow-hidden" style={{ background: bg }}>
           {product.mediaData ? (
-            product.mediaType === 'video'
-              ? <video src={product.mediaData} className="w-full h-full object-cover" autoPlay loop muted playsInline />
-              : <img src={product.mediaData} alt={product.name} className="w-full h-full object-cover" />
+            product.mediaType === 'video' ? (
+              <>
+                <video
+                  ref={videoRef}
+                  src={product.mediaData}
+                  className="w-full h-full object-cover"
+                  autoPlay loop muted={muted} playsInline
+                />
+                {/* Mute/Unmute button */}
+                <button
+                  onClick={toggleMute}
+                  className="absolute bottom-3 start-3 z-20 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                >
+                  {muted
+                    ? <VolumeX className="w-4 h-4" />
+                    : <Volume2 className="w-4 h-4" />}
+                </button>
+              </>
+            ) : (
+              <img src={product.mediaData} alt={product.name} className="w-full h-full object-cover" />
+            )
           ) : (
             <div className="w-full h-full flex items-center justify-center text-[5rem]">{emoji}</div>
           )}
 
-          {/* Chips on image */}
+          {/* Top chips */}
           <div className="absolute top-3 start-3 bg-gradient-to-r from-red-600 to-orange-500 text-white text-xs font-black px-3 py-1 rounded-full shadow-lg">
             🛒 AliExpress
           </div>
