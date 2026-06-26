@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star, Search, RotateCcw } from 'lucide-react';
+import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star, Search, RotateCcw, FileSpreadsheet } from 'lucide-react';
 import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Product, type Category, type Badge } from '@/types';
+import ExcelIO from '@/components/ExcelIO';
 
 const ADMIN_PASSWORD = 'admin123';
 const LS_CUSTOM    = 'shuk_custom_products';
@@ -264,6 +265,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [overrides, setOverrides]           = useState<Record<string, Product>>({});
   const [hidden, setHidden]                 = useState<string[]>([]);
   const [view, setView]                     = useState<'list' | 'add' | 'edit'>('list');
+  const [tab, setTab]                       = useState<'products' | 'excel'>('products');
   const [editProduct, setEditProduct]       = useState<Product | null>(null);
   const [search, setSearch]                 = useState('');
   const [catFilter, setCatFilter]           = useState<Category | 'all'>('all');
@@ -394,8 +396,27 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           ))}
         </div>
 
+        {/* Tab bar */}
+        <div className="flex gap-1 bg-gray-100 rounded-2xl p-1 mb-5">
+          <button
+            onClick={() => setTab('products')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black transition-all
+              ${tab === 'products' ? 'bg-white shadow text-dark' : 'text-soft hover:text-dark'}`}
+          >
+            📦 מוצרים
+          </button>
+          <button
+            onClick={() => setTab('excel')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black transition-all
+              ${tab === 'excel' ? 'bg-white shadow text-dark' : 'text-soft hover:text-dark'}`}
+          >
+            <FileSpreadsheet className="w-4 h-4" />
+            אקסל
+          </button>
+        </div>
+
         {/* Hidden products restore bar */}
-        {hidden.length > 0 && (
+        {tab === 'products' && hidden.length > 0 && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 flex items-center justify-between gap-3">
             <span className="text-xs text-amber-800 font-semibold">🙈 {hidden.length} מוצרים מוסתרים</span>
             <button
@@ -407,7 +428,25 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           </div>
         )}
 
-        <AnimatePresence mode="wait">
+        {/* Excel tab */}
+        {tab === 'excel' && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="bg-white rounded-2xl p-5 border border-border shadow-sm">
+              <h2 className="text-lg font-black text-dark mb-1">📊 ייבוא / ייצוא אקסל</h2>
+              <p className="text-xs text-soft mb-5">ייצא את כל המוצרים לאקסל, ערוך, ויבא בחזרה בקלות</p>
+              <ExcelIO
+                customProducts={customProducts}
+                overrides={overrides}
+                onImport={prods => {
+                  persistCustom(prods);
+                  setTab('products');
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
+
+        {tab === 'products' && <AnimatePresence mode="wait">
           {view === 'list' && (
             <motion.div key="list" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
               {/* Filters row */}
@@ -540,7 +579,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
+        </AnimatePresence>}
       </div>
     </div>
   );
