@@ -7,7 +7,7 @@ import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Product, type Category, type Badge } from '@/types';
 import ExcelIO from '@/components/ExcelIO';
 
-const ADMIN_PASSWORD = 'admin123';
+const ADMIN_PASSWORD = 'amit2389@';
 const LS_CUSTOM    = 'shuk_custom_products';
 const LS_OVERRIDES = 'shuk_overrides';   // Record<id, Product>  – edits to built-in products
 const LS_HIDDEN    = 'shuk_hidden';      // string[]             – deleted built-in product IDs
