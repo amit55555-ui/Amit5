@@ -1,9 +1,11 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ShoppingCart, Heart } from 'lucide-react';
+import { X, ShoppingCart, Heart, Share2 } from 'lucide-react';
 import { PRODUCTS } from '@/data/products';
 import { CAT_EMOJI, CAT_LABELS, type Product } from '@/types';
+import { shareProduct, shareList } from '@/lib/share';
+import { trackClick, trackShare } from '@/lib/analytics';
 
 interface Props {
   open: boolean;
@@ -62,9 +64,20 @@ export default function LikedDrawer({ open, onClose, likedIds, customProducts, o
                   </span>
                 )}
               </div>
-              <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
-                <X className="w-4 h-4 text-gray-500" />
-              </button>
+              <div className="flex items-center gap-2">
+                {liked.length > 0 && (
+                  <button
+                    onClick={() => shareList(liked)}
+                    className="flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white text-xs font-bold px-3 py-1.5 rounded-full transition-colors shadow-sm"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    שתף רשימה
+                  </button>
+                )}
+                <button onClick={onClose} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors">
+                  <X className="w-4 h-4 text-gray-500" />
+                </button>
+              </div>
             </div>
 
             {/* Content */}
@@ -123,15 +136,25 @@ function LikedItem({ product }: { product: Product }) {
         </div>
       </div>
 
-      <a
-        href={product.link}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex-shrink-0 bg-orange hover:bg-deep-orange text-white rounded-xl px-3 py-2 flex items-center gap-1 transition-colors shadow-sm"
-      >
-        <ShoppingCart className="w-4 h-4" />
-        <span className="text-xs font-black">קנה</span>
-      </a>
+      <div className="flex-shrink-0 flex flex-col gap-1.5">
+        <a
+          href={product.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => trackClick(product.id)}
+          className="bg-orange hover:bg-deep-orange text-white rounded-xl px-3 py-2 flex items-center gap-1 transition-colors shadow-sm"
+        >
+          <ShoppingCart className="w-4 h-4" />
+          <span className="text-xs font-black">קנה</span>
+        </a>
+        <button
+          onClick={() => { trackShare(product.id); shareProduct(product); }}
+          className="bg-green-50 hover:bg-green-100 text-green-700 rounded-xl px-3 py-1.5 flex items-center justify-center gap-1 transition-colors"
+        >
+          <Share2 className="w-3.5 h-3.5" />
+          <span className="text-xs font-bold">שתף</span>
+        </button>
+      </div>
     </motion.div>
   );
 }

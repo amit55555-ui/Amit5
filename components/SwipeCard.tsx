@@ -2,8 +2,10 @@
 
 import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { motion, useMotionValue, useTransform, animate, type PanInfo } from 'framer-motion';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Volume2, VolumeX, Share2 } from 'lucide-react';
 import { CAT_BG, CAT_EMOJI, CAT_LABELS, BADGE_CONFIG, type Product, type SwipeDirection } from '@/types';
+import { shareProduct } from '@/lib/share';
+import { trackClick, trackShare } from '@/lib/analytics';
 
 export interface SwipeCardHandle {
   swipe: (dir: SwipeDirection) => Promise<void>;
@@ -30,6 +32,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
 
   const doSwipe = async (dir: SwipeDirection) => {
     if (dir !== 'left' && product.link) {
+      trackClick(product.id);
       window.open(product.link, '_blank', 'noopener,noreferrer');
     }
     if (dir === 'right')     await animate(x, 700,  { duration: 0.28 });
@@ -49,6 +52,12 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
       animate(x, 0, { type: 'spring', stiffness: 400, damping: 35 });
       animate(y, 0, { type: 'spring', stiffness: 400, damping: 35 });
     }
+  };
+
+  const handleShare = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    trackShare(product.id);
+    shareProduct(product);
   };
 
   const toggleMute = (e: React.MouseEvent) => {
@@ -146,6 +155,18 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
             <div className={`absolute top-3 end-3 text-xs font-black px-3 py-1 rounded-full border shadow-sm ${badge.cls}`}>
               {badge.label}
             </div>
+          )}
+
+          {/* Share button */}
+          {isTop && (
+            <button
+              onClick={handleShare}
+              onPointerDown={e => e.stopPropagation()}
+              className={`absolute end-3 z-20 w-9 h-9 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center text-dark hover:bg-white shadow-md transition-colors ${badge ? 'top-14' : 'top-3'}`}
+              aria-label="שתף מוצר"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
           )}
         </div>
 

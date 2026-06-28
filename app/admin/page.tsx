@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star, Search, RotateCcw, FileSpreadsheet } from 'lucide-react';
+import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star, Search, RotateCcw, FileSpreadsheet, BarChart3, Eye, Heart, MousePointerClick, Share2 } from 'lucide-react';
 import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Product, type Category, type Badge } from '@/types';
 import ExcelIO from '@/components/ExcelIO';
+import { getAnalytics, getTotals, resetAnalytics, type AnalyticsMap } from '@/lib/analytics';
 
 const ADMIN_PASSWORD = 'amit2389@';
 const LS_CUSTOM    = 'shuk_custom_products';
@@ -265,7 +266,8 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [overrides, setOverrides]           = useState<Record<string, Product>>({});
   const [hidden, setHidden]                 = useState<string[]>([]);
   const [view, setView]                     = useState<'list' | 'add' | 'edit'>('list');
-  const [tab, setTab]                       = useState<'products' | 'excel'>('products');
+  const [tab, setTab]                       = useState<'products' | 'excel' | 'analytics'>('products');
+  const [analytics, setAnalytics]           = useState<AnalyticsMap>({});
   const [editProduct, setEditProduct]       = useState<Product | null>(null);
   const [search, setSearch]                 = useState('');
   const [catFilter, setCatFilter]           = useState<Category | 'all'>('all');
@@ -275,7 +277,13 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     try { const r = localStorage.getItem(LS_CUSTOM);    if (r) setCustomProducts(JSON.parse(r)); } catch { /**/ }
     try { const r = localStorage.getItem(LS_OVERRIDES); if (r) setOverrides(JSON.parse(r)); }      catch { /**/ }
     try { const r = localStorage.getItem(LS_HIDDEN);    if (r) setHidden(JSON.parse(r)); }         catch { /**/ }
+    setAnalytics(getAnalytics());
   }, []);
+
+  // Refresh analytics whenever the tab is opened
+  useEffect(() => {
+    if (tab === 'analytics') setAnalytics(getAnalytics());
+  }, [tab]);
 
   // Persist helpers
   const persistCustom    = useCallback((p: Product[])            => { setCustomProducts(p); localStorage.setItem(LS_CUSTOM, JSON.stringify(p)); }, []);
@@ -406,6 +414,14 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             📦 מוצרים
           </button>
           <button
+            onClick={() => setTab('analytics')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black transition-all
+              ${tab === 'analytics' ? 'bg-white shadow text-dark' : 'text-soft hover:text-dark'}`}
+          >
+            <BarChart3 className="w-4 h-4" />
+            סטטיסטיקה
+          </button>
+          <button
             onClick={() => setTab('excel')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black transition-all
               ${tab === 'excel' ? 'bg-white shadow text-dark' : 'text-soft hover:text-dark'}`}
@@ -427,6 +443,78 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             </button>
           </div>
         )}
+
+        {/* Analytics tab */}
+        {tab === 'analytics' && (() => {
+          const totals = getTotals();
+          const rows = allProducts
+            .map(p => ({ product: p, stat: analytics[p.id] || { views: 0, likes: 0, clicks: 0, shares: 0 } }))
+            .sort((a, b) =>
+              (b.stat.likes + b.stat.clicks + b.stat.shares) -
+              (a.stat.likes + a.stat.clicks + a.stat.shares)
+            );
+          const ctr = totals.views > 0 ? Math.round((totals.clicks / totals.views) * 100) : 0;
+          return (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              {/* Totals */}
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {[
+                  { label: 'צפיות', value: totals.views, icon: <Eye className="w-4 h-4" />, color: 'text-sky-600 bg-sky-50' },
+                  { label: 'לייקים', value: totals.likes, icon: <Heart className="w-4 h-4" />, color: 'text-pink-600 bg-pink-50' },
+                  { label: 'הקלקות לקנייה', value: totals.clicks, icon: <MousePointerClick className="w-4 h-4" />, color: 'text-orange bg-orange-50' },
+                  { label: 'שיתופים', value: totals.shares, icon: <Share2 className="w-4 h-4" />, color: 'text-green-600 bg-green-50' },
+                ].map(s => (
+                  <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm border border-border flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.color}`}>{s.icon}</div>
+                    <div>
+                      <div className="text-2xl font-black text-dark leading-none">{s.value}</div>
+                      <div className="text-[11px] text-soft font-semibold mt-0.5">{s.label}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="bg-white rounded-2xl p-4 shadow-sm border border-border mb-4 flex items-center justify-between">
+                <div>
+                  <div className="text-xs text-soft font-semibold">אחוז המרה (הקלקות מתוך צפיות)</div>
+                  <div className="text-xl font-black text-dark">{ctr}%</div>
+                </div>
+                <button
+                  onClick={() => { if (confirm('לאפס את כל נתוני הסטטיסטיקה?')) { resetAnalytics(); setAnalytics({}); } }}
+                  className="text-xs bg-gray-100 hover:bg-gray-200 text-soft font-bold px-3 py-2 rounded-lg transition-colors"
+                >
+                  אפס נתונים
+                </button>
+              </div>
+
+              {/* Per-product table */}
+              <div className="bg-white rounded-2xl border border-border shadow-sm overflow-hidden">
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 border-b border-border text-[11px] font-black text-soft">
+                  <span className="flex-1">מוצר</span>
+                  <span className="w-12 text-center" title="צפיות"><Eye className="w-3.5 h-3.5 inline" /></span>
+                  <span className="w-12 text-center" title="לייקים"><Heart className="w-3.5 h-3.5 inline" /></span>
+                  <span className="w-12 text-center" title="הקלקות"><MousePointerClick className="w-3.5 h-3.5 inline" /></span>
+                  <span className="w-12 text-center" title="שיתופים"><Share2 className="w-3.5 h-3.5 inline" /></span>
+                </div>
+                {rows.map(({ product, stat }) => (
+                  <div key={product.id} className="flex items-center gap-2 px-4 py-2.5 border-b border-gray-50 last:border-0">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="text-lg flex-shrink-0">{product.emoji || CAT_EMOJI[product.cat]}</span>
+                      <span className="text-sm font-bold text-dark truncate">{product.name}</span>
+                    </div>
+                    <span className="w-12 text-center text-sm font-bold text-sky-600">{stat.views}</span>
+                    <span className="w-12 text-center text-sm font-bold text-pink-600">{stat.likes}</span>
+                    <span className="w-12 text-center text-sm font-bold text-orange">{stat.clicks}</span>
+                    <span className="w-12 text-center text-sm font-bold text-green-600">{stat.shares}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-soft text-center mt-3">
+                * הנתונים נאספים במכשיר זה בלבד (localStorage)
+              </p>
+            </motion.div>
+          );
+        })()}
 
         {/* Excel tab */}
         {tab === 'excel' && (

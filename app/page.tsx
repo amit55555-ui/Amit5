@@ -2,7 +2,7 @@
 
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Settings } from 'lucide-react';
+import { Heart, Settings, Search, X } from 'lucide-react';
 import CardStack from '@/components/CardStack';
 import ActionButtons from '@/components/ActionButtons';
 import AdminPanel from '@/components/AdminPanel';
@@ -11,6 +11,7 @@ import OnboardingOverlay from '@/components/OnboardingOverlay';
 import { type SwipeCardHandle } from '@/components/SwipeCard';
 import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Category, type Product, type SwipeDirection } from '@/types';
+import { trackView, trackLike } from '@/lib/analytics';
 
 const CATS = Object.keys(CAT_LABELS) as Category[];
 const LS_CUSTOM    = 'shuk_custom_products';
@@ -28,6 +29,8 @@ export default function HomePage() {
   const [overrides, setOverrides]     = useState<Record<string, Product>>({});
   const [hidden, setHidden]           = useState<string[]>([]);
   const [toast, setToast]             = useState('');
+  const [search, setSearch]           = useState('');
+  const [searchOpen, setSearchOpen]   = useState(false);
   const topRef = useRef<SwipeCardHandle | null>(null);
 
   useEffect(() => {
@@ -50,13 +53,26 @@ export default function HomePage() {
     return [...builtins, ...customProds];
   }, [overrides, hidden, customProds]);
 
-  const filtered = useMemo(() =>
-    activeCat === 'all' ? allProducts : allProducts.filter(p => p.cat === activeCat),
-    [allProducts, activeCat]
-  );
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    let list = activeCat === 'all' ? allProducts : allProducts.filter(p => p.cat === activeCat);
+    if (q) {
+      list = list.filter(p =>
+        p.name.toLowerCase().includes(q) ||
+        (p.desc && p.desc.toLowerCase().includes(q)) ||
+        CAT_LABELS[p.cat].toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [allProducts, activeCat, search]);
 
   const remaining = filtered.slice(idx);
   const done = remaining.length === 0;
+
+  // Track a view whenever a new product reaches the top of the stack.
+  useEffect(() => {
+    if (remaining[0]) trackView(remaining[0].id);
+  }, [remaining[0]?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
@@ -67,6 +83,7 @@ export default function HomePage() {
     const product = remaining[0];
     if (!product) return;
     if (dir === 'right' || dir === 'up') {
+      trackLike(product.id);
       const newLiked = [...liked, product.id];
       setLiked(newLiked);
       localStorage.setItem(LS_LIKED, JSON.stringify(newLiked));
@@ -110,6 +127,13 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-2 flex-shrink-0">
+            <button
+              onClick={() => { setSearchOpen(o => !o); if (searchOpen) { setSearch(''); setIdx(0); } }}
+              className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
+              aria-label="חיפוש"
+            >
+              <Search className="w-4 h-4 text-white" />
+            </button>
             <button
               onClick={() => setDrawerOpen(true)}
               className="relative w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
@@ -156,6 +180,39 @@ export default function HomePage() {
             ))}
           </div>
         </div>
+
+        {/* ── SEARCH BAR ── */}
+        <AnimatePresence>
+          {searchOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden border-t border-white/10"
+            >
+              <div className="px-4 py-2 max-w-lg mx-auto">
+                <div className="relative">
+                  <Search className="absolute top-1/2 -translate-y-1/2 start-3 w-4 h-4 text-white/40" />
+                  <input
+                    autoFocus
+                    value={search}
+                    onChange={e => { setSearch(e.target.value); setIdx(0); }}
+                    placeholder="חפש מוצר..."
+                    className="w-full bg-white/10 text-white placeholder-white/40 rounded-full ps-9 pe-9 py-2 text-sm focus:outline-none focus:bg-white/20 transition-colors"
+                  />
+                  {search && (
+                    <button
+                      onClick={() => { setSearch(''); setIdx(0); }}
+                      className="absolute top-1/2 -translate-y-1/2 end-3 w-5 h-5 rounded-full bg-white/20 flex items-center justify-center"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* ── SWIPE HINT ── */}
@@ -173,10 +230,14 @@ export default function HomePage() {
             animate={{ opacity: 1, scale: 1 }}
             className="text-center p-8"
           >
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-black text-dark mb-2">ראית הכל!</h2>
+            <div className="text-6xl mb-4">{search ? '🔍' : '🎉'}</div>
+            <h2 className="text-2xl font-black text-dark mb-2">
+              {search ? 'לא נמצאו מוצרים' : 'ראית הכל!'}
+            </h2>
             <p className="text-soft text-sm mb-1">
-              אהבת {liked.length} מוצרים מתוך {filtered.length}
+              {search
+                ? `נסה חיפוש אחר עבור "${search}"`
+                : `אהבת ${liked.length} מוצרים מתוך ${filtered.length}`}
             </p>
             {liked.length > 0 && (
               <button onClick={() => setDrawerOpen(true)} className="mt-2 text-orange text-sm font-bold underline underline-offset-2">
@@ -228,6 +289,7 @@ export default function HomePage() {
         onClose={() => setDrawerOpen(false)}
         likedIds={liked}
         customProducts={customProds}
+        overrides={overrides}
       />
 
       {adminOpen && (
