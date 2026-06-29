@@ -1,192 +1,164 @@
 'use client';
 
-import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import CardStack from '@/components/CardStack';
-import ActionButtons from '@/components/ActionButtons';
+import { useEffect, useMemo, useState } from 'react';
+import { SERVICES, BARBERS } from '@/data/services';
+import { Booking } from '@/types';
+import {
+  addBooking,
+  getSlotsForDay,
+  getUpcomingDays,
+  loadBookings,
+} from '@/lib/bookings';
+import Stepper from '@/components/Stepper';
+import ServicePicker from '@/components/ServicePicker';
+import BarberPicker from '@/components/BarberPicker';
+import DateTimePicker from '@/components/DateTimePicker';
+import DetailsForm from '@/components/DetailsForm';
+import Confirmation from '@/components/Confirmation';
 import AdminPanel from '@/components/AdminPanel';
-import { type SwipeCardHandle } from '@/components/SwipeCard';
-import { PRODUCTS } from '@/data/products';
-import { CAT_LABELS, CAT_EMOJI, type Category, type Product, type SwipeDirection } from '@/types';
 
-const CATS = Object.keys(CAT_LABELS) as Category[];
-const LS_KEY = 'shuk_custom_products';
+type Step = 0 | 1 | 2 | 3 | 4;
 
-export default function HomePage() {
-  const [activeCat, setActiveCat]       = useState<Category | 'all'>('all');
-  const [idx, setIdx]                   = useState(0);
-  const [liked, setLiked]               = useState<string[]>([]);
-  const [adminOpen, setAdminOpen]       = useState(false);
-  const [customProds, setCustomProds]   = useState<Product[]>([]);
-  const [toast, setToast]               = useState('');
-  const topRef = useRef<SwipeCardHandle | null>(null);
+export default function Home() {
+  const [step, setStep] = useState<Step>(0);
+  const [serviceId, setServiceId] = useState<string | null>(null);
+  const [barberId, setBarberId] = useState<string | null>(null);
+  const [date, setDate] = useState<string | null>(null);
+  const [time, setTime] = useState<string | null>(null);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [confirmed, setConfirmed] = useState<Booking | null>(null);
+  const [showAdmin, setShowAdmin] = useState(false);
 
-  // Load custom products from localStorage
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) setCustomProds(JSON.parse(raw));
-    } catch { /* ignore */ }
+    setBookings(loadBookings());
   }, []);
 
-  const saveCustom = useCallback((prods: Product[]) => {
-    setCustomProds(prods);
-    localStorage.setItem(LS_KEY, JSON.stringify(prods));
-  }, []);
+  const service = useMemo(() => SERVICES.find((s) => s.id === serviceId) ?? null, [serviceId]);
+  const barber = useMemo(() => BARBERS.find((b) => b.id === barberId) ?? null, [barberId]);
+  const days = useMemo(() => getUpcomingDays(14), []);
 
-  const allProducts = useMemo(() => [...PRODUCTS, ...customProds], [customProds]);
+  const slots = useMemo(() => {
+    if (!date || !barberId || !service) return [];
+    return getSlotsForDay(date, barberId, service.duration, bookings);
+  }, [date, barberId, service, bookings]);
 
-  const filtered = useMemo(() =>
-    activeCat === 'all' ? allProducts : allProducts.filter(p => p.cat === activeCat),
-    [allProducts, activeCat]
-  );
+  function reset() {
+    setStep(0);
+    setServiceId(null);
+    setBarberId(null);
+    setDate(null);
+    setTime(null);
+    setConfirmed(null);
+  }
 
-  const remaining = filtered.slice(idx);
-  const done = remaining.length === 0;
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 2200);
-  };
-
-  const handleSwipe = useCallback((dir: SwipeDirection) => {
-    const product = remaining[0];
-    if (!product) return;
-    if (dir === 'right' || dir === 'up') {
-      setLiked(l => [...l, product.id]);
-      showToast('❤️ פותח לינק מאלי אקספרס...');
-    } else {
-      showToast('👋 דלגת');
-    }
-    setIdx(i => i + 1);
-  }, [remaining]);
-
-  const changeCat = (cat: Category | 'all') => {
-    setActiveCat(cat);
-    setIdx(0);
-  };
-
-  const reset = () => setIdx(0);
+  function handleConfirm(name: string, phone: string) {
+    if (!service || !barber || !date || !time) return;
+    const booking: Booking = {
+      id: `bk-${Date.now()}`,
+      serviceId: service.id,
+      barberId: barber.id,
+      date,
+      time,
+      customerName: name.trim(),
+      customerPhone: phone.trim(),
+      createdAt: Date.now(),
+    };
+    setBookings(addBooking(booking));
+    setConfirmed(booking);
+    setStep(4);
+  }
 
   return (
-    <div className="flex flex-col h-screen bg-cream overflow-hidden">
-
-      {/* ── HEADER ── */}
-      <header className="bg-dark flex-shrink-0 shadow-lg">
-        <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          {/* Logo */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-              style={{ background: 'linear-gradient(135deg,#ff6b35,#f9a825)' }}>
-              🍽️
-            </div>
-            <div className="leading-tight">
-              <div className="text-white font-black text-base leading-none">
-                שוק <span className="text-gold">הטעמים</span>
-              </div>
-              <div className="text-white/40 text-[10px] leading-none mt-0.5">AliExpress</div>
-            </div>
-          </div>
-
-          {/* Counter */}
-          <div className="text-white/50 text-xs font-semibold flex-shrink-0">
-            {!done && <span>{remaining.length} מוצרים</span>}
-          </div>
-
-          {/* Admin */}
-          <button onClick={() => setAdminOpen(true)}
-            className="bg-orange hover:bg-deep-orange text-white text-xs font-bold px-4 py-2 rounded-full transition-colors flex-shrink-0">
-            ⚙️ ניהול
-          </button>
-        </div>
-
-        {/* Category filter */}
-        <div className="overflow-x-auto border-t border-white/10">
-          <div className="flex gap-1 px-4 py-2 w-max">
-            <button
-              onClick={() => changeCat('all')}
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap
-                ${activeCat === 'all' ? 'bg-orange text-white shadow' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>
-              ✨ הכל
-            </button>
-            {CATS.map(cat => (
-              <button key={cat}
-                onClick={() => changeCat(cat)}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all whitespace-nowrap
-                  ${activeCat === cat ? 'bg-orange text-white shadow' : 'bg-white/10 text-white/60 hover:bg-white/20'}`}>
-                {CAT_EMOJI[cat]} {CAT_LABELS[cat]}
-              </button>
-            ))}
+    <main className="h-full overflow-y-auto bg-cream">
+      {/* כותרת */}
+      <header className="sticky top-0 z-10 bg-dark text-cream px-5 py-4 shadow-lg flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <span className="text-3xl">💈</span>
+          <div>
+            <h1 className="text-lg font-black leading-tight">מספרת השכונה</h1>
+            <p className="text-[11px] text-gold">קביעת תור אונליין</p>
           </div>
         </div>
+        <button
+          onClick={() => setShowAdmin(true)}
+          className="text-xs bg-soft/40 hover:bg-soft/60 px-3 py-1.5 rounded-full transition"
+        >
+          ניהול 🗂️
+        </button>
       </header>
 
-      {/* ── HINT (first visit) ── */}
-      <div className="flex-shrink-0 text-center py-2 text-xs text-soft/60 select-none">
-        ← החלק שמאל לדלג &nbsp;|&nbsp; החלק ימינה / למעלה לקנייה →
-      </div>
+      <div className="max-w-md mx-auto px-4 pb-24 pt-4">
+        {step < 4 && <Stepper step={step} />}
 
-      {/* ── CARD AREA ── */}
-      <div className="flex-1 flex items-center justify-center px-4 min-h-0">
-        {done ? (
-          /* Empty state */
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center p-8"
-          >
-            <div className="text-6xl mb-4">🎉</div>
-            <h2 className="text-2xl font-black text-dark mb-2">ראית הכל!</h2>
-            <p className="text-soft text-sm mb-2">
-              אהבת {liked.length} מוצרים מתוך {filtered.length}
-            </p>
-            <button
-              onClick={reset}
-              className="mt-4 bg-orange hover:bg-deep-orange text-white font-bold px-8 py-3 rounded-full transition-colors shadow-lg">
-              🔄 התחל מחדש
-            </button>
-          </motion.div>
-        ) : (
-          /* Card stack */
-          <div className="relative w-full max-w-sm" style={{ height: 'min(72vh, 520px)' }}>
-            <CardStack products={remaining} onSwipe={handleSwipe} topRef={topRef} />
-          </div>
+        {step === 0 && (
+          <ServicePicker
+            services={SERVICES}
+            selected={serviceId}
+            onSelect={(id) => {
+              setServiceId(id);
+              setStep(1);
+            }}
+          />
+        )}
+
+        {step === 1 && (
+          <BarberPicker
+            barbers={BARBERS}
+            selected={barberId}
+            onSelect={(id) => {
+              setBarberId(id);
+              setStep(2);
+            }}
+            onBack={() => setStep(0)}
+          />
+        )}
+
+        {step === 2 && service && (
+          <DateTimePicker
+            days={days}
+            date={date}
+            time={time}
+            slots={slots}
+            onPickDate={(iso) => {
+              setDate(iso);
+              setTime(null);
+            }}
+            onPickTime={(t) => {
+              setTime(t);
+              setStep(3);
+            }}
+            onBack={() => setStep(1)}
+          />
+        )}
+
+        {step === 3 && service && barber && date && time && (
+          <DetailsForm
+            service={service}
+            barber={barber}
+            date={date}
+            time={time}
+            onConfirm={handleConfirm}
+            onBack={() => setStep(2)}
+          />
+        )}
+
+        {step === 4 && confirmed && service && barber && (
+          <Confirmation
+            booking={confirmed}
+            service={service}
+            barber={barber}
+            onDone={reset}
+          />
         )}
       </div>
 
-      {/* ── ACTION BUTTONS ── */}
-      <div className="flex-shrink-0 pb-4 pt-2">
-        <ActionButtons
-          disabled={done}
-          onNope={() => topRef.current?.swipe('left')}
-          onSuperLike={() => topRef.current?.swipe('up')}
-          onLike={() => topRef.current?.swipe('right')}
-        />
-      </div>
-
-      {/* ── TOAST ── */}
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            key={toast + Date.now()}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-dark text-white text-sm font-bold px-5 py-2.5 rounded-full shadow-xl z-40 whitespace-nowrap"
-          >
-            {toast}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ── ADMIN PANEL ── */}
-      {adminOpen && (
+      {showAdmin && (
         <AdminPanel
-          onClose={() => setAdminOpen(false)}
-          onSave={saveCustom}
-          customProducts={customProds}
+          bookings={bookings}
+          onClose={() => setShowAdmin(false)}
+          onChange={setBookings}
         />
       )}
-    </div>
+    </main>
   );
 }

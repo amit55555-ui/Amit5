@@ -9,8 +9,8 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  title: 'שוק הטעמים – מוצרי אוכל ומטבח מאלי אקספרס',
-  description: 'גלה מוצרי אוכל ומטבח מומלצים מאלי אקספרס – החלק ימינה לקנייה, שמאלה לדילוג',
+  title: 'מספרת השכונה – קביעת תור אונליין',
+  description: 'קבעו תור לתספורת, עיצוב זקן וגילוח אצל הספר השכונתי בכמה הקלקות',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
