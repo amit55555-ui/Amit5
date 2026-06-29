@@ -34,12 +34,12 @@ export interface DayHours {
 }
 
 export const WEEK_HOURS: Record<number, DayHours> = {
-  0: { open: '09:00', close: '20:00' }, // ראשון
-  1: { open: '09:00', close: '20:00' }, // שני
-  2: { open: '09:00', close: '20:00' }, // שלישי
-  3: { open: '09:00', close: '20:00' }, // רביעי
-  4: { open: '09:00', close: '20:00' }, // חמישי
-  5: { open: '08:00', close: '14:00' }, // שישי
+  0: { open: '09:00', close: '19:00' }, // ראשון
+  1: { open: '09:00', close: '19:00' }, // שני
+  2: { open: '09:00', close: '19:00' }, // שלישי
+  3: { open: '09:00', close: '19:00' }, // רביעי
+  4: { open: '09:00', close: '19:00' }, // חמישי
+  5: { open: '09:00', close: '12:00' }, // שישי
   6: { open: null,    close: null    }, // שבת – סגור
 };
 
