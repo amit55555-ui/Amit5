@@ -1,10 +1,7 @@
-// סקריפט חד-פעמי להשגת GOOGLE_REFRESH_TOKEN.
-//
+// ===== קבלת Refresh Token ל-Gmail (הרצה חד-פעמית) =====
 // שימוש:
-//   1. צרו OAuth Client מסוג "Desktop app" ב-Google Cloud (ראו SETUP.md)
-//   2. הריצו:  GOOGLE_CLIENT_ID=xxx GOOGLE_CLIENT_SECRET=yyy node scripts/get-refresh-token.mjs
-//   3. פתחו את הקישור שמודפס, אשרו, והעתיקו את הקוד חזרה לטרמינל
-//   4. ה-refresh token יודפס – הכניסו אותו ל-.env.local
+//   GOOGLE_CLIENT_ID=... GOOGLE_CLIENT_SECRET=... node scripts/get-refresh-token.mjs
+// פותח קישור הרשאה, מבקשים אישור, מדביקים את הקוד שחוזר, ומקבלים refresh token.
 
 import { google } from 'googleapis';
 import readline from 'node:readline';
@@ -17,37 +14,28 @@ if (!CLIENT_ID || !CLIENT_SECRET) {
   process.exit(1);
 }
 
-// 'urn:ietf:wg:oauth:2.0:oob' הוצא משימוש – משתמשים ב-localhost ידני
-const oauth2 = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, 'http://localhost');
+// OOB flow – מתאים לסקריפט מקומי
+const oauth2 = new google.auth.OAuth2(CLIENT_ID, CLIENT_SECRET, 'urn:ietf:wg:oauth:2.0:oob');
 
 const url = oauth2.generateAuthUrl({
   access_type: 'offline',
-  prompt: 'consent', // מבטיח קבלת refresh_token
-  scope: ['https://www.googleapis.com/auth/calendar'],
+  prompt: 'consent',
+  scope: ['https://www.googleapis.com/auth/gmail.send'],
 });
 
-console.log('\n1) פתחו בדפדפן את הקישור הבא ואשרו:\n');
+console.log('\n1) פתחו את הקישור הבא בדפדפן והתחברו עם חשבון הוועד:\n');
 console.log(url);
-console.log(
-  '\n2) הדפדפן יופנה ל-http://localhost/?code=... (ייתכן "האתר לא נגיש" – זה תקין).',
-);
-console.log('   העתיקו מה-URL את הערך שאחרי code= (עד ה-&), והדביקו כאן:\n');
+console.log('\n2) אשרו את ההרשאה והדביקו כאן את הקוד שמתקבל:\n');
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-rl.question('code: ', async (code) => {
+rl.question('קוד: ', async (code) => {
   rl.close();
   try {
-    const { tokens } = await oauth2.getToken(decodeURIComponent(code.trim()));
-    if (!tokens.refresh_token) {
-      console.error(
-        '\nלא התקבל refresh_token. הסירו את ההרשאה הקיימת ב-https://myaccount.google.com/permissions ונסו שוב.',
-      );
-      process.exit(1);
-    }
-    console.log('\n✅ הוסיפו ל-.env.local את השורה:\n');
+    const { tokens } = await oauth2.getToken(code.trim());
+    console.log('\n✅ הצליח! הוסיפו את השורה הבאה ל-.env.local:\n');
     console.log(`GOOGLE_REFRESH_TOKEN=${tokens.refresh_token}\n`);
   } catch (err) {
-    console.error('\nשגיאה בהחלפת הקוד:', err.message);
+    console.error('שגיאה בקבלת הטוקן:', err?.message || err);
     process.exit(1);
   }
 });

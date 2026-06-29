@@ -1,47 +1,82 @@
-// ===== מודל הנתונים של אפליקציית קביעת התורים =====
+// ===== מודל הנתונים של אפליקציית ניהול הבניין =====
 
-export interface Service {
+// סטטוס הטיפול בפנייה
+export type ReportStatus = 'open' | 'in_progress' | 'closed';
+
+// רמת דחיפות
+export type Priority = 'normal' | 'urgent';
+
+// מי כתב הודעה בשרשור הפנייה
+export type Author = 'resident' | 'committee';
+
+// קטגוריית התקלה
+export interface Category {
   id: string;
-  name: string;
-  desc: string;
-  price: number;      // מחיר בש"ח
-  duration: number;   // משך בדקות
+  label: string;
   emoji: string;
 }
 
-export interface Barber {
+// הודעה בודדת בשרשור התכתובת של פנייה
+export interface ReportMessage {
   id: string;
-  name: string;
-  title: string;
-  emoji: string;
-}
-
-export interface Booking {
-  id: string;
-  serviceId: string;
-  barberId: string;
-  date: string;          // YYYY-MM-DD
-  time: string;          // HH:MM
-  customerName: string;
-  customerPhone: string;
-  customerEmail?: string; // לשליחת אישור/תזכורת מ-Google
+  author: Author;
+  authorName: string;
+  text: string;
   createdAt: number;
 }
 
-// שעות פעילות המספרה (0=ראשון ... 6=שבת)
-export interface DayHours {
-  open: string | null;   // null = סגור
-  close: string | null;
+// פנייה / דיווח תקלה
+export interface Report {
+  id: string;
+  // מספר רץ ידידותי להצגה (#104)
+  ref: number;
+
+  categoryId: string;
+  title: string;
+  description: string;
+
+  // מיקום בבניין הארוך
+  entrance: string;   // מספר הכניסה / מספר הבניין
+  apartment: string;  // מספר דירה (אופציונלי)
+
+  // פרטי המדווח
+  reporterName: string;
+  reporterPhone: string;
+  reporterEmail?: string;
+  // טוקן אנונימי שמזהה את הדפדפן של המדווח (לצורך "הפניות שלי")
+  reporterToken: string;
+
+  priority: Priority;
+  status: ReportStatus;
+
+  // שרשור ההתכתבות בין הדייר לוועד
+  messages: ReportMessage[];
+
+  createdAt: number;
+  updatedAt: number;
 }
 
-export const WEEK_HOURS: Record<number, DayHours> = {
-  0: { open: '09:00', close: '19:00' }, // ראשון
-  1: { open: '09:00', close: '19:00' }, // שני
-  2: { open: '09:00', close: '19:00' }, // שלישי
-  3: { open: '09:00', close: '19:00' }, // רביעי
-  4: { open: '09:00', close: '19:00' }, // חמישי
-  5: { open: '09:00', close: '12:00' }, // שישי
-  6: { open: null,    close: null    }, // שבת – סגור
+// גוף בקשה ליצירת פנייה חדשה (מה שהלקוח שולח)
+export interface NewReportInput {
+  categoryId: string;
+  title: string;
+  description: string;
+  entrance: string;
+  apartment: string;
+  reporterName: string;
+  reporterPhone: string;
+  reporterEmail?: string;
+  reporterToken: string;
+  priority: Priority;
+}
+
+export const STATUS_LABELS: Record<ReportStatus, string> = {
+  open: 'פתוח',
+  in_progress: 'בטיפול',
+  closed: 'סגור',
 };
 
-export const SLOT_MINUTES = 30; // מרווח בין תורים
+export const PRIORITY_LABELS: Record<Priority, string> = {
+  normal: 'רגיל',
+  urgent: 'דחוף',
+};

@@ -1,22 +1,23 @@
-// ===== חיבור מאומת ל-Google Calendar (צד שרת בלבד) =====
-// משתמש ב-OAuth2 עם refresh token של חשבון הספר.
-// אם משתני הסביבה לא הוגדרו – מחזיר null, והאפליקציה נופלת בחזרה למצב דמו.
+// ===== חיבור מאומת ל-Gmail (צד שרת בלבד) =====
+// משתמש ב-OAuth2 עם refresh token של חשבון הבניין/הוועד.
+// אם משתני הסביבה לא הוגדרו – מחזיר null, והאפליקציה עובדת בלי שליחת מיילים.
 
 import { google } from 'googleapis';
 
-export const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID || 'primary';
-export const TIME_ZONE = process.env.BARBER_TIMEZONE || 'Asia/Jerusalem';
+// כתובת המייל של הוועד שאליה נשלחים הדיווחים
+export const COMMITTEE_EMAIL = process.env.COMMITTEE_EMAIL || '';
 
-export function isCalendarConfigured(): boolean {
+export function isMailConfigured(): boolean {
   return Boolean(
     process.env.GOOGLE_CLIENT_ID &&
       process.env.GOOGLE_CLIENT_SECRET &&
-      process.env.GOOGLE_REFRESH_TOKEN,
+      process.env.GOOGLE_REFRESH_TOKEN &&
+      COMMITTEE_EMAIL,
   );
 }
 
-export function getCalendar() {
-  if (!isCalendarConfigured()) return null;
+export function getGmail() {
+  if (!isMailConfigured()) return null;
 
   const auth = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
@@ -24,5 +25,5 @@ export function getCalendar() {
   );
   auth.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
 
-  return google.calendar({ version: 'v3', auth });
+  return google.gmail({ version: 'v1', auth });
 }

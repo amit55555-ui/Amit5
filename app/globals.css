@@ -7,8 +7,30 @@ html, body {
   overscroll-behavior-y: none;
 }
 
-#__next { height: 100%; }
-
 * { -webkit-tap-highlight-color: transparent; }
 
 .no-select { user-select: none; -webkit-user-select: none; }
+
+/* גלילה עדינה */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 999px; }
+::-webkit-scrollbar-track { background: transparent; }
+
+@layer components {
+  .field {
+    @apply w-full rounded-xl border border-line bg-white px-4 py-3 text-[15px]
+           outline-none transition focus:border-brand focus:ring-2 focus:ring-brand-light;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-semibold text-ink;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3
+           font-semibold transition active:scale-[0.98] disabled:opacity-50;
+  }
+  .btn-primary { @apply btn bg-brand text-white hover:bg-brand-dark; }
+  .btn-ghost   { @apply btn bg-white text-ink border border-line hover:bg-cloud; }
+  .card {
+    @apply rounded-2xl border border-line bg-white;
+  }
+}
