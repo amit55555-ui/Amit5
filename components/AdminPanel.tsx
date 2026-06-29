@@ -1,29 +1,43 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Booking } from '@/types';
 import { SERVICES } from '@/data/services';
-import { formatDateHe, removeBooking, toISODate } from '@/lib/bookings';
+import { formatDateHe, toISODate } from '@/lib/bookings';
+import { listBookings } from '@/lib/client';
 
 interface Props {
-  bookings: Booking[];
   onClose: () => void;
-  onChange: (bookings: Booking[]) => void;
+  onCancel: (id: string) => Promise<void>;
 }
 
-export default function AdminPanel({ bookings, onClose, onChange }: Props) {
+export default function AdminPanel({ onClose, onCancel }: Props) {
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState<string | null>(null);
   const today = toISODate(new Date());
 
-  const sorted = useMemo(
+  useEffect(() => {
+    listBookings().then((b) => {
+      setBookings(b);
+      setLoading(false);
+    });
+  }, []);
+
+  const upcoming = useMemo(
     () =>
-      [...bookings].sort((a, b) =>
-        a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date),
-      ),
-    [bookings],
+      bookings
+        .filter((b) => b.date >= today)
+        .sort((a, b) =>
+          a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date),
+        ),
+    [bookings, today],
   );
 
-  const upcoming = sorted.filter((b) => b.date >= today);
-
-  function cancel(id: string) {
-    onChange(removeBooking(id));
+  async function cancel(id: string) {
+    setBusyId(id);
+    await onCancel(id);
+    const fresh = await listBookings();
+    setBookings(fresh);
+    setBusyId(null);
   }
 
   return (
@@ -35,42 +49,48 @@ export default function AdminPanel({ bookings, onClose, onChange }: Props) {
         </div>
 
         <div className="p-4 overflow-y-auto">
-          <p className="text-xs text-soft mb-3">
-            {upcoming.length} תורים קרובים · {bookings.length} בסך הכל
-          </p>
-
-          {upcoming.length === 0 ? (
-            <p className="text-center text-soft text-sm py-10">אין תורים קרובים</p>
+          {loading ? (
+            <p className="text-center text-soft text-sm py-10">טוען תורים…</p>
           ) : (
-            <div className="space-y-2">
-              {upcoming.map((b) => {
-                const service = SERVICES.find((s) => s.id === b.serviceId);
-                return (
-                  <div
-                    key={b.id}
-                    className="bg-white rounded-xl p-3 border-2 border-border flex items-center gap-3"
-                  >
-                    <div className="text-center shrink-0 bg-orange/10 rounded-lg px-2 py-1">
-                      <div className="text-sm font-black text-orange leading-none">{b.time}</div>
-                      <div className="text-[9px] text-soft mt-0.5">{formatDateHe(b.date).split(',')[1]}</div>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-bold text-dark text-sm truncate">{b.customerName}</div>
-                      <div className="text-[11px] text-soft truncate" dir="ltr">{b.customerPhone}</div>
-                      <div className="text-[11px] text-soft truncate">
-                        {service?.emoji} {service?.name}
+            <>
+              <p className="text-xs text-soft mb-3">{upcoming.length} תורים קרובים</p>
+              {upcoming.length === 0 ? (
+                <p className="text-center text-soft text-sm py-10">אין תורים קרובים</p>
+              ) : (
+                <div className="space-y-2">
+                  {upcoming.map((b) => {
+                    const service = SERVICES.find((s) => s.id === b.serviceId);
+                    return (
+                      <div
+                        key={b.id}
+                        className="bg-white rounded-xl p-3 border-2 border-border flex items-center gap-3"
+                      >
+                        <div className="text-center shrink-0 bg-orange/10 rounded-lg px-2 py-1">
+                          <div className="text-sm font-black text-orange leading-none">{b.time}</div>
+                          <div className="text-[9px] text-soft mt-0.5">
+                            {formatDateHe(b.date).split(',')[1]}
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-dark text-sm truncate">{b.customerName}</div>
+                          <div className="text-[11px] text-soft truncate" dir="ltr">{b.customerPhone}</div>
+                          <div className="text-[11px] text-soft truncate">
+                            {service?.emoji} {service?.name}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => cancel(b.id)}
+                          disabled={busyId === b.id}
+                          className="text-xs text-red-500 hover:text-red-700 shrink-0 px-2 disabled:opacity-50"
+                        >
+                          {busyId === b.id ? '…' : 'ביטול'}
+                        </button>
                       </div>
-                    </div>
-                    <button
-                      onClick={() => cancel(b.id)}
-                      className="text-xs text-red-500 hover:text-red-700 shrink-0 px-2"
-                    >
-                      ביטול
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

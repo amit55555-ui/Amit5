@@ -1,8 +1,14 @@
-import { Booking, WEEK_HOURS, SLOT_MINUTES } from '@/types';
+import { Booking } from '@/types';
+import { SERVICES } from '@/data/services';
+import { buildSlots, BusyInterval, Slot, timeToMinutes, toISODate } from '@/lib/slots';
+import { WEEK_HOURS } from '@/types';
+
+export type { Slot } from '@/lib/slots';
+export { toISODate } from '@/lib/slots';
 
 const STORAGE_KEY = 'barber-bookings';
 
-// ===== שמירה וטעינה מ-localStorage (דמו ללא שרת) =====
+// ===== שמירה וטעינה מ-localStorage (מצב דמו, ללא שרת) =====
 
 export function loadBookings(): Booking[] {
   if (typeof window === 'undefined') return [];
@@ -31,14 +37,10 @@ export function removeBooking(id: string): Booking[] {
   return all;
 }
 
-// ===== עזרי תאריך ושעה =====
+// ===== עזרי תאריך לתצוגה =====
 
 const HE_DAYS = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 const HE_MONTHS = ['ינו׳', 'פבר׳', 'מרץ', 'אפר׳', 'מאי', 'יוני', 'יולי', 'אוג׳', 'ספט׳', 'אוק׳', 'נוב׳', 'דצמ׳'];
-
-export function toISODate(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
 
 export interface DayOption {
   iso: string;
@@ -67,54 +69,30 @@ export function getUpcomingDays(count = 14): DayOption[] {
   return days;
 }
 
-// פורמט תאריך קריא לתצוגה: "יום שלישי, 14 ביולי"
+// פורמט תאריך קריא: "יום שלישי, 14 ביולי"
 export function formatDateHe(iso: string): string {
   const d = new Date(iso + 'T00:00:00');
   return `יום ${HE_DAYS[d.getDay()]}, ${d.getDate()} ב${HE_MONTHS[d.getMonth()].replace('׳', '')}`;
 }
 
-function timeToMinutes(t: string): number {
-  const [h, m] = t.split(':').map(Number);
-  return h * 60 + m;
+// ===== חישוב חלונות זמן במצב דמו (לפי תורים ב-localStorage) =====
+
+function durationOf(serviceId: string): number {
+  return SERVICES.find((s) => s.id === serviceId)?.duration ?? 30;
 }
 
-function minutesToTime(min: number): string {
-  return `${String(Math.floor(min / 60)).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`;
-}
-
-export interface Slot {
-  time: string;
-  available: boolean;
-}
-
-// מייצר את כל חלונות הזמן ליום מסוים, ומסמן אילו תפוסים
 export function getSlotsForDay(
   iso: string,
-  barberId: string,
+  _barberId: string,
   serviceDuration: number,
   bookings: Booking[],
 ): Slot[] {
-  const date = new Date(iso + 'T00:00:00');
-  const hours = WEEK_HOURS[date.getDay()];
-  if (!hours.open || !hours.close) return [];
-
-  const openMin = timeToMinutes(hours.open);
-  const closeMin = timeToMinutes(hours.close);
-
-  // התורים התפוסים של אותו ספר באותו יום
-  const taken = bookings
-    .filter((b) => b.date === iso && b.barberId === barberId)
-    .map((b) => timeToMinutes(b.time));
-
-  const now = new Date();
-  const isToday = iso === toISODate(now);
-  const nowMin = now.getHours() * 60 + now.getMinutes();
-
-  const slots: Slot[] = [];
-  for (let t = openMin; t + serviceDuration <= closeMin; t += SLOT_MINUTES) {
-    const isPast = isToday && t <= nowMin;
-    const isTaken = taken.includes(t);
-    slots.push({ time: minutesToTime(t), available: !isPast && !isTaken });
-  }
-  return slots;
+  // כל תור קיים תופס את הקטע [שעה, שעה + משך השירות שלו]
+  const busy: BusyInterval[] = bookings
+    .filter((b) => b.date === iso)
+    .map((b) => {
+      const start = timeToMinutes(b.time);
+      return { start, end: start + durationOf(b.serviceId) };
+    });
+  return buildSlots(iso, serviceDuration, busy);
 }

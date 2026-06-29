@@ -20,10 +20,11 @@ export interface Booking {
   id: string;
   serviceId: string;
   barberId: string;
-  date: string;        // YYYY-MM-DD
-  time: string;        // HH:MM
+  date: string;          // YYYY-MM-DD
+  time: string;          // HH:MM
   customerName: string;
   customerPhone: string;
+  customerEmail?: string; // לשליחת אישור/תזכורת מ-Google
   createdAt: number;
 }
 

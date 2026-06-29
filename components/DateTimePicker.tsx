@@ -5,6 +5,7 @@ interface Props {
   date: string | null;
   time: string | null;
   slots: Slot[];
+  loading?: boolean;
   onPickDate: (iso: string) => void;
   onPickTime: (time: string) => void;
   onBack: () => void;
@@ -14,6 +15,7 @@ export default function DateTimePicker({
   days,
   date,
   slots,
+  loading,
   onPickDate,
   onPickTime,
   onBack,
@@ -49,7 +51,9 @@ export default function DateTimePicker({
       {/* חלונות זמן */}
       {date && (
         <div className="mt-5">
-          {!hasAvailable ? (
+          {loading ? (
+            <p className="text-center text-soft text-sm py-8">טוען שעות פנויות…</p>
+          ) : !hasAvailable ? (
             <p className="text-center text-soft text-sm py-8">
               אין תורים פנויים ביום זה 😕<br />נסה תאריך אחר
             </p>

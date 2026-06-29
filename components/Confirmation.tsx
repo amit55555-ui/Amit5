@@ -27,7 +27,10 @@ export default function Confirmation({ booking, service, barber, onDone }: Props
       </div>
 
       <p className="text-xs text-soft mb-4">
-        תזכורת ב-SMS תישלח אליך לפני התור.<br />
+        {booking.customerEmail
+          ? 'מייל אישור ותזכורת יישלחו לכתובת שהזנת.'
+          : 'נתראה בקרוב!'}
+        <br />
         לביטול ניתן להתקשר 03-1234567.
       </p>
 

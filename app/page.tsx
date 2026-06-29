@@ -3,12 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SERVICES, BARBER } from '@/data/services';
 import { Booking } from '@/types';
-import {
-  addBooking,
-  getSlotsForDay,
-  getUpcomingDays,
-  loadBookings,
-} from '@/lib/bookings';
+import { Slot } from '@/lib/slots';
+import { getUpcomingDays } from '@/lib/bookings';
+import { cancelBooking, createBooking, getAvailability } from '@/lib/client';
 import Stepper from '@/components/Stepper';
 import ServicePicker from '@/components/ServicePicker';
 import DateTimePicker from '@/components/DateTimePicker';
@@ -23,32 +20,46 @@ export default function Home() {
   const [serviceId, setServiceId] = useState<string | null>(null);
   const [date, setDate] = useState<string | null>(null);
   const [time, setTime] = useState<string | null>(null);
-  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
   const [confirmed, setConfirmed] = useState<Booking | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
   const [showAdmin, setShowAdmin] = useState(false);
-
-  useEffect(() => {
-    setBookings(loadBookings());
-  }, []);
 
   const service = useMemo(() => SERVICES.find((s) => s.id === serviceId) ?? null, [serviceId]);
   const days = useMemo(() => getUpcomingDays(14), []);
 
-  const slots = useMemo(() => {
-    if (!date || !service) return [];
-    return getSlotsForDay(date, BARBER.id, service.duration, bookings);
-  }, [date, service, bookings]);
+  // טעינת שעות פנויות בכל בחירת תאריך (מהיומן או מקומית)
+  useEffect(() => {
+    if (!date || !service) return;
+    let cancelled = false;
+    setSlotsLoading(true);
+    getAvailability(date, service.duration).then((s) => {
+      if (!cancelled) {
+        setSlots(s);
+        setSlotsLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [date, service]);
 
   function reset() {
     setStep(0);
     setServiceId(null);
     setDate(null);
     setTime(null);
+    setSlots([]);
     setConfirmed(null);
+    setNotice(null);
   }
 
-  function handleConfirm(name: string, phone: string) {
+  async function handleConfirm(name: string, phone: string, email: string) {
     if (!service || !date || !time) return;
+    setSubmitting(true);
+    setNotice(null);
     const booking: Booking = {
       id: `bk-${Date.now()}`,
       serviceId: service.id,
@@ -57,16 +68,29 @@ export default function Home() {
       time,
       customerName: name.trim(),
       customerPhone: phone.trim(),
+      customerEmail: email.trim() || undefined,
       createdAt: Date.now(),
     };
-    setBookings(addBooking(booking));
-    setConfirmed(booking);
-    setStep(3);
+    const result = await createBooking(booking);
+    setSubmitting(false);
+
+    if (result.ok) {
+      setConfirmed(result.booking);
+      setStep(3);
+    } else if (result.reason === 'taken') {
+      // התור נתפס בינתיים – חזרה לבחירת מועד עם רענון
+      setNotice('אופס, השעה הזו נתפסה בדיוק עכשיו. בחר/י שעה אחרת 🙏');
+      setTime(null);
+      setStep(1);
+      const refreshed = await getAvailability(date, service.duration);
+      setSlots(refreshed);
+    } else {
+      setNotice('משהו השתבש בקביעת התור. נסה/י שוב.');
+    }
   }
 
   return (
     <main className="h-full overflow-y-auto bg-cream">
-      {/* כותרת */}
       <header className="sticky top-0 z-10 bg-dark text-cream px-5 py-4 shadow-lg flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-3xl">💈</span>
@@ -86,6 +110,12 @@ export default function Home() {
       <div className="max-w-md mx-auto px-4 pb-24 pt-4">
         {step < 3 && <Stepper step={step} />}
 
+        {notice && (
+          <div className="mb-4 rounded-xl bg-amber-100 border border-amber-300 text-amber-800 text-sm px-4 py-2.5">
+            {notice}
+          </div>
+        )}
+
         {step === 0 && (
           <ServicePicker
             services={SERVICES}
@@ -103,6 +133,7 @@ export default function Home() {
             date={date}
             time={time}
             slots={slots}
+            loading={slotsLoading}
             onPickDate={(iso) => {
               setDate(iso);
               setTime(null);
@@ -121,6 +152,7 @@ export default function Home() {
             barber={BARBER}
             date={date}
             time={time}
+            submitting={submitting}
             onConfirm={handleConfirm}
             onBack={() => setStep(1)}
           />
@@ -137,11 +169,7 @@ export default function Home() {
       </div>
 
       {showAdmin && (
-        <AdminPanel
-          bookings={bookings}
-          onClose={() => setShowAdmin(false)}
-          onChange={setBookings}
-        />
+        <AdminPanel onClose={() => setShowAdmin(false)} onCancel={cancelBooking} />
       )}
     </main>
   );

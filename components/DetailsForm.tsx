@@ -7,16 +7,19 @@ interface Props {
   barber: Barber;
   date: string;
   time: string;
-  onConfirm: (name: string, phone: string) => void;
+  submitting?: boolean;
+  onConfirm: (name: string, phone: string, email: string) => void;
   onBack: () => void;
 }
 
-export default function DetailsForm({ service, barber, date, time, onConfirm, onBack }: Props) {
+export default function DetailsForm({ service, barber, date, time, submitting, onConfirm, onBack }: Props) {
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
 
   const phoneOk = /^0\d{1,2}-?\d{7}$/.test(phone.replace(/\s/g, ''));
-  const valid = name.trim().length >= 2 && phoneOk;
+  const emailOk = email.trim() === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const valid = name.trim().length >= 2 && phoneOk && emailOk;
 
   return (
     <section>
@@ -60,15 +63,29 @@ export default function DetailsForm({ service, barber, date, time, onConfirm, on
             <p className="text-[11px] text-red-500 mt-1">מספר טלפון לא תקין</p>
           )}
         </div>
+        <div>
+          <label className="text-xs font-semibold text-soft block mb-1">
+            אימייל <span className="font-normal">(לאישור ותזכורת – לא חובה)</span>
+          </label>
+          <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            inputMode="email"
+            dir="ltr"
+            className="w-full rounded-xl border-2 border-border bg-white px-4 py-3 text-dark outline-none focus:border-orange transition text-right"
+          />
+          {!emailOk && <p className="text-[11px] text-red-500 mt-1">כתובת אימייל לא תקינה</p>}
+        </div>
       </div>
 
       <button
-        disabled={!valid}
-        onClick={() => onConfirm(name, phone)}
+        disabled={!valid || submitting}
+        onClick={() => onConfirm(name, phone, email)}
         className={`w-full mt-6 py-3.5 rounded-xl font-black text-white transition
-          ${valid ? 'bg-orange hover:bg-deep-orange shadow-lg' : 'bg-border cursor-not-allowed'}`}
+          ${valid && !submitting ? 'bg-orange hover:bg-deep-orange shadow-lg' : 'bg-border cursor-not-allowed'}`}
       >
-        אישור וקביעת התור 💈
+        {submitting ? 'קובע תור…' : 'אישור וקביעת התור 💈'}
       </button>
     </section>
   );
