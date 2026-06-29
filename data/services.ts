@@ -9,8 +9,10 @@ export const SERVICES: Service[] = [
   { id: 'color',    name: 'צביעת שיער',       desc: 'כיסוי שיבה או גוון חדש',             price: 120, duration: 60, emoji: '🎨' },
 ];
 
-export const BARBERS: Barber[] = [
-  { id: 'avi',   name: 'אבי',   title: 'הספר הראשי',  emoji: '💈' },
-  { id: 'dani',  name: 'דני',   title: 'מומחה זקנים', emoji: '🧔' },
-  { id: 'moshe', name: 'משה',   title: 'סטייליסט',    emoji: '✂️' },
-];
+// מספרה עם ספר יחיד – פרטי בעל העסק
+export const BARBER: Barber = {
+  id: 'owner',
+  name: 'אמית',
+  title: 'הספר',
+  emoji: '💈',
+};

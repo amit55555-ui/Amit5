@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { Booking } from '@/types';
-import { SERVICES, BARBERS } from '@/data/services';
+import { SERVICES } from '@/data/services';
 import { formatDateHe, removeBooking, toISODate } from '@/lib/bookings';
 
 interface Props {
@@ -45,7 +45,6 @@ export default function AdminPanel({ bookings, onClose, onChange }: Props) {
             <div className="space-y-2">
               {upcoming.map((b) => {
                 const service = SERVICES.find((s) => s.id === b.serviceId);
-                const barber = BARBERS.find((x) => x.id === b.barberId);
                 return (
                   <div
                     key={b.id}
@@ -59,7 +58,7 @@ export default function AdminPanel({ bookings, onClose, onChange }: Props) {
                       <div className="font-bold text-dark text-sm truncate">{b.customerName}</div>
                       <div className="text-[11px] text-soft truncate" dir="ltr">{b.customerPhone}</div>
                       <div className="text-[11px] text-soft truncate">
-                        {service?.emoji} {service?.name} · {barber?.name}
+                        {service?.emoji} {service?.name}
                       </div>
                     </div>
                     <button

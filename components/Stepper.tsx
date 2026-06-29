@@ -1,4 +1,4 @@
-const STEPS = ['שירות', 'ספר', 'מועד', 'פרטים'];
+const STEPS = ['שירות', 'מועד', 'פרטים'];
 
 export default function Stepper({ step }: { step: number }) {
   return (
