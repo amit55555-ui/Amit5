@@ -1,0 +1,33 @@
+name: Tenerife News Digest
+
+on:
+  schedule:
+    # 06:07 UTC ≈ 08:07/09:07 Israel time (cron runs in UTC; not DST-aware).
+    - cron: "7 6 * * *"
+  workflow_dispatch: {} # allows manual "Run workflow" from the Actions tab
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: scripts/tenerife-digest
+        run: npm install --no-audit --no-fund
+
+      - name: Build and save Tenerife digest draft
+        working-directory: scripts/tenerife-digest
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GMAIL_CLIENT_ID: ${{ secrets.GMAIL_CLIENT_ID }}
+          GMAIL_CLIENT_SECRET: ${{ secrets.GMAIL_CLIENT_SECRET }}
+          GMAIL_REFRESH_TOKEN: ${{ secrets.GMAIL_REFRESH_TOKEN }}
+          DIGEST_TO: ${{ secrets.DIGEST_TO }}
+        run: npm run digest

@@ -1,0 +1,15 @@
+{
+  "name": "tenerife-digest",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Daily Tenerife news digest, summarized to Hebrew and saved as a Gmail draft.",
+  "scripts": {
+    "digest": "node digest.mjs",
+    "get-token": "node get-token.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.69.0",
+    "rss-parser": "^3.13.0"
+  }
+}
