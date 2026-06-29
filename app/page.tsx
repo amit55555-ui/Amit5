@@ -2,10 +2,9 @@
 
 import { useState, useRef, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Settings, Search, X } from 'lucide-react';
+import { Heart, Search, X } from 'lucide-react';
 import CardStack from '@/components/CardStack';
 import ActionButtons from '@/components/ActionButtons';
-import AdminPanel from '@/components/AdminPanel';
 import LikedDrawer from '@/components/LikedDrawer';
 import OnboardingOverlay from '@/components/OnboardingOverlay';
 import { type SwipeCardHandle } from '@/components/SwipeCard';
@@ -23,7 +22,6 @@ export default function HomePage() {
   const [activeCat, setActiveCat]     = useState<Category | 'all'>('all');
   const [idx, setIdx]                 = useState(0);
   const [liked, setLiked]             = useState<string[]>([]);
-  const [adminOpen, setAdminOpen]     = useState(false);
   const [drawerOpen, setDrawerOpen]   = useState(false);
   const [customProds, setCustomProds] = useState<Product[]>([]);
   const [overrides, setOverrides]     = useState<Record<string, Product>>({});
@@ -38,11 +36,6 @@ export default function HomePage() {
     try { const r = localStorage.getItem(LS_LIKED);     if (r) setLiked(JSON.parse(r)); }          catch { /**/ }
     try { const r = localStorage.getItem(LS_OVERRIDES); if (r) setOverrides(JSON.parse(r)); }      catch { /**/ }
     try { const r = localStorage.getItem(LS_HIDDEN);    if (r) setHidden(JSON.parse(r)); }         catch { /**/ }
-  }, []);
-
-  const saveCustom = useCallback((prods: Product[]) => {
-    setCustomProds(prods);
-    localStorage.setItem(LS_CUSTOM, JSON.stringify(prods));
   }, []);
 
   // Merge: built-ins (minus hidden, with overrides) + custom
@@ -144,12 +137,6 @@ export default function HomePage() {
                   {liked.length > 9 ? '9+' : liked.length}
                 </span>
               )}
-            </button>
-            <button
-              onClick={() => setAdminOpen(true)}
-              className="w-9 h-9 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition-colors"
-            >
-              <Settings className="w-4 h-4 text-white" />
             </button>
           </div>
         </div>
@@ -291,14 +278,6 @@ export default function HomePage() {
         customProducts={customProds}
         overrides={overrides}
       />
-
-      {adminOpen && (
-        <AdminPanel
-          onClose={() => setAdminOpen(false)}
-          onSave={saveCustom}
-          customProducts={customProds}
-        />
-      )}
     </div>
   );
 }
