@@ -18,15 +18,16 @@ import Parser from "rss-parser";
 
 const MODEL = process.env.ANTHROPIC_MODEL || "claude-opus-4-8";
 const TO = process.env.DIGEST_TO;
-const MAX_ITEMS_TO_MODEL = 40; // headlines handed to Claude
-const LOOKBACK_HOURS = 24;
+const MAX_ITEMS_TO_MODEL = 50; // headlines handed to Claude
+const LOOKBACK_HOURS = 7 * 24; // last week
 
 // News sources. Google News RSS aggregates local Tenerife sites, Spanish expat
 // outlets, and general coverage, so it does the heavy lifting; the direct feeds
 // add redundancy. Any feed that fails is skipped, not fatal.
 const FEEDS = [
-  "https://news.google.com/rss/search?q=Tenerife%20when%3A1d&hl=en-GB&gl=GB&ceid=GB:en",
-  "https://news.google.com/rss/search?q=Tenerife%20(weather%20OR%20flights%20OR%20tourism%20OR%20canary)%20when%3A1d&hl=en-GB&gl=GB&ceid=GB:en",
+  "https://news.google.com/rss/search?q=Tenerife%20when%3A7d&hl=en-GB&gl=GB&ceid=GB:en",
+  "https://news.google.com/rss/search?q=Tenerife%20(weather%20OR%20flights%20OR%20tourism%20OR%20canary)%20when%3A7d&hl=en-GB&gl=GB&ceid=GB:en",
+  "https://news.google.com/rss/search?q=Tenerife%20(event%20OR%20festival%20OR%20strike%20OR%20closure%20OR%20warning%20OR%20upcoming)%20when%3A7d&hl=en-GB&gl=GB&ceid=GB:en",
   "https://euroweeklynews.com/tag/tenerife/feed/",
   "https://www.theolivepress.es/spain-news/tenerife/feed/",
 ];
@@ -97,21 +98,24 @@ async function summarizeToHebrew(articles) {
     "for an Israeli reader. You receive English headlines and write concise, factual " +
     "Hebrew summaries. Never invent facts not present in the provided material.";
 
-  const userPrompt = `Today is ${dateStr}. Below are English-language news items about Tenerife from roughly the last 24 hours (some may be off-topic or duplicates).
+  const userPrompt = `Today is ${dateStr}. Below are English-language news items about Tenerife from roughly the last 7 days (some may be off-topic or duplicates).
 
-Pick the 3–5 MOST important Tenerife stories of the day (prioritize: weather warnings, transport/flights, safety/incidents, tourism rules, local government, major events). Drop duplicates, generic Spain-wide items unrelated to Tenerife, and filler.
+Select the 5–7 MOST important items, covering BOTH:
+  (a) notable Tenerife news from the past week, AND
+  (b) upcoming events / things happening in the WEEK AHEAD that a reader should know about (festivals, strikes, road or attraction closures, weather warnings, new rules taking effect, transport schedule changes).
+Prioritize: weather warnings, transport/flights, safety/incidents, tourism rules, local government decisions, and major events. Drop duplicates, generic Spain-wide items unrelated to Tenerife, and filler. For forward-looking items, state the relevant date in the summary when known.
 
 Then output an HTML email body in HEBREW with this exact structure and nothing else (no markdown, no code fences):
 
 <div dir="rtl" style="font-family: Arial, sans-serif; line-height:1.6;">
-<p>סיכום החדשות החשובות מטנריף ל-${dateStr} — N ידיעות:</p>
-<!-- for each selected story: -->
+<p>סיכום חדשות טנריף לשבוע האחרון ואירועים קרובים — ${dateStr} — N ידיעות:</p>
+<!-- for each selected item: -->
 <h3 style="margin:18px 0 4px;">כותרת בעברית</h3>
-<p>סיכום בעברית של 2–3 משפטים.</p>
+<p>סיכום בעברית של 2–3 משפטים (לאירוע עתידי — ציין את התאריך).</p>
 <p style="font-size:13px;color:#555;">מקור: <a href="ORIGINAL_LINK">שם המקור</a></p>
 </div>
 
-Replace N with the actual number of stories. If there is genuinely no notable Tenerife news today, return the wrapper div with a single Hebrew paragraph saying so. Output only the HTML.
+Replace N with the actual number of items. If there is genuinely no notable Tenerife news or upcoming events, return the wrapper div with a single Hebrew paragraph saying so. Output only the HTML.
 
 News items:
 ${list}`;

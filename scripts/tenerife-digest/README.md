@@ -14,11 +14,12 @@ Two ways to run it:
 ## How it works
 
 `digest.mjs`:
-1. Pulls Tenerife stories from the last ~24h (Google News RSS, which aggregates
-   local Tenerife sites, Spanish expat outlets, and general coverage, plus a few
-   direct feeds).
-2. Sends the headlines to Claude (`claude-opus-4-8`), which selects the 3–5 most
-   important stories and writes Hebrew summaries as an RTL HTML email body.
+1. Pulls Tenerife stories from the **last 7 days** (Google News RSS, which
+   aggregates local Tenerife sites, Spanish expat outlets, and general coverage,
+   plus a few direct feeds).
+2. Sends the headlines to Claude (`claude-opus-4-8`), which selects the 5–7 most
+   important items — both notable news from the past week and **upcoming events
+   in the week ahead** — and writes Hebrew summaries as an RTL HTML email body.
 3. Creates a Gmail draft via the Gmail REST API.
 
 ## One-time setup
