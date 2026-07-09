@@ -43,7 +43,8 @@ export async function POST(req: NextRequest) {
     !input.description ||
     !input.entrance ||
     !input.reporterName ||
-    !input.reporterPhone
+    !input.reporterPhone ||
+    !input.reporterEmail
   ) {
     return NextResponse.json({ error: 'missing fields' }, { status: 400 });
   }

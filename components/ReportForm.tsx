@@ -21,7 +21,12 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
   const [done, setDone] = useState<Report | null>(null);
 
   const valid =
-    title.trim() && description.trim() && entrance && reporterName.trim() && reporterPhone.trim();
+    title.trim() &&
+    description.trim() &&
+    entrance &&
+    reporterName.trim() &&
+    reporterPhone.trim() &&
+    reporterEmail.trim();
 
   // דחיסת תמונה ל-JPEG קטן לפני שמירה
   function compress(file: File): Promise<string | null> {
@@ -65,7 +70,7 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
       apartment: apartment.trim(),
       reporterName: reporterName.trim(),
       reporterPhone: reporterPhone.trim(),
-      reporterEmail: reporterEmail.trim() || undefined,
+      reporterEmail: reporterEmail.trim(),
       reporterToken: getResidentToken(),
       priority,
       photos,
@@ -243,7 +248,7 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
           />
         </div>
         <div>
-          <label className="label">אימייל (לעדכונים)</label>
+          <label className="label">אימייל (לעדכונים) <span className="text-open">*</span></label>
           <input
             className="field"
             inputMode="email"
