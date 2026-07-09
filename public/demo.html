@@ -401,7 +401,6 @@
 
   // ========== VIEW: NEW REPORT ==========
   var formState = null;
-  function contactSaved() { try { return JSON.parse(localStorage.getItem(LS_CONTACT) || "{}"); } catch (e) { return {}; } }
 
   function renderNew(justCreated) {
     if (justCreated) {
@@ -421,12 +420,11 @@
       return;
     }
 
-    var sv = contactSaved();
     var s = formState || {
       categoryId: "lightbulb", title: "", description: "",
-      entrance: sv.entrance || ENTRANCES[0], apartment: sv.apartment || "",
-      reporterName: sv.reporterName || "", reporterPhone: sv.reporterPhone || "",
-      reporterEmail: sv.reporterEmail || "", priority: "normal", photos: []
+      entrance: ENTRANCES[0], apartment: "",
+      reporterName: "", reporterPhone: "",
+      reporterEmail: "", priority: "normal", photos: []
     };
     formState = s;
     if (!s.photos) s.photos = [];
@@ -531,11 +529,7 @@
         createdAt: now, updatedAt: now
       };
       var a = load(); a.push(rep); save(a);
-      localStorage.setItem(LS_CONTACT, JSON.stringify({
-        reporterName: s.reporterName, reporterPhone: s.reporterPhone,
-        reporterEmail: s.reporterEmail, entrance: s.entrance, apartment: s.apartment
-      }));
-      formState = null;
+      formState = null; // \u05D0\u05D9\u05E4\u05D5\u05E1 \u05DE\u05DC\u05D0 \u2014 \u05D4\u05D8\u05D5\u05E4\u05E1 \u05D9\u05D7\u05D6\u05D5\u05E8 \u05E8\u05D9\u05E7
       renderNew(rep);
     };
   }

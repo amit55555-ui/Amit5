@@ -5,35 +5,16 @@ import { NewReportInput, Priority, Report } from '@/types';
 import { CATEGORIES, ENTRANCES } from '@/data/building';
 import { createReport, getResidentToken } from '@/lib/client';
 
-const CONTACT_KEY = 'building.contact.v1';
-
-interface SavedContact {
-  reporterName: string;
-  reporterPhone: string;
-  reporterEmail: string;
-  entrance: string;
-  apartment: string;
-}
-
-function loadContact(): Partial<SavedContact> {
-  if (typeof window === 'undefined') return {};
-  try {
-    return JSON.parse(localStorage.getItem(CONTACT_KEY) || '{}');
-  } catch {
-    return {};
-  }
-}
-
 export default function ReportForm({ onCreated }: { onCreated: (r: Report) => void }) {
-  const saved = loadContact();
+  // הטופס מתחיל ריק ומתאפס אחרי כל שליחה — כדי שלא יופיעו פרטים מפנייה קודמת
   const [categoryId, setCategoryId] = useState('lightbulb');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [entrance, setEntrance] = useState(saved.entrance || ENTRANCES[0] || '');
-  const [apartment, setApartment] = useState(saved.apartment || '');
-  const [reporterName, setReporterName] = useState(saved.reporterName || '');
-  const [reporterPhone, setReporterPhone] = useState(saved.reporterPhone || '');
-  const [reporterEmail, setReporterEmail] = useState(saved.reporterEmail || '');
+  const [entrance, setEntrance] = useState(ENTRANCES[0] || '');
+  const [apartment, setApartment] = useState('');
+  const [reporterName, setReporterName] = useState('');
+  const [reporterPhone, setReporterPhone] = useState('');
+  const [reporterEmail, setReporterEmail] = useState('');
   const [priority, setPriority] = useState<Priority>('normal');
   const [photos, setPhotos] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
@@ -90,21 +71,28 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
       photos,
     };
     const report = await createReport(input);
-    localStorage.setItem(
-      CONTACT_KEY,
-      JSON.stringify({ reporterName, reporterPhone, reporterEmail, entrance, apartment }),
-    );
+    clearForm();
     setSubmitting(false);
     setDone(report);
     onCreated(report);
   }
 
-  function reset() {
+  // מנקה את כל שדות הטופס לערכי ברירת מחדל
+  function clearForm() {
+    setCategoryId('lightbulb');
     setTitle('');
     setDescription('');
+    setEntrance(ENTRANCES[0] || '');
+    setApartment('');
+    setReporterName('');
+    setReporterPhone('');
+    setReporterEmail('');
     setPriority('normal');
-    setCategoryId('lightbulb');
     setPhotos([]);
+  }
+
+  function reset() {
+    clearForm();
     setDone(null);
   }
 
