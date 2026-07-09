@@ -131,6 +131,18 @@ function ProductForm({
         />
       </div>
 
+      <div>
+        <label className="text-xs font-black text-soft mb-1.5 block">🔗 לינק למוצר (אפיליאציה) *</label>
+        <input
+          value={form.link}
+          onChange={e => field('link', e.target.value)}
+          className="w-full border-2 border-orange/40 bg-orange-50/40 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-orange"
+          placeholder="https://s.click.aliexpress.com/e/..."
+          dir="ltr"
+        />
+        <p className="text-[11px] text-soft mt-1">לכאן ייכנס המשתמש כשילחץ "קנה" / יחליק ימינה על המוצר</p>
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-black text-soft mb-1.5 block">קטגוריה *</label>
@@ -177,17 +189,6 @@ function ProductForm({
             placeholder="89"
           />
         </div>
-      </div>
-
-      <div>
-        <label className="text-xs font-black text-soft mb-1.5 block">🔗 לינק אפיליאציה *</label>
-        <input
-          value={form.link}
-          onChange={e => field('link', e.target.value)}
-          className="w-full border-2 border-border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-orange"
-          placeholder="https://s.click.aliexpress.com/e/..."
-          dir="ltr"
-        />
       </div>
 
       <div>
