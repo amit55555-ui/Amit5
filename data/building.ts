@@ -10,7 +10,7 @@ export const BUILDING_NAME =
 // בניין ארוך עם מספר כניסות (מספרי בניין) המחוברים יחדיו.
 // ניתן להגדיר רשימה מופרדת בפסיקים ב-NEXT_PUBLIC_ENTRANCES, למשל: "12,14,16,18"
 export const ENTRANCES: string[] = (
-  process.env.NEXT_PUBLIC_ENTRANCES || '12,14,16,18'
+  process.env.NEXT_PUBLIC_ENTRANCES || '77,79,81,83,85'
 )
   .split(',')
   .map((e) => e.trim())
