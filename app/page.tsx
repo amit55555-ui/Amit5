@@ -67,6 +67,12 @@ export default function HomePage() {
     if (remaining[0]) trackView(remaining[0].id);
   }, [remaining[0]?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Lock body scrolling only on this swipe screen; restore on unmount.
+  useEffect(() => {
+    document.body.classList.add('lock-scroll');
+    return () => document.body.classList.remove('lock-scroll');
+  }, []);
+
   const showToast = useCallback((msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(''), 2200);

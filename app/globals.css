@@ -4,8 +4,12 @@
 
 html, body {
   height: 100%;
-  overflow: hidden;
   overscroll-behavior: none;
+}
+
+/* Lock scrolling only on the swipe screen (applied via body class) */
+body.lock-scroll {
+  overflow: hidden;
 }
 
 #__next { height: 100%; }
