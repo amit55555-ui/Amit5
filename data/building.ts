@@ -5,7 +5,7 @@
 import { Category } from '@/types';
 
 export const BUILDING_NAME =
-  process.env.NEXT_PUBLIC_BUILDING_NAME || 'בניין רחוב הברוש';
+  process.env.NEXT_PUBLIC_BUILDING_NAME || 'רחוב צה״ל';
 
 // בניין ארוך עם מספר כניסות (מספרי בניין) המחוברים יחדיו.
 // ניתן להגדיר רשימה מופרדת בפסיקים ב-NEXT_PUBLIC_ENTRANCES, למשל: "12,14,16,18"
@@ -26,7 +26,7 @@ export const CATEGORIES: Category[] = [
   { id: 'electricity', label: 'חשמל', emoji: '⚡' },
   { id: 'intercom', label: 'אינטרקום / דלת כניסה', emoji: '🔔' },
   { id: 'garden', label: 'גינון / חצר', emoji: '🌳' },
-  { id: 'parking', label: 'חניה', emoji: '🅿️' },
+  { id: 'parking', label: 'חניה / רחבת חניה', emoji: '🅿️' },
   { id: 'safety', label: 'בטיחות', emoji: '🚨' },
   { id: 'other', label: 'אחר', emoji: '🔧' },
 ];
