@@ -220,6 +220,14 @@
   .gallery img { width: 88px; height: 88px; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); cursor: pointer; }
   .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,.86); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; cursor: zoom-out; }
   .lightbox img { max-width: 100%; max-height: 100%; border-radius: 12px; }
+
+  /* &#1495;&#1497;&#1493;&#1493;&#1497; &#1513;&#1500;&#1497;&#1495;&#1514; &#1502;&#1497;&#1497;&#1500; */
+  .toast-wrap { position: fixed; left: 0; right: 0; bottom: 20px; z-index: 120; display: flex; justify-content: center; padding: 0 16px; pointer-events: none; }
+  .toast-msg {
+    background: var(--brand); color: #fff; padding: 11px 16px; border-radius: 12px;
+    font-size: 13.5px; font-weight: 600; box-shadow: var(--shadow); max-width: 460px;
+    text-align: center; transition: opacity .4s; word-break: break-word;
+  }
 </style>
 
 <button class="themebtn" id="themeBtn" title="&#1502;&#1510;&#1489; &#1499;&#1492;&#1492;/&#1489;&#1492;&#1497;&#1512;" aria-label="&#1492;&#1495;&#1500;&#1508;&#1514; &#1502;&#1510;&#1489; &#1514;&#1510;&#1493;&#1490;&#1492;">&#9680;</button>
@@ -304,6 +312,16 @@
       img.onerror = function () { URL.revokeObjectURL(url); cb(null); };
       img.src = url;
     } catch (e) { cb(null); }
+  }
+  // \u05D7\u05D9\u05D5\u05D5\u05D9 \u05E7\u05E6\u05E8 (\u05DE\u05D3\u05DE\u05D4 \u05E9\u05DC\u05D9\u05D7\u05EA \u05DE\u05D9\u05D9\u05DC \u05D1\u05D2\u05E8\u05E1\u05EA \u05D4\u05D3\u05DE\u05D5)
+  function toast(msg) {
+    var w = document.createElement("div"); w.className = "toast-wrap";
+    var m = document.createElement("div"); m.className = "toast-msg"; m.textContent = msg;
+    w.appendChild(m); document.body.appendChild(w);
+    setTimeout(function () {
+      w.style.opacity = "0";
+      setTimeout(function () { if (w.parentNode) w.parentNode.removeChild(w); }, 450);
+    }, 3400);
   }
   // \u05EA\u05E6\u05D5\u05D2\u05EA \u05EA\u05DE\u05D5\u05E0\u05D4 \u05D1\u05D2\u05D5\u05D3\u05DC \u05DE\u05DC\u05D0
   function openLightbox(src) {
@@ -529,6 +547,7 @@
         createdAt: now, updatedAt: now
       };
       var a = load(); a.push(rep); save(a);
+      toast("\u{1F4E7} \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05E0\u05E9\u05DC\u05D7\u05D4 \u05D1\u05DE\u05D9\u05D9\u05DC \u05DC\u05D5\u05D5\u05E2\u05D3 \u05D4\u05D1\u05D9\u05EA");
       formState = null; // \u05D0\u05D9\u05E4\u05D5\u05E1 \u05DE\u05DC\u05D0 \u2014 \u05D4\u05D8\u05D5\u05E4\u05E1 \u05D9\u05D7\u05D6\u05D5\u05E8 \u05E8\u05D9\u05E7
       renderNew(rep);
     };
@@ -608,18 +627,26 @@
   }
 
   function setStatus(id, st) {
-    var a = load();
-    for (var i = 0; i < a.length; i++) if (a[i].id === id) { a[i].status = st; a[i].updatedAt = Date.now(); }
+    var a = load(), rep = null;
+    for (var i = 0; i < a.length; i++) if (a[i].id === id) { a[i].status = st; a[i].updatedAt = Date.now(); rep = a[i]; }
     save(a); render();
+    if (rep) toast(rep.reporterEmail
+      ? "\u{1F4E7} \u05E2\u05D3\u05DB\u05D5\u05DF \u05D4\u05E1\u05D8\u05D8\u05D5\u05E1 \u05E0\u05E9\u05DC\u05D7 \u05D1\u05DE\u05D9\u05D9\u05DC \u05DC\u05D3\u05D9\u05D9\u05E8: " + rep.reporterEmail
+      : "\u05D4\u05E1\u05D8\u05D8\u05D5\u05E1 \u05E2\u05D5\u05D3\u05DB\u05DF. \u05D4\u05D3\u05D9\u05D9\u05E8 \u05DC\u05D0 \u05D4\u05D6\u05D9\u05DF \u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05D1\u05E2\u05EA \u05D4\u05D3\u05D9\u05D5\u05D5\u05D7.");
   }
   function addMessage(id, role, text) {
     if (!text.trim()) return;
-    var a = load();
+    var a = load(), rep = null;
     for (var i = 0; i < a.length; i++) if (a[i].id === id) {
       a[i].messages.push({ id: uid(), author: role, authorName: role === "committee" ? "\u05D5\u05E2\u05D3 \u05D4\u05D1\u05D9\u05EA" : (a[i].reporterName || "\u05D3\u05D9\u05D9\u05E8"), text: text.trim(), createdAt: Date.now() });
       a[i].updatedAt = Date.now();
+      rep = a[i];
     }
     save(a); render();
+    if (rep && role === "committee") toast(rep.reporterEmail
+      ? "\u{1F4E7} \u05D4\u05EA\u05E9\u05D5\u05D1\u05D4 \u05E0\u05E9\u05DC\u05D7\u05D4 \u05D1\u05DE\u05D9\u05D9\u05DC \u05DC\u05D3\u05D9\u05D9\u05E8: " + rep.reporterEmail
+      : "\u05D4\u05EA\u05E9\u05D5\u05D1\u05D4 \u05E0\u05E9\u05DE\u05E8\u05D4. \u05D4\u05D3\u05D9\u05D9\u05E8 \u05DC\u05D0 \u05D4\u05D6\u05D9\u05DF \u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05D1\u05E2\u05EA \u05D4\u05D3\u05D9\u05D5\u05D5\u05D7.");
+    else if (rep) toast("\u{1F4E7} \u05D4\u05EA\u05D2\u05D5\u05D1\u05D4 \u05E0\u05E9\u05DC\u05D7\u05D4 \u05D1\u05DE\u05D9\u05D9\u05DC \u05DC\u05D5\u05D5\u05E2\u05D3 \u05D4\u05D1\u05D9\u05EA");
   }
 
   // ========== VIEW: MINE ==========

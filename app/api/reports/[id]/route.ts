@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ReportStatus } from '@/types';
 import { getReport, updateReport } from '@/lib/store';
-import { notifyResident } from '@/lib/mailer';
+import { notifyResident, notifyCommitteeReply } from '@/lib/mailer';
 import { isCommittee } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
@@ -41,12 +41,17 @@ export async function PATCH(req: NextRequest, ctx: { params: Promise<{ id: strin
   const report = await updateReport(id, { status: body.status, message: body.message });
   if (!report) return NextResponse.json({ error: 'not found' }, { status: 404 });
 
-  // אם הוועד הגיב או שינה סטטוס – שלח מייל לדייר
+  // אם הוועד הגיב או שינה סטטוס – שלח מייל לדייר (לכתובת שהזין בעת הדיווח)
   if (committee && (fromCommittee || statusChanged)) {
     notifyResident(report, {
       replyText: fromCommittee ? body.message?.text : undefined,
       statusChanged,
     }).catch(() => {});
+  }
+
+  // אם דייר הגיב בשרשור – שלח מייל לוועד
+  if (!committee && body.message?.author === 'resident' && body.message.text) {
+    notifyCommitteeReply(report, body.message.text).catch(() => {});
   }
 
   return NextResponse.json({ configured: true, report });

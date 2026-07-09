@@ -104,6 +104,24 @@ export async function notifyCommitteeNewReport(report: Report): Promise<void> {
   });
 }
 
+// מייל לוועד בעת תגובת דייר בשרשור פנייה קיימת
+export async function notifyCommitteeReply(report: Report, text: string): Promise<void> {
+  if (!isMailConfigured() || !text.trim()) return;
+  const cat = categoryById(report.categoryId);
+  const html = shell(
+    `תגובת דייר בפנייה #${report.ref} — ${cat.emoji} ${cat.label}`,
+    `<table style="width:100%;border-collapse:collapse;font-size:14px">${detailRows(report)}</table>
+     <div style="margin-top:16px;padding:14px;background:#f0fdfa;border-radius:10px;white-space:pre-wrap">${text}</div>
+     <p style="margin-top:16px;color:#64748b;font-size:13px">אפשר להשיב ישירות למייל הזה — התשובה תגיע אל הדייר.</p>`,
+  );
+  await send({
+    to: COMMITTEE_EMAIL,
+    replyTo: report.reporterEmail || undefined,
+    subject: `[פנייה #${report.ref}] תגובת דייר — ${cat.label} · כניסה ${report.entrance}`,
+    html,
+  });
+}
+
 // מייל לדייר בעת תגובת הוועד / שינוי סטטוס
 export async function notifyResident(
   report: Report,
