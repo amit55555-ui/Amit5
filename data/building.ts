@@ -24,10 +24,8 @@ export const CATEGORIES: Category[] = [
   { id: 'elevator', label: 'מעלית', emoji: '🛗' },
   { id: 'water', label: 'נזילה / אינסטלציה', emoji: '🚿' },
   { id: 'electricity', label: 'חשמל', emoji: '⚡' },
-  { id: 'intercom', label: 'אינטרקום / דלת כניסה', emoji: '🔔' },
   { id: 'garden', label: 'גינון / חצר', emoji: '🌳' },
-  { id: 'parking', label: 'חניה / רחבת חניה', emoji: '🅿️' },
-  { id: 'safety', label: 'בטיחות', emoji: '🚨' },
+  { id: 'parking', label: 'חניה', emoji: '🅿️' },
   { id: 'other', label: 'אחר', emoji: '🔧' },
 ];
 
