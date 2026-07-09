@@ -39,7 +39,8 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<Report | null>(null);
 
-  const valid = title.trim() && description.trim() && entrance && reporterName.trim();
+  const valid =
+    title.trim() && description.trim() && entrance && reporterName.trim() && reporterPhone.trim();
 
   // דחיסת תמונה ל-JPEG קטן לפני שמירה
   function compress(file: File): Promise<string | null> {
@@ -150,7 +151,7 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
 
       {/* כותרת + תיאור */}
       <div className="mb-4">
-        <label className="label">כותרת קצרה</label>
+        <label className="label">כותרת קצרה <span className="text-open">*</span></label>
         <input
           className="field"
           placeholder="לדוגמה: נורה שרופה בחדר מדרגות קומה 2"
@@ -159,7 +160,7 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
         />
       </div>
       <div className="mb-4">
-        <label className="label">תיאור התקלה</label>
+        <label className="label">תיאור התקלה <span className="text-open">*</span></label>
         <textarea
           className="field min-h-[90px] resize-y"
           placeholder="פרטו מה התקלה והיכן בדיוק…"
@@ -201,7 +202,7 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
       {/* מיקום */}
       <div className="mb-4 grid grid-cols-2 gap-3">
         <div>
-          <label className="label">כניסה (מספר בניין)</label>
+          <label className="label">כניסה (מספר בניין) <span className="text-open">*</span></label>
           <select className="field" value={entrance} onChange={(e) => setEntrance(e.target.value)}>
             {ENTRANCES.map((e) => (
               <option key={e} value={e}>
@@ -241,11 +242,11 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
       {/* פרטי קשר */}
       <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div>
-          <label className="label">שם מלא</label>
+          <label className="label">שם מלא <span className="text-open">*</span></label>
           <input className="field" value={reporterName} onChange={(e) => setReporterName(e.target.value)} />
         </div>
         <div>
-          <label className="label">טלפון</label>
+          <label className="label">טלפון <span className="text-open">*</span></label>
           <input
             className="field"
             inputMode="tel"
@@ -268,7 +269,7 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
         {submitting ? 'שולח…' : 'שליחת הפנייה לוועד'}
       </button>
       <p className="mt-2 text-center text-xs text-muted">
-        הפנייה תישלח לוועד הבית במייל, ותוכלו לעקוב אחרי הסטטוס בלשונית «הפניות שלי».
+        <span className="text-open">*</span> שדות חובה · הפנייה תישלח לוועד הבית במייל, ותוכלו לעקוב אחרי הסטטוס בלשונית «הפניות שלי».
       </p>
     </div>
   );

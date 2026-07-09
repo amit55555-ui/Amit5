@@ -37,7 +37,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'invalid body' }, { status: 400 });
   }
 
-  if (!input.categoryId || !input.title || !input.description || !input.entrance || !input.reporterName) {
+  if (
+    !input.categoryId ||
+    !input.title ||
+    !input.description ||
+    !input.entrance ||
+    !input.reporterName ||
+    !input.reporterPhone
+  ) {
     return NextResponse.json({ error: 'missing fields' }, { status: 400 });
   }
 

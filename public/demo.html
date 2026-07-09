@@ -74,6 +74,7 @@
 
   h2.sec { margin: 0 0 16px; font-size: 18px; font-weight: 700; }
   label.lbl { display: block; font-size: 13px; font-weight: 600; margin: 0 0 6px; }
+  .req { color: var(--open); font-weight: 700; }
 
   .field {
     width: 100%; font: inherit; color: var(--ink);
@@ -447,9 +448,9 @@
         '<label class="lbl">\u05E1\u05D5\u05D2 \u05D4\u05EA\u05E7\u05DC\u05D4</label>' +
         '<div class="grid-cats" id="cats">' + cats + '</div>' +
         '<div class="stack" style="margin-top:16px">' +
-          '<div><label class="lbl">\u05DB\u05D5\u05EA\u05E8\u05EA \u05E7\u05E6\u05E8\u05D4</label>' +
+          '<div><label class="lbl">\u05DB\u05D5\u05EA\u05E8\u05EA \u05E7\u05E6\u05E8\u05D4 <span class="req">*</span></label>' +
             '<input class="field" id="f_title" placeholder="\u05DC\u05D3\u05D5\u05D2\u05DE\u05D4: \u05E0\u05D5\u05E8\u05D4 \u05E9\u05E8\u05D5\u05E4\u05D4 \u05D1\u05D7\u05D3\u05E8 \u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05E7\u05D5\u05DE\u05D4 2" value="' + esc(s.title) + '"></div>' +
-          '<div><label class="lbl">\u05EA\u05D9\u05D0\u05D5\u05E8 \u05D4\u05EA\u05E7\u05DC\u05D4</label>' +
+          '<div><label class="lbl">\u05EA\u05D9\u05D0\u05D5\u05E8 \u05D4\u05EA\u05E7\u05DC\u05D4 <span class="req">*</span></label>' +
             '<textarea class="field" id="f_desc" placeholder="\u05E4\u05E8\u05D8\u05D5 \u05DE\u05D4 \u05D4\u05EA\u05E7\u05DC\u05D4 \u05D5\u05D4\u05D9\u05DB\u05DF \u05D1\u05D3\u05D9\u05D5\u05E7\u2026">' + esc(s.description) + '</textarea></div>' +
           '<div><label class="lbl">\u05EA\u05DE\u05D5\u05E0\u05D4 \u05E9\u05DC \u05D4\u05EA\u05E7\u05DC\u05D4 (\u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05E0\u05DC\u05D9)</label>' +
             '<input type="file" id="f_photo" accept="image/*" multiple style="display:none">' +
@@ -458,7 +459,7 @@
             (thumbsHTML ? '<div class="photorow" id="thumbs">' + thumbsHTML + '</div>' : '<div class="photorow" id="thumbs"></div>') +
           '</div>' +
           '<div class="row two">' +
-            '<div><label class="lbl">\u05DB\u05E0\u05D9\u05E1\u05D4 (\u05DE\u05E1\u05E4\u05E8 \u05D1\u05E0\u05D9\u05D9\u05DF)</label><select class="field" id="f_ent">' + ents + '</select></div>' +
+            '<div><label class="lbl">\u05DB\u05E0\u05D9\u05E1\u05D4 (\u05DE\u05E1\u05E4\u05E8 \u05D1\u05E0\u05D9\u05D9\u05DF) <span class="req">*</span></label><select class="field" id="f_ent">' + ents + '</select></div>' +
             '<div><label class="lbl">\u05D3\u05D9\u05E8\u05D4 (\u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05E0\u05DC\u05D9)</label><input class="field" id="f_ap" value="' + esc(s.apartment) + '"></div>' +
           '</div>' +
           '<div><label class="lbl">\u05D3\u05D7\u05D9\u05E4\u05D5\u05EA</label>' +
@@ -467,12 +468,12 @@
               '<button type="button" data-pri="urgent" class="' + (s.priority === "urgent" ? "on urgent" : "") + '">\u{1F534} \u05D3\u05D7\u05D5\u05E3</button>' +
             '</div></div>' +
           '<div class="row three">' +
-            '<div><label class="lbl">\u05E9\u05DD \u05DE\u05DC\u05D0</label><input class="field" id="f_nm" value="' + esc(s.reporterName) + '"></div>' +
-            '<div><label class="lbl">\u05D8\u05DC\u05E4\u05D5\u05DF</label><input class="field" id="f_ph" inputmode="tel" value="' + esc(s.reporterPhone) + '"></div>' +
+            '<div><label class="lbl">\u05E9\u05DD \u05DE\u05DC\u05D0 <span class="req">*</span></label><input class="field" id="f_nm" value="' + esc(s.reporterName) + '"></div>' +
+            '<div><label class="lbl">\u05D8\u05DC\u05E4\u05D5\u05DF <span class="req">*</span></label><input class="field" id="f_ph" inputmode="tel" value="' + esc(s.reporterPhone) + '"></div>' +
             '<div><label class="lbl">\u05D0\u05D9\u05DE\u05D9\u05D9\u05DC (\u05DC\u05E2\u05D3\u05DB\u05D5\u05E0\u05D9\u05DD)</label><input class="field" id="f_em" inputmode="email" value="' + esc(s.reporterEmail) + '"></div>' +
           '</div>' +
           '<div><button class="btn block" id="submit">\u05E9\u05DC\u05D9\u05D7\u05EA \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05DC\u05D5\u05D5\u05E2\u05D3</button>' +
-          '<p class="hint">\u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05EA\u05D9\u05E9\u05DC\u05D7 \u05DC\u05D5\u05D5\u05E2\u05D3 \u05D4\u05D1\u05D9\u05EA, \u05D5\u05EA\u05D5\u05DB\u05DC\u05D5 \u05DC\u05E2\u05E7\u05D5\u05D1 \u05D0\u05D7\u05E8\u05D9 \u05D4\u05E1\u05D8\u05D8\u05D5\u05E1 \u05D1\u05DC\u05E9\u05D5\u05E0\u05D9\u05EA \u00AB\u05D4\u05E4\u05E0\u05D9\u05D5\u05EA \u05E9\u05DC\u05D9\u00BB.</p></div>' +
+          '<p class="hint"><span class="req">*</span> \u05E9\u05D3\u05D5\u05EA \u05D7\u05D5\u05D1\u05D4 \u00B7 \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05EA\u05D9\u05E9\u05DC\u05D7 \u05DC\u05D5\u05D5\u05E2\u05D3 \u05D5\u05EA\u05D5\u05DB\u05DC\u05D5 \u05DC\u05E2\u05E7\u05D5\u05D1 \u05D1\u05DC\u05E9\u05D5\u05E0\u05D9\u05EA \u00AB\u05D4\u05E4\u05E0\u05D9\u05D5\u05EA \u05E9\u05DC\u05D9\u00BB.</p></div>' +
         '</div>' +
       '</div>';
 
@@ -512,9 +513,13 @@
     });
     document.getElementById("submit").onclick = function () {
       sync();
-      if (!s.title.trim() || !s.description.trim() || !s.reporterName.trim()) {
-        alert("\u05E0\u05D0 \u05DC\u05DE\u05DC\u05D0 \u05DB\u05D5\u05EA\u05E8\u05EA, \u05EA\u05D9\u05D0\u05D5\u05E8 \u05D5\u05E9\u05DD \u05DE\u05DC\u05D0."); return;
-      }
+      var missing = [];
+      if (!s.title.trim()) missing.push("\u05DB\u05D5\u05EA\u05E8\u05EA");
+      if (!s.description.trim()) missing.push("\u05EA\u05D9\u05D0\u05D5\u05E8 \u05D4\u05EA\u05E7\u05DC\u05D4");
+      if (!s.entrance) missing.push("\u05DB\u05E0\u05D9\u05E1\u05D4");
+      if (!s.reporterName.trim()) missing.push("\u05E9\u05DD \u05DE\u05DC\u05D0");
+      if (!s.reporterPhone.trim()) missing.push("\u05D8\u05DC\u05E4\u05D5\u05DF");
+      if (missing.length) { alert("\u05D9\u05E9 \u05DC\u05DE\u05DC\u05D0 \u05D0\u05EA \u05E9\u05D3\u05D5\u05EA \u05D4\u05D7\u05D5\u05D1\u05D4: " + missing.join(", ") + "."); return; }
       var now = Date.now();
       var rep = {
         id: uid(), ref: nextRef(), categoryId: s.categoryId, title: s.title.trim(),
