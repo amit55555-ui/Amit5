@@ -26,6 +26,7 @@ export default function ReportCard({
   defaultOpen?: boolean;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const cat = categoryById(report.categoryId);
 
   async function changeStatus(status: ReportStatus) {
@@ -92,6 +93,21 @@ export default function ReportCard({
             </div>
           )}
 
+          {report.photos && report.photos.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {report.photos.map((p, i) => (
+                <button key={i} type="button" onClick={() => setLightbox(p)} className="block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={p}
+                    alt="תמונת התקלה"
+                    className="h-[88px] w-[88px] rounded-xl border border-line object-cover"
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+
           <Thread
             report={report}
             role={role}
@@ -99,6 +115,16 @@ export default function ReportCard({
             passcode={passcode}
             onUpdated={onUpdated}
           />
+        </div>
+      )}
+
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-5"
+          onClick={() => setLightbox(null)}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={lightbox} alt="" className="max-h-full max-w-full rounded-xl" />
         </div>
       )}
     </div>

@@ -49,6 +49,9 @@ export interface Report {
   priority: Priority;
   status: ReportStatus;
 
+  // תמונות של התקלה (data URLs)
+  photos?: string[];
+
   // שרשור ההתכתבות בין הדייר לוועד
   messages: ReportMessage[];
 
@@ -68,6 +71,7 @@ export interface NewReportInput {
   reporterEmail?: string;
   reporterToken: string;
   priority: Priority;
+  photos?: string[];
 }
 
 export const STATUS_LABELS: Record<ReportStatus, string> = {

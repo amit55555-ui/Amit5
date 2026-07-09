@@ -35,10 +35,42 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
   const [reporterPhone, setReporterPhone] = useState(saved.reporterPhone || '');
   const [reporterEmail, setReporterEmail] = useState(saved.reporterEmail || '');
   const [priority, setPriority] = useState<Priority>('normal');
+  const [photos, setPhotos] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState<Report | null>(null);
 
   const valid = title.trim() && description.trim() && entrance && reporterName.trim();
+
+  // דחיסת תמונה ל-JPEG קטן לפני שמירה
+  function compress(file: File): Promise<string | null> {
+    return new Promise((resolve) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const max = 1000;
+        let w = img.width, h = img.height;
+        if (w > h && w > max) { h = Math.round((h * max) / w); w = max; }
+        else if (h >= w && h > max) { w = Math.round((w * max) / h); h = max; }
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d')?.drawImage(img, 0, 0, w, h);
+        URL.revokeObjectURL(url);
+        try { resolve(c.toDataURL('image/jpeg', 0.7)); } catch { resolve(null); }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); resolve(null); };
+      img.src = url;
+    });
+  }
+
+  async function onPickPhotos(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    const remaining = 4 - photos.length;
+    if (remaining <= 0) return;
+    const picked = files.slice(0, remaining);
+    const results = await Promise.all(picked.map(compress));
+    setPhotos((p) => [...p, ...results.filter((r): r is string => !!r)]);
+  }
 
   async function submit() {
     if (!valid) return;
@@ -54,6 +86,7 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
       reporterEmail: reporterEmail.trim() || undefined,
       reporterToken: getResidentToken(),
       priority,
+      photos,
     };
     const report = await createReport(input);
     localStorage.setItem(
@@ -70,6 +103,7 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
     setDescription('');
     setPriority('normal');
     setCategoryId('lightbulb');
+    setPhotos([]);
     setDone(null);
   }
 
@@ -132,6 +166,36 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
+      </div>
+
+      {/* תמונות של התקלה */}
+      <div className="mb-4">
+        <label className="label">תמונה של התקלה (אופציונלי)</label>
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="btn-ghost cursor-pointer text-sm">
+            📷 צילום / הוספת תמונה
+            <input type="file" accept="image/*" multiple className="hidden" onChange={onPickPhotos} />
+          </label>
+          <span className="text-xs text-muted">עד 4 תמונות</span>
+        </div>
+        {photos.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {photos.map((p, i) => (
+              <div key={i} className="relative h-[72px] w-[72px] overflow-hidden rounded-xl border border-line">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p} alt="" className="h-full w-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setPhotos((ps) => ps.filter((_, j) => j !== i))}
+                  className="absolute start-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-xs text-white"
+                  aria-label="הסרה"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* מיקום */}

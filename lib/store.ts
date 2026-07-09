@@ -94,6 +94,7 @@ export async function createReport(input: NewReportInput): Promise<Report> {
     reporterEmail: input.reporterEmail,
     reporterToken: input.reporterToken,
     priority: input.priority,
+    photos: input.photos || [],
     status: 'open',
     messages: [firstMessage],
     createdAt: now,
