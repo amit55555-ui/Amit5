@@ -1,0 +1,9 @@
+name = "amit5"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "out"
+
+# Bind the shared products KV namespace to the Pages Functions automatically,
+# so no manual dashboard binding is required.
+[[kv_namespaces]]
+binding = "PRODUCTS_KV"
+id = "ffd04385f72f49b3921bdaf9fb6c8b42"
