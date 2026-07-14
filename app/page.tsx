@@ -11,6 +11,7 @@ import { type SwipeCardHandle } from '@/components/SwipeCard';
 import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Category, type Product, type SwipeDirection } from '@/types';
 import { trackView, trackLike } from '@/lib/analytics';
+import { fetchCatalog } from '@/lib/catalog';
 
 const CATS = Object.keys(CAT_LABELS) as Category[];
 const LS_CUSTOM    = 'shuk_custom_products';
@@ -32,10 +33,27 @@ export default function HomePage() {
   const topRef = useRef<SwipeCardHandle | null>(null);
 
   useEffect(() => {
-    try { const r = localStorage.getItem(LS_CUSTOM);    if (r) setCustomProds(JSON.parse(r)); }    catch { /**/ }
-    try { const r = localStorage.getItem(LS_LIKED);     if (r) setLiked(JSON.parse(r)); }          catch { /**/ }
-    try { const r = localStorage.getItem(LS_OVERRIDES); if (r) setOverrides(JSON.parse(r)); }      catch { /**/ }
-    try { const r = localStorage.getItem(LS_HIDDEN);    if (r) setHidden(JSON.parse(r)); }         catch { /**/ }
+    // Liked history stays per-device (localStorage)
+    try { const r = localStorage.getItem(LS_LIKED); if (r) setLiked(JSON.parse(r)); } catch { /**/ }
+
+    // Load the shared catalog from the server; fall back to local cache if offline.
+    (async () => {
+      const cat = await fetchCatalog();
+      if (cat) {
+        setCustomProds(cat.custom);
+        setOverrides(cat.overrides);
+        setHidden(cat.hidden);
+        try {
+          localStorage.setItem(LS_CUSTOM, JSON.stringify(cat.custom));
+          localStorage.setItem(LS_OVERRIDES, JSON.stringify(cat.overrides));
+          localStorage.setItem(LS_HIDDEN, JSON.stringify(cat.hidden));
+        } catch { /**/ }
+      } else {
+        try { const r = localStorage.getItem(LS_CUSTOM);    if (r) setCustomProds(JSON.parse(r)); } catch { /**/ }
+        try { const r = localStorage.getItem(LS_OVERRIDES); if (r) setOverrides(JSON.parse(r)); }    catch { /**/ }
+        try { const r = localStorage.getItem(LS_HIDDEN);    if (r) setHidden(JSON.parse(r)); }       catch { /**/ }
+      }
+    })();
   }, []);
 
   // Merge: built-ins (minus hidden, with overrides) + custom

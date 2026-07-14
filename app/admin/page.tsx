@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo, Component, type ReactNode } from 'react';
+import { useState, useEffect, useRef, useMemo, Component, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star, Search, RotateCcw, FileSpreadsheet, BarChart3, Eye, Heart, MousePointerClick, Share2 } from 'lucide-react';
 import { PRODUCTS } from '@/data/products';
@@ -8,6 +8,7 @@ import { CAT_LABELS, CAT_EMOJI, type Product, type Category, type Badge } from '
 import ExcelIO from '@/components/ExcelIO';
 import { getAnalytics, getTotals, resetAnalytics, type AnalyticsMap } from '@/lib/analytics';
 import { isVideoUrl, isYouTube, youTubeEmbed } from '@/lib/media';
+import { fetchCatalog, saveCatalog } from '@/lib/catalog';
 
 const ADMIN_PASSWORD = 'amit2389@';
 const LS_CUSTOM    = 'shuk_custom_products';
@@ -304,11 +305,20 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [search, setSearch]                 = useState('');
   const [catFilter, setCatFilter]           = useState<Category | 'all'>('all');
 
-  // Load from localStorage
+  // Load the shared catalog from the server (fall back to local cache)
   useEffect(() => {
-    try { const r = localStorage.getItem(LS_CUSTOM);    if (r) setCustomProducts(JSON.parse(r)); } catch { /**/ }
-    try { const r = localStorage.getItem(LS_OVERRIDES); if (r) setOverrides(JSON.parse(r)); }      catch { /**/ }
-    try { const r = localStorage.getItem(LS_HIDDEN);    if (r) setHidden(JSON.parse(r)); }         catch { /**/ }
+    (async () => {
+      const cat = await fetchCatalog();
+      if (cat) {
+        setCustomProducts(cat.custom);
+        setOverrides(cat.overrides);
+        setHidden(cat.hidden);
+      } else {
+        try { const r = localStorage.getItem(LS_CUSTOM);    if (r) setCustomProducts(JSON.parse(r)); } catch { /**/ }
+        try { const r = localStorage.getItem(LS_OVERRIDES); if (r) setOverrides(JSON.parse(r)); }      catch { /**/ }
+        try { const r = localStorage.getItem(LS_HIDDEN);    if (r) setHidden(JSON.parse(r)); }         catch { /**/ }
+      }
+    })();
     setAnalytics(getAnalytics());
   }, []);
 
@@ -317,15 +327,26 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     if (tab === 'analytics') setAnalytics(getAnalytics());
   }, [tab]);
 
-  // Persist helpers — return false if storage quota is exceeded (e.g. large videos)
-  const QUOTA_MSG = 'לא ניתן לשמור — הקובץ (בעיקר וידאו) כבד מדי לאחסון המקומי.\n\nהמלצה: במקום להעלות קובץ וידאו, הדבק קישור (URL) לסרטון בשדה "קישור לתמונה/וידאו".';
-  const safeSet = (key: string, value: string): boolean => {
-    try { localStorage.setItem(key, value); return true; }
-    catch { alert(QUOTA_MSG); return false; }
+  // Persist helpers — save to the shared server (KV) and cache locally.
+  const safeSet = (key: string, value: string) => {
+    try { localStorage.setItem(key, value); } catch { /* cache only, ignore quota */ }
   };
-  const persistCustom    = useCallback((p: Product[]): boolean              => { if (safeSet(LS_CUSTOM, JSON.stringify(p)))    { setCustomProducts(p); return true; } return false; }, []);
-  const persistOverrides = useCallback((o: Record<string, Product>): boolean => { if (safeSet(LS_OVERRIDES, JSON.stringify(o))) { setOverrides(o);    return true; } return false; }, []);
-  const persistHidden    = useCallback((h: string[]): boolean              => { if (safeSet(LS_HIDDEN, JSON.stringify(h)))    { setHidden(h);      return true; } return false; }, []);
+  const pushToServer = async (next: { custom: Product[]; overrides: Record<string, Product>; hidden: string[] }) => {
+    const ok = await saveCatalog(ADMIN_PASSWORD, next);
+    if (!ok) alert('⚠️ השמירה בענן נכשלה. ודא חיבור לאינטרנט ושהגדרות השרת (KV + ADMIN_PASSWORD) הוגדרו ב-Cloudflare.');
+  };
+  const persistCustom = (p: Product[]): boolean => {
+    safeSet(LS_CUSTOM, JSON.stringify(p)); setCustomProducts(p);
+    pushToServer({ custom: p, overrides, hidden }); return true;
+  };
+  const persistOverrides = (o: Record<string, Product>): boolean => {
+    safeSet(LS_OVERRIDES, JSON.stringify(o)); setOverrides(o);
+    pushToServer({ custom: customProducts, overrides: o, hidden }); return true;
+  };
+  const persistHidden = (h: string[]): boolean => {
+    safeSet(LS_HIDDEN, JSON.stringify(h)); setHidden(h);
+    pushToServer({ custom: customProducts, overrides, hidden: h }); return true;
+  };
 
   // Merged product list: built-ins (minus hidden, with overrides applied) + custom
   const allProducts = useMemo<(Product & { _source: 'builtin' | 'custom'; _modified: boolean })[]>(() => {
