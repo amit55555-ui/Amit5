@@ -25,6 +25,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
   const y = useMotionValue(0);
   const rotate = useTransform(x, [-260, 260], [-20, 20]);
   const [muted, setMuted] = useState(true);
+  const [videoFailed, setVideoFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const likeOpacity  = useTransform(x, [30, 120], [0, 1]);
@@ -132,13 +133,20 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
                   style={{ border: 0 }}
                   title={product.name}
                 />
+              ) : videoFailed ? (
+                // Video couldn't load (e.g. host blocks embedding) — graceful fallback
+                <div className="w-full h-full flex flex-col items-center justify-center text-center px-4">
+                  <div className="text-[4rem] mb-2">{emoji}</div>
+                  <div className="text-xs text-dark/50 font-semibold">לא ניתן להציג את הווידאו כאן</div>
+                </div>
               ) : (
                 <>
                   <video
                     ref={videoRef}
                     src={product.mediaData}
                     className="w-full h-full object-cover"
-                    autoPlay loop muted={muted} playsInline
+                    autoPlay loop muted={muted} playsInline preload="auto"
+                    onError={() => setVideoFailed(true)}
                   />
                   {/* Mute/Unmute button */}
                   <button
