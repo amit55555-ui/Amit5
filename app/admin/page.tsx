@@ -7,6 +7,7 @@ import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Product, type Category, type Badge } from '@/types';
 import ExcelIO from '@/components/ExcelIO';
 import { getAnalytics, getTotals, resetAnalytics, type AnalyticsMap } from '@/lib/analytics';
+import { isVideoUrl, isYouTube, youTubeEmbed } from '@/lib/media';
 
 const ADMIN_PASSWORD = 'amit2389@';
 const LS_CUSTOM    = 'shuk_custom_products';
@@ -221,7 +222,9 @@ function ProductForm({
           {preview ? (
             <div className="relative">
               {form.mediaType === 'video'
-                ? <video src={preview} className="max-h-32 mx-auto rounded-lg" controls />
+                ? (isYouTube(preview)
+                    ? <iframe src={youTubeEmbed(preview)} className="w-full h-32 mx-auto rounded-lg" style={{ border: 0 }} allow="autoplay; encrypted-media" title="preview" />
+                    : <video src={preview} className="max-h-32 mx-auto rounded-lg" controls />)
                 : <img src={preview} className="max-h-32 mx-auto rounded-lg object-cover" alt="" />}
               <button
                 onClick={e => { e.stopPropagation(); setPreview(null); setForm(f => ({ ...f, mediaData: null, mediaType: null })); }}
@@ -247,15 +250,15 @@ function ProductForm({
             onChange={e => {
               const url = e.target.value.trim();
               if (!url) { setForm(f => ({ ...f, mediaData: null, mediaType: null })); setPreview(null); return; }
-              const isVideo = /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(url);
+              const isVideo = isVideoUrl(url);
               setForm(f => ({ ...f, mediaData: url, mediaType: isVideo ? 'video' : 'image' }));
               setPreview(url);
             }}
             className="w-full border-2 border-border rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-orange"
-            placeholder="https://example.com/video.mp4"
+            placeholder="קישור YouTube או https://example.com/video.mp4"
             dir="ltr"
           />
-          <p className="text-[11px] text-gray-400 mt-1">קבצי וידאו כבדים אי אפשר להעלות ישירות — העלה אותם לשירות אחסון והדבק כאן את הקישור.</p>
+          <p className="text-[11px] text-gray-400 mt-1">אפשר להדביק קישור <b>YouTube</b> (מומלץ!) או קישור ישיר לקובץ וידאו/תמונה. קישור לדף מוצר רגיל לא יעבוד כווידאו.</p>
         </div>
       </div>
 

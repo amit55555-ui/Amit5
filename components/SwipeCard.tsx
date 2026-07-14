@@ -6,6 +6,7 @@ import { Volume2, VolumeX, Share2 } from 'lucide-react';
 import { CAT_BG, CAT_EMOJI, CAT_LABELS, BADGE_CONFIG, type Product, type SwipeDirection } from '@/types';
 import { shareProduct } from '@/lib/share';
 import { trackClick, trackShare } from '@/lib/analytics';
+import { isYouTube, youTubeEmbed } from '@/lib/media';
 
 export interface SwipeCardHandle {
   swipe: (dir: SwipeDirection) => Promise<void>;
@@ -123,23 +124,33 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
         <div className="relative flex-[3] overflow-hidden" style={{ background: bg }}>
           {product.mediaData ? (
             product.mediaType === 'video' ? (
-              <>
-                <video
-                  ref={videoRef}
-                  src={product.mediaData}
-                  className="w-full h-full object-cover"
-                  autoPlay loop muted={muted} playsInline
+              isYouTube(product.mediaData) ? (
+                <iframe
+                  src={youTubeEmbed(product.mediaData)}
+                  className="w-full h-full pointer-events-none"
+                  allow="autoplay; encrypted-media"
+                  style={{ border: 0 }}
+                  title={product.name}
                 />
-                {/* Mute/Unmute button */}
-                <button
-                  onClick={toggleMute}
-                  className="absolute bottom-3 start-3 z-20 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors"
-                >
-                  {muted
-                    ? <VolumeX className="w-4 h-4" />
-                    : <Volume2 className="w-4 h-4" />}
-                </button>
-              </>
+              ) : (
+                <>
+                  <video
+                    ref={videoRef}
+                    src={product.mediaData}
+                    className="w-full h-full object-cover"
+                    autoPlay loop muted={muted} playsInline
+                  />
+                  {/* Mute/Unmute button */}
+                  <button
+                    onClick={toggleMute}
+                    className="absolute bottom-3 start-3 z-20 w-9 h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                  >
+                    {muted
+                      ? <VolumeX className="w-4 h-4" />
+                      : <Volume2 className="w-4 h-4" />}
+                  </button>
+                </>
+              )
             ) : (
               <img src={product.mediaData} alt={product.name} className="w-full h-full object-cover" />
             )
