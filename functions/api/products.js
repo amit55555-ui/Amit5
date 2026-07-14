@@ -6,6 +6,9 @@
 
 const KEY = 'catalog';
 const EMPTY = { custom: [], overrides: {}, hidden: [] };
+// Write password. Uses the ADMIN_PASSWORD env var if set, otherwise this built-in value
+// (same as the admin panel password). Keeps setup simple — no env var required.
+const DEFAULT_PASSWORD = 'amit2389@';
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -33,7 +36,8 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return json({ error: 'bad json' }, 400);
   }
-  if (!env.ADMIN_PASSWORD || body.password !== env.ADMIN_PASSWORD) {
+  const expected = env.ADMIN_PASSWORD || DEFAULT_PASSWORD;
+  if (body.password !== expected) {
     return json({ error: 'unauthorized' }, 401);
   }
   const data = body.data || {};
