@@ -225,9 +225,28 @@ function ProductForm({
             <div className="text-soft">
               <div className="text-3xl mb-1">📷</div>
               <div className="text-sm font-semibold">לחץ להעלאת תמונה או סרטון</div>
-              <div className="text-xs text-gray-400 mt-1">עד 15MB</div>
+              <div className="text-xs text-gray-400 mt-1">עד 15MB (מומלץ לתמונות בלבד)</div>
             </div>
           )}
+        </div>
+
+        {/* Media by URL — recommended for videos (avoids local-storage quota) */}
+        <div className="mt-2">
+          <label className="text-[11px] font-bold text-soft mb-1 block">🔗 או הדבק קישור לתמונה / וידאו (מומלץ לווידאו)</label>
+          <input
+            value={form.mediaData && !form.mediaData.startsWith('data:') ? form.mediaData : ''}
+            onChange={e => {
+              const url = e.target.value.trim();
+              if (!url) { setForm(f => ({ ...f, mediaData: null, mediaType: null })); setPreview(null); return; }
+              const isVideo = /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i.test(url);
+              setForm(f => ({ ...f, mediaData: url, mediaType: isVideo ? 'video' : 'image' }));
+              setPreview(url);
+            }}
+            className="w-full border-2 border-border rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-orange"
+            placeholder="https://example.com/video.mp4"
+            dir="ltr"
+          />
+          <p className="text-[11px] text-gray-400 mt-1">קבצי וידאו כבדים אי אפשר להעלות ישירות — העלה אותם לשירות אחסון והדבק כאן את הקישור.</p>
         </div>
       </div>
 
@@ -286,10 +305,15 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     if (tab === 'analytics') setAnalytics(getAnalytics());
   }, [tab]);
 
-  // Persist helpers
-  const persistCustom    = useCallback((p: Product[])            => { setCustomProducts(p); localStorage.setItem(LS_CUSTOM, JSON.stringify(p)); }, []);
-  const persistOverrides = useCallback((o: Record<string, Product>) => { setOverrides(o);    localStorage.setItem(LS_OVERRIDES, JSON.stringify(o)); }, []);
-  const persistHidden    = useCallback((h: string[])             => { setHidden(h);         localStorage.setItem(LS_HIDDEN, JSON.stringify(h)); }, []);
+  // Persist helpers — return false if storage quota is exceeded (e.g. large videos)
+  const QUOTA_MSG = 'לא ניתן לשמור — הקובץ (בעיקר וידאו) כבד מדי לאחסון המקומי.\n\nהמלצה: במקום להעלות קובץ וידאו, הדבק קישור (URL) לסרטון בשדה "קישור לתמונה/וידאו".';
+  const safeSet = (key: string, value: string): boolean => {
+    try { localStorage.setItem(key, value); return true; }
+    catch { alert(QUOTA_MSG); return false; }
+  };
+  const persistCustom    = useCallback((p: Product[]): boolean              => { if (safeSet(LS_CUSTOM, JSON.stringify(p)))    { setCustomProducts(p); return true; } return false; }, []);
+  const persistOverrides = useCallback((o: Record<string, Product>): boolean => { if (safeSet(LS_OVERRIDES, JSON.stringify(o))) { setOverrides(o);    return true; } return false; }, []);
+  const persistHidden    = useCallback((h: string[]): boolean              => { if (safeSet(LS_HIDDEN, JSON.stringify(h)))    { setHidden(h);      return true; } return false; }, []);
 
   // Merged product list: built-ins (minus hidden, with overrides applied) + custom
   const allProducts = useMemo<(Product & { _source: 'builtin' | 'custom'; _modified: boolean })[]>(() => {
@@ -315,16 +339,18 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   }, [allProducts, catFilter, search]);
 
   const handleSave = (data: Omit<Product, 'id'> & { id?: string }) => {
+    let ok = false;
     if (!data.id) {
       // New custom product
-      persistCustom([...customProducts, { ...data, id: `c${Date.now()}` } as Product]);
+      ok = persistCustom([...customProducts, { ...data, id: `c${Date.now()}` } as Product]);
     } else if (customProducts.some(p => p.id === data.id)) {
       // Edit existing custom
-      persistCustom(customProducts.map(p => p.id === data.id ? { ...data, id: data.id } as Product : p));
+      ok = persistCustom(customProducts.map(p => p.id === data.id ? { ...data, id: data.id } as Product : p));
     } else {
       // Edit built-in → save as override
-      persistOverrides({ ...overrides, [data.id]: { ...data, id: data.id } as Product });
+      ok = persistOverrides({ ...overrides, [data.id]: { ...data, id: data.id } as Product });
     }
+    if (!ok) return; // save failed (quota) — stay on form so the user can fix it
     setView('list');
     setEditProduct(null);
   };
