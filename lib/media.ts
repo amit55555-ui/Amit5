@@ -3,13 +3,13 @@
 const VIDEO_EXT = /\.(mp4|webm|ogg|mov|m4v)(\?.*)?$/i;
 
 export function isDirectVideo(url: string): boolean {
-  return VIDEO_EXT.test(url);
+  return typeof url === 'string' && VIDEO_EXT.test(url);
 }
 
 // Extract a YouTube video id from any common URL shape
 // (watch, youtu.be, shorts, live, embed, mobile, with extra params).
 export function youTubeId(url: string): string | null {
-  if (!url) return null;
+  if (!url || typeof url !== 'string') return null;
   const id = (s: string | null | undefined) =>
     s && /^[\w-]{11}$/.test(s) ? s : null;
 

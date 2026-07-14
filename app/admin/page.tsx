@@ -247,7 +247,7 @@ function ProductForm({
         <div className="mt-2">
           <label className="text-[11px] font-bold text-soft mb-1 block">🔗 או הדבק קישור לתמונה / וידאו (מומלץ לווידאו)</label>
           <input
-            value={form.mediaData && !form.mediaData.startsWith('data:') ? form.mediaData : ''}
+            value={typeof form.mediaData === 'string' && !form.mediaData.startsWith('data:') ? form.mediaData : ''}
             onChange={e => {
               const url = e.target.value.trim();
               if (!url) { setForm(f => ({ ...f, mediaData: null, mediaType: null })); setPreview(null); return; }
