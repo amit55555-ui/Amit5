@@ -335,17 +335,17 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
     const ok = await saveCatalog(ADMIN_PASSWORD, next);
     if (!ok) alert('⚠️ השמירה בענן נכשלה. ודא חיבור לאינטרנט ושהגדרות השרת (KV + ADMIN_PASSWORD) הוגדרו ב-Cloudflare.');
   };
-  const persistCustom = (p: Product[]): boolean => {
-    safeSet(LS_CUSTOM, JSON.stringify(p)); setCustomProducts(p);
-    pushToServer({ custom: p, overrides, hidden }); return true;
-  };
-  const persistOverrides = (o: Record<string, Product>): boolean => {
-    safeSet(LS_OVERRIDES, JSON.stringify(o)); setOverrides(o);
-    pushToServer({ custom: customProducts, overrides: o, hidden }); return true;
-  };
-  const persistHidden = (h: string[]): boolean => {
-    safeSet(LS_HIDDEN, JSON.stringify(h)); setHidden(h);
-    pushToServer({ custom: customProducts, overrides, hidden: h }); return true;
+  // Single atomic commit: update all three slices, cache locally, and push the
+  // WHOLE catalog to the server exactly once. This avoids one save clobbering another.
+  const commit = (next: { custom: Product[]; overrides: Record<string, Product>; hidden: string[] }): boolean => {
+    safeSet(LS_CUSTOM, JSON.stringify(next.custom));
+    safeSet(LS_OVERRIDES, JSON.stringify(next.overrides));
+    safeSet(LS_HIDDEN, JSON.stringify(next.hidden));
+    setCustomProducts(next.custom);
+    setOverrides(next.overrides);
+    setHidden(next.hidden);
+    pushToServer(next);
+    return true;
   };
 
   // Merged product list: built-ins (minus hidden, with overrides applied) + custom
@@ -372,18 +372,16 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   }, [allProducts, catFilter, search]);
 
   const handleSave = (data: Omit<Product, 'id'> & { id?: string }) => {
-    let ok = false;
     if (!data.id) {
       // New custom product
-      ok = persistCustom([...customProducts, { ...data, id: `c${Date.now()}` } as Product]);
+      commit({ custom: [...customProducts, { ...data, id: `c${Date.now()}` } as Product], overrides, hidden });
     } else if (customProducts.some(p => p.id === data.id)) {
       // Edit existing custom
-      ok = persistCustom(customProducts.map(p => p.id === data.id ? { ...data, id: data.id } as Product : p));
+      commit({ custom: customProducts.map(p => p.id === data.id ? { ...data, id: data.id } as Product : p), overrides, hidden });
     } else {
       // Edit built-in → save as override
-      ok = persistOverrides({ ...overrides, [data.id]: { ...data, id: data.id } as Product });
+      commit({ custom: customProducts, overrides: { ...overrides, [data.id]: { ...data, id: data.id } as Product }, hidden });
     }
-    if (!ok) return; // save failed (quota) — stay on form so the user can fix it
     setView('list');
     setEditProduct(null);
   };
@@ -396,27 +394,26 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const handleDelete = (p: Product & { _source: 'builtin' | 'custom' }) => {
     if (!confirm('למחוק את המוצר? ניתן לשחזר בכל עת.')) return;
     if (p._source === 'custom') {
-      persistCustom(customProducts.filter(c => c.id !== p.id));
+      commit({ custom: customProducts.filter(c => c.id !== p.id), overrides, hidden });
     } else {
-      persistHidden([...hidden, p.id]);
+      // Hide the built-in and drop any override — in a single commit
       const newOv = { ...overrides };
       delete newOv[p.id];
-      persistOverrides(newOv);
+      commit({ custom: customProducts, overrides: newOv, hidden: [...hidden, p.id] });
     }
   };
 
   const handleRestoreBuiltin = (id: string) => {
-    persistHidden(hidden.filter(h => h !== id));
     const newOv = { ...overrides };
     delete newOv[id];
-    persistOverrides(newOv);
+    commit({ custom: customProducts, overrides: newOv, hidden: hidden.filter(h => h !== id) });
   };
 
   const handleResetOverride = (id: string) => {
     if (!confirm('לאפס עריכות ולחזור למוצר המקורי?')) return;
     const newOv = { ...overrides };
     delete newOv[id];
-    persistOverrides(newOv);
+    commit({ custom: customProducts, overrides: newOv, hidden });
   };
 
   const isBuiltIn = (id: string) => PRODUCTS.some(p => p.id === id);
@@ -496,7 +493,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-4 flex items-center justify-between gap-3">
             <span className="text-xs text-amber-800 font-semibold">🙈 {hidden.length} מוצרים מוסתרים</span>
             <button
-              onClick={() => { if (confirm('לשחזר את כל המוצרים המוסתרים?')) { persistHidden([]); } }}
+              onClick={() => { if (confirm('לשחזר את כל המוצרים המוסתרים?')) { commit({ custom: customProducts, overrides, hidden: [] }); } }}
               className="text-xs bg-amber-600 text-white font-bold px-3 py-1.5 rounded-lg hover:bg-amber-700 transition-colors"
             >
               שחזר הכל
@@ -586,7 +583,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                 customProducts={customProducts}
                 overrides={overrides}
                 onImport={prods => {
-                  persistCustom(prods);
+                  commit({ custom: prods, overrides, hidden });
                   setTab('products');
                 }}
               />
