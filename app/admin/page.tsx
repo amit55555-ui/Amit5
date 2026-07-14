@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, Component, type ReactNode } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star, Search, RotateCcw, FileSpreadsheet, BarChart3, Eye, Heart, MousePointerClick, Share2 } from 'lucide-react';
 import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Product, type Category, type Badge } from '@/types';
@@ -591,9 +591,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           </motion.div>
         )}
 
-        {tab === 'products' && <AnimatePresence mode="wait">
+        {tab === 'products' && <>
           {view === 'list' && (
-            <motion.div key="list" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <motion.div key="list" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
               {/* Filters row */}
               <div className="flex gap-2 mb-3">
                 <div className="relative flex-1">
@@ -702,7 +702,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
           )}
 
           {(view === 'add' || view === 'edit') && (
-            <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
               <div className="bg-white rounded-2xl p-5 border border-border shadow-sm">
                 <div className="flex items-center justify-between mb-5">
                   <h2 className="text-lg font-black text-dark">
@@ -724,7 +724,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               </div>
             </motion.div>
           )}
-        </AnimatePresence>}
+        </>}
       </div>
     </div>
   );
