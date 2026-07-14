@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo, Component, type ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star, Search, RotateCcw, FileSpreadsheet, BarChart3, Eye, Heart, MousePointerClick, Share2 } from 'lucide-react';
 import { PRODUCTS } from '@/data/products';
@@ -96,12 +96,21 @@ function ProductForm({
   const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 15 * 1024 * 1024) { alert('הקובץ גדול מ-15MB'); return; }
+    if (file.type.startsWith('video')) {
+      alert('לא ניתן להעלות קובץ וידאו ישירות (כבד מדי לאחסון).\nהעלה את הסרטון לשירות אחסון והדבק את הקישור בשדה "🔗 קישור לתמונה/וידאו".');
+      if (fileRef.current) fileRef.current.value = '';
+      return;
+    }
+    // Images only, capped so they fit in local storage
+    if (file.size > 2 * 1024 * 1024) {
+      alert('התמונה גדולה מ-2MB. בחר תמונה קטנה יותר או הדבק קישור (URL) לתמונה.');
+      if (fileRef.current) fileRef.current.value = '';
+      return;
+    }
     const reader = new FileReader();
     reader.onload = ev => {
       const data = ev.target?.result as string;
-      const type = file.type.startsWith('video') ? 'video' : 'image';
-      setForm(f => ({ ...f, mediaData: data, mediaType: type }));
+      setForm(f => ({ ...f, mediaData: data, mediaType: 'image' }));
       setPreview(data);
     };
     reader.readAsDataURL(file);
@@ -700,8 +709,53 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   );
 }
 
+/* ─── ERROR BOUNDARY ─── */
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  reset = () => {
+    // Clear the custom/overrides data that most often causes issues (e.g. heavy media), then reload
+    localStorage.removeItem(LS_CUSTOM);
+    localStorage.removeItem(LS_OVERRIDES);
+    window.location.reload();
+  };
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-cream flex items-center justify-center p-6" dir="rtl">
+          <div className="bg-white rounded-3xl p-8 max-w-sm text-center shadow-2xl">
+            <div className="text-5xl mb-3">😕</div>
+            <h1 className="text-xl font-black text-dark mb-2">משהו השתבש</h1>
+            <p className="text-soft text-sm mb-5">
+              ייתכן שמוצר מותאם עם מדיה כבדה (וידאו/תמונה) גרם לתקלה. אפשר לאפס את המוצרים המותאמים כדי לשחזר את הלוח. מוצרי ברירת המחדל לא ימחקו.
+            </p>
+            <button
+              onClick={this.reset}
+              className="w-full bg-orange hover:bg-deep-orange text-white font-black py-3 rounded-xl transition-colors mb-2"
+            >
+              אפס מוצרים מותאמים ורענן
+            </button>
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-gray-100 text-soft font-semibold py-3 rounded-xl hover:bg-gray-200 transition-colors"
+            >
+              רק רענן
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 /* ─── PAGE ─── */
-export default function AdminPage() {
+function AdminPageInner() {
   const [authed, setAuthed] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -718,4 +772,12 @@ export default function AdminPage() {
   return authed
     ? <Dashboard onLogout={logout} />
     : <LoginScreen onLogin={() => setAuthed(true)} />;
+}
+
+export default function AdminPage() {
+  return (
+    <ErrorBoundary>
+      <AdminPageInner />
+    </ErrorBoundary>
+  );
 }
