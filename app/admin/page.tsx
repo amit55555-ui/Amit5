@@ -91,7 +91,35 @@ function ProductForm({
   const [form, setForm] = useState<Omit<Product, 'id'>>(initial ? { ...initial } : { ...EMPTY });
   const [stars, setStars] = useState(initial?.stars ?? 5);
   const [preview, setPreview] = useState<string | null>(initial?.mediaData || null);
+  const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cloudRef = useRef<HTMLInputElement>(null);
+
+  // Upload an image/video to Cloudflare R2 and store the same-origin URL.
+  const handleCloudUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const isVid = file.type.startsWith('video');
+    if (!isVid && !file.type.startsWith('image')) { alert('אפשר להעלות רק תמונה או וידאו'); return; }
+    if (file.size > 100 * 1024 * 1024) { alert('הקובץ גדול מ-100MB'); return; }
+    setUploading(true);
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'content-type': file.type || 'application/octet-stream', 'x-admin-password': ADMIN_PASSWORD },
+        body: file,
+      });
+      if (!res.ok) throw new Error('שגיאה ' + res.status);
+      const data = await res.json();
+      setForm(f => ({ ...f, mediaData: data.url, mediaType: isVid ? 'video' : 'image' }));
+      setPreview(data.url);
+    } catch (err) {
+      alert('ההעלאה נכשלה: ' + (err instanceof Error ? err.message : 'לא ידוע') + '\nודא שמאגר האחסון (shuk-media) נוצר ב-Cloudflare.');
+    } finally {
+      setUploading(false);
+      if (cloudRef.current) cloudRef.current.value = '';
+    }
+  };
 
   const field = (k: keyof typeof form, v: string) => setForm(f => ({ ...f, [k]: v }));
 
@@ -215,6 +243,21 @@ function ProductForm({
 
       <div>
         <label className="text-xs font-black text-soft mb-1.5 block">📸 תמונה / סרטון</label>
+
+        {/* Primary: upload to cloud (R2) — works for videos, no external service */}
+        <input ref={cloudRef} type="file" accept="image/*,video/*" onChange={handleCloudUpload} className="hidden" />
+        <button
+          type="button"
+          onClick={() => cloudRef.current?.click()}
+          disabled={uploading}
+          className="w-full bg-orange hover:bg-deep-orange disabled:opacity-60 text-white font-black py-3 rounded-xl transition-colors flex items-center justify-center gap-2 mb-2"
+        >
+          {uploading
+            ? <>⏳ מעלה לענן... (אל תסגור)</>
+            : <>☁️ העלה תמונה / וידאו לענן (מומלץ)</>}
+        </button>
+        <p className="text-[11px] text-gray-400 mb-3">הדרך הכי טובה לווידאו — הקובץ נשמר בענן שלך ומוצג ישירות באתר. עד 100MB.</p>
+
         <div
           onClick={() => fileRef.current?.click()}
           className="border-2 border-dashed border-border rounded-xl p-4 text-center cursor-pointer hover:border-orange transition-colors"

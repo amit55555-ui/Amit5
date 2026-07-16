@@ -7,3 +7,8 @@ pages_build_output_dir = "out"
 [[kv_namespaces]]
 binding = "PRODUCTS_KV"
 id = "ffd04385f72f49b3921bdaf9fb6c8b42"
+
+# Bind the R2 bucket for uploaded images/videos.
+[[r2_buckets]]
+binding = "MEDIA_BUCKET"
+bucket_name = "shuk-media"
