@@ -141,10 +141,12 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
                 </div>
               ) : (
                 <>
+                  {/* Dark fill so any aspect ratio (incl. portrait) shows fully without cropping */}
+                  <div className="absolute inset-0 bg-black" />
                   <video
                     ref={videoRef}
                     src={product.mediaData}
-                    className="w-full h-full object-cover"
+                    className="absolute inset-0 w-full h-full object-contain"
                     autoPlay loop muted={muted} playsInline preload="auto"
                     onError={() => setVideoFailed(true)}
                   />
@@ -160,7 +162,11 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
                 </>
               )
             ) : (
-              <img src={product.mediaData} alt={product.name} className="w-full h-full object-cover" />
+              <>
+                {/* Blurred fill of the same image so nothing is cropped, on any device */}
+                <img src={product.mediaData} aria-hidden alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-60" />
+                <img src={product.mediaData} alt={product.name} className="absolute inset-0 w-full h-full object-contain" />
+              </>
             )
           ) : (
             <div className="w-full h-full flex items-center justify-center text-[5rem]">{emoji}</div>
