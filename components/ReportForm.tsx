@@ -11,7 +11,7 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [entrance, setEntrance] = useState(ENTRANCES[0] || '');
-  const [apartment, setApartment] = useState('');
+  const [floor, setFloor] = useState('');
   const [reporterName, setReporterName] = useState('');
   const [reporterPhone, setReporterPhone] = useState('');
   const [reporterEmail, setReporterEmail] = useState('');
@@ -67,7 +67,7 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
       title: title.trim(),
       description: description.trim(),
       entrance,
-      apartment: apartment.trim(),
+      floor: floor.trim(),
       reporterName: reporterName.trim(),
       reporterPhone: reporterPhone.trim(),
       reporterEmail: reporterEmail.trim(),
@@ -88,7 +88,7 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
     setTitle('');
     setDescription('');
     setEntrance(ENTRANCES[0] || '');
-    setApartment('');
+    setFloor('');
     setReporterName('');
     setReporterPhone('');
     setReporterEmail('');
@@ -205,8 +205,13 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
           </select>
         </div>
         <div>
-          <label className="label">דירה (אופציונלי)</label>
-          <input className="field" value={apartment} onChange={(e) => setApartment(e.target.value)} />
+          <label className="label">קומה (אופציונלי)</label>
+          <input
+            className="field"
+            inputMode="numeric"
+            value={floor}
+            onChange={(e) => setFloor(e.target.value)}
+          />
         </div>
       </div>
 

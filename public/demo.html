@@ -357,11 +357,11 @@
     localStorage.setItem(LS_SEED, "1");
     var now = Date.now(), ref = 100;
     var demo = [
-      { c: "lightbulb", t: "\u05E0\u05D5\u05E8\u05D4 \u05E9\u05E8\u05D5\u05E4\u05D4 \u05D1\u05D7\u05D3\u05E8 \u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05E7\u05D5\u05DE\u05D4 2", d: "\u05D4\u05E0\u05D5\u05E8\u05D4 \u05D1\u05E7\u05D5\u05DE\u05D4 2 \u05E9\u05E8\u05D5\u05E4\u05D4 \u05DB\u05D1\u05E8 \u05E9\u05D1\u05D5\u05E2, \u05D7\u05E9\u05D5\u05DA \u05DE\u05D0\u05D5\u05D3 \u05D1\u05E2\u05E8\u05D1.", en: "79", ap: "7", nm: "\u05D3\u05E0\u05D4 \u05DC\u05D5\u05D9", ph: "0529876543", pr: "urgent", st: "in_progress", ago: 5,
+      { c: "lightbulb", t: "\u05E0\u05D5\u05E8\u05D4 \u05E9\u05E8\u05D5\u05E4\u05D4 \u05D1\u05D7\u05D3\u05E8 \u05DE\u05D3\u05E8\u05D2\u05D5\u05EA \u05E7\u05D5\u05DE\u05D4 2", d: "\u05D4\u05E0\u05D5\u05E8\u05D4 \u05D1\u05E7\u05D5\u05DE\u05D4 2 \u05E9\u05E8\u05D5\u05E4\u05D4 \u05DB\u05D1\u05E8 \u05E9\u05D1\u05D5\u05E2, \u05D7\u05E9\u05D5\u05DA \u05DE\u05D0\u05D5\u05D3 \u05D1\u05E2\u05E8\u05D1.", en: "79", ap: "2", nm: "\u05D3\u05E0\u05D4 \u05DC\u05D5\u05D9", ph: "0529876543", em: "dana@example.com", pr: "urgent", st: "in_progress", ago: 5,
         reply: "\u05E9\u05DC\u05D5\u05DD \u05D3\u05E0\u05D4, \u05D4\u05D6\u05DE\u05E0\u05D5 \u05D7\u05E9\u05DE\u05DC\u05D0\u05D9 \u05E9\u05D9\u05D7\u05DC\u05D9\u05E3 \u05D0\u05EA \u05D4\u05E0\u05D5\u05E8\u05D4 \u05DE\u05D7\u05E8 \u05D1\u05D1\u05D5\u05E7\u05E8. \u05EA\u05D5\u05D3\u05D4 \u05E2\u05DC \u05D4\u05D3\u05D9\u05D5\u05D5\u05D7!" },
-      { c: "elevator", t: "\u05D4\u05DE\u05E2\u05DC\u05D9\u05EA \u05EA\u05E7\u05D5\u05E2\u05D4 \u05D1\u05E7\u05D5\u05DE\u05D4 4", d: "\u05D4\u05DE\u05E2\u05DC\u05D9\u05EA \u05DC\u05D0 \u05D6\u05D6\u05D4 \u05DE\u05D0\u05D6 \u05D4\u05D1\u05D5\u05E7\u05E8.", en: "81", ap: "12", nm: "\u05D9\u05D5\u05E1\u05D9 \u05DE\u05D6\u05E8\u05D7\u05D9", ph: "0531112222", pr: "urgent", st: "open", ago: 2 },
-      { c: "garbage", t: "\u05E4\u05D7 \u05D4\u05D0\u05E9\u05E4\u05D4 \u05D1\u05DB\u05E0\u05D9\u05E1\u05D4 \u05E2\u05D5\u05DC\u05D4 \u05E2\u05DC \u05D2\u05D3\u05D5\u05EA\u05D9\u05D5", d: "\u05DC\u05D0 \u05E4\u05D9\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D0\u05E9\u05E4\u05D4 \u05DB\u05D1\u05E8 \u05D9\u05D5\u05DE\u05D9\u05D9\u05DD.", en: "77", ap: "3", nm: "\u05E8\u05D5\u05EA \u05D0\u05D1\u05D9\u05D3\u05DF", ph: "0501234000", pr: "normal", st: "open", ago: 26 },
-      { c: "parking", t: "\u05E8\u05DB\u05D1 \u05D7\u05D5\u05E1\u05DD \u05D0\u05EA \u05E8\u05D7\u05D1\u05EA \u05D4\u05D7\u05E0\u05D9\u05D4 \u05D4\u05DE\u05E9\u05D5\u05EA\u05E4\u05EA", d: "\u05E8\u05DB\u05D1 \u05DC\u05D1\u05DF \u05D7\u05D5\u05E0\u05D4 \u05DB\u05D1\u05E8 \u05D9\u05D5\u05DE\u05D9\u05D9\u05DD \u05D5\u05D7\u05D5\u05E1\u05DD \u05DE\u05E2\u05D1\u05E8.", en: "85", ap: "9", nm: "\u05E8\u05D5\u05E0\u05D9\u05EA \u05D1\u05E8", ph: "0544445555", pr: "normal", st: "closed", ago: 60,
+      { c: "elevator", t: "\u05D4\u05DE\u05E2\u05DC\u05D9\u05EA \u05EA\u05E7\u05D5\u05E2\u05D4 \u05D1\u05E7\u05D5\u05DE\u05D4 4", d: "\u05D4\u05DE\u05E2\u05DC\u05D9\u05EA \u05DC\u05D0 \u05D6\u05D6\u05D4 \u05DE\u05D0\u05D6 \u05D4\u05D1\u05D5\u05E7\u05E8.", en: "81", ap: "4", nm: "\u05D9\u05D5\u05E1\u05D9 \u05DE\u05D6\u05E8\u05D7\u05D9", ph: "0531112222", em: "yossi@example.com", pr: "urgent", st: "open", ago: 2 },
+      { c: "garbage", t: "\u05E4\u05D7 \u05D4\u05D0\u05E9\u05E4\u05D4 \u05D1\u05DB\u05E0\u05D9\u05E1\u05D4 \u05E2\u05D5\u05DC\u05D4 \u05E2\u05DC \u05D2\u05D3\u05D5\u05EA\u05D9\u05D5", d: "\u05DC\u05D0 \u05E4\u05D9\u05E0\u05D5 \u05D0\u05EA \u05D4\u05D0\u05E9\u05E4\u05D4 \u05DB\u05D1\u05E8 \u05D9\u05D5\u05DE\u05D9\u05D9\u05DD.", en: "77", ap: "\u05E7\u05E8\u05E7\u05E2", nm: "\u05E8\u05D5\u05EA \u05D0\u05D1\u05D9\u05D3\u05DF", ph: "0501234000", em: "ruth@example.com", pr: "normal", st: "open", ago: 26 },
+      { c: "parking", t: "\u05E8\u05DB\u05D1 \u05D7\u05D5\u05E1\u05DD \u05D0\u05EA \u05E8\u05D7\u05D1\u05EA \u05D4\u05D7\u05E0\u05D9\u05D4 \u05D4\u05DE\u05E9\u05D5\u05EA\u05E4\u05EA", d: "\u05E8\u05DB\u05D1 \u05DC\u05D1\u05DF \u05D7\u05D5\u05E0\u05D4 \u05DB\u05D1\u05E8 \u05D9\u05D5\u05DE\u05D9\u05D9\u05DD \u05D5\u05D7\u05D5\u05E1\u05DD \u05DE\u05E2\u05D1\u05E8.", en: "85", ap: "", nm: "\u05E8\u05D5\u05E0\u05D9\u05EA \u05D1\u05E8", ph: "0544445555", em: "ronit@example.com", pr: "normal", st: "closed", ago: 60,
         reply: "\u05D4\u05E8\u05DB\u05D1 \u05E4\u05D5\u05E0\u05D4 \u05E2\u05DC \u05D9\u05D3\u05D9 \u05D2\u05D5\u05E8\u05E8. \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05E0\u05E1\u05D2\u05E8\u05D4." }
     ];
     var arr = load();
@@ -373,7 +373,7 @@
       arr.push({
         id: uid(), ref: ref, categoryId: x.c, title: x.t, description: x.d,
         entrance: x.en, apartment: x.ap, reporterName: x.nm, reporterPhone: x.ph,
-        reporterEmail: "", reporterToken: "seed-demo", priority: x.pr, status: x.st,
+        reporterEmail: x.em || "", reporterToken: "seed-demo", priority: x.pr, status: x.st,
         messages: msgs, createdAt: created, updatedAt: created
       });
     });
@@ -476,7 +476,7 @@
           '</div>' +
           '<div class="row two">' +
             '<div><label class="lbl">\u05DB\u05E0\u05D9\u05E1\u05D4 (\u05DE\u05E1\u05E4\u05E8 \u05D1\u05E0\u05D9\u05D9\u05DF) <span class="req">*</span></label><select class="field" id="f_ent">' + ents + '</select></div>' +
-            '<div><label class="lbl">\u05D3\u05D9\u05E8\u05D4 (\u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05E0\u05DC\u05D9)</label><input class="field" id="f_ap" value="' + esc(s.apartment) + '"></div>' +
+            '<div><label class="lbl">\u05E7\u05D5\u05DE\u05D4 (\u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05E0\u05DC\u05D9)</label><input class="field" id="f_ap" inputmode="numeric" value="' + esc(s.apartment) + '"></div>' +
           '</div>' +
           '<div><label class="lbl">\u05D3\u05D7\u05D9\u05E4\u05D5\u05EA</label>' +
             '<div class="seg" id="f_pri">' +
@@ -561,7 +561,7 @@
     var c = cat(r.categoryId), st = STATUS[r.status], isOpen = !!openIds[r.id];
     var urgent = r.priority === "urgent" ? '<span class="chip-urgent">\u{1F534} \u05D3\u05D7\u05D5\u05E3</span>' : "";
     var sub = esc(c.label) + " \u00B7 \u05DB\u05E0\u05D9\u05E1\u05D4 " + esc(r.entrance) +
-      (r.apartment ? " \u00B7 \u05D3\u05D9\u05E8\u05D4 " + esc(r.apartment) : "") + " \u00B7 " + timeAgo(r.createdAt);
+      (r.apartment ? " \u00B7 \u05E7\u05D5\u05DE\u05D4 " + esc(r.apartment) : "") + " \u00B7 " + timeAgo(r.createdAt);
 
     var body = "";
     if (isOpen) {

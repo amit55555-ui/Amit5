@@ -88,7 +88,7 @@ export async function createReport(input: NewReportInput): Promise<Report> {
     title: input.title,
     description: input.description,
     entrance: input.entrance,
-    apartment: input.apartment,
+    floor: input.floor,
     reporterName: input.reporterName,
     reporterPhone: input.reporterPhone,
     reporterEmail: input.reporterEmail,

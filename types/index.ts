@@ -37,7 +37,7 @@ export interface Report {
 
   // מיקום בבניין הארוך
   entrance: string;   // מספר הכניסה / מספר הבניין
-  apartment: string;  // מספר דירה (אופציונלי)
+  floor: string;      // קומה (אופציונלי)
 
   // פרטי המדווח
   reporterName: string;
@@ -65,7 +65,7 @@ export interface NewReportInput {
   title: string;
   description: string;
   entrance: string;
-  apartment: string;
+  floor: string;
   reporterName: string;
   reporterPhone: string;
   reporterEmail?: string;

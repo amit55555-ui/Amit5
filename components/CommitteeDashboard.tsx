@@ -87,7 +87,7 @@ export default function CommitteeDashboard() {
       if (entranceFilter !== 'all' && r.entrance !== entranceFilter) return false;
       if (search.trim()) {
         const q = search.trim().toLowerCase();
-        const hay = `${r.ref} ${r.title} ${r.description} ${r.reporterName} ${r.apartment}`.toLowerCase();
+        const hay = `${r.ref} ${r.title} ${r.description} ${r.reporterName} ${r.floor}`.toLowerCase();
         if (!hay.includes(q)) return false;
       }
       return true;

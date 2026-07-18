@@ -71,7 +71,7 @@ function detailRows(report: Report): string {
     ['מספר פנייה', `#${report.ref}`],
     ['נושא', `${cat.emoji} ${cat.label} — ${report.title}`],
     ['כניסה', report.entrance],
-    ['דירה', report.apartment || '—'],
+    ['קומה', report.floor || '—'],
     ['דחיפות', report.priority === 'urgent' ? '🔴 דחוף' : 'רגיל'],
     ['סטטוס', STATUS_LABELS[report.status]],
     ['מדווח/ת', report.reporterName],

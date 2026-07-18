@@ -55,7 +55,7 @@ export default function ReportCard({
           <div className="mt-1 truncate font-semibold">{report.title}</div>
           <div className="mt-0.5 text-[13px] text-muted">
             {cat.label} · כניסה {report.entrance}
-            {report.apartment ? ` · דירה ${report.apartment}` : ''} · {timeAgo(report.createdAt)}
+            {report.floor ? ` · קומה ${report.floor}` : ''} · {timeAgo(report.createdAt)}
           </div>
         </div>
         <div className={`mt-1 text-muted transition ${open ? 'rotate-180' : ''}`}>▾</div>
