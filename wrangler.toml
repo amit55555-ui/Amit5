@@ -8,7 +8,6 @@ pages_build_output_dir = "out"
 binding = "PRODUCTS_KV"
 id = "ffd04385f72f49b3921bdaf9fb6c8b42"
 
-# Bind the R2 bucket for uploaded images/videos.
-[[r2_buckets]]
-binding = "MEDIA_BUCKET"
-bucket_name = "shuk-media"
+# NOTE: The R2 bucket for uploaded media (MEDIA_BUCKET → shuk-media) is bound via
+# the Cloudflare dashboard (Settings → Bindings), NOT here — declaring it in
+# wrangler.toml fails the whole deploy if the bucket doesn't exist yet.
