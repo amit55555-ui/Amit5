@@ -33,7 +33,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
   const superOpacity = useTransform(y, [-30, -120], [0, 1]);
 
   const doSwipe = async (dir: SwipeDirection) => {
-    if (dir !== 'left' && product.link) {
+    if (dir === 'right' && product.link) {
       trackClick(product.id);
       window.open(product.link, '_blank', 'noopener,noreferrer');
     }
@@ -110,10 +110,10 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
       {/* SUPER LIKE overlay */}
       <motion.div
         className="absolute inset-0 z-10 flex items-start justify-center pt-10 rounded-3xl pointer-events-none"
-        style={{ opacity: superOpacity, background: 'rgba(59,130,246,0.82)' }}
+        style={{ opacity: superOpacity, background: 'rgba(236,72,153,0.82)' }}
       >
         <div className="text-white font-black text-3xl border-4 border-white rounded-2xl px-4 py-2 shadow-lg">
-          ⭐ סופר לייק!
+          ❤️ שמור!
         </div>
       </motion.div>
 

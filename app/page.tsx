@@ -101,10 +101,12 @@ export default function HomePage() {
     if (!product) return;
     if (dir === 'right' || dir === 'up') {
       trackLike(product.id);
-      const newLiked = [...liked, product.id];
-      setLiked(newLiked);
-      localStorage.setItem(LS_LIKED, JSON.stringify(newLiked));
-      showToast('❤️ פותח לינק...');
+      if (!liked.includes(product.id)) {
+        const newLiked = [...liked, product.id];
+        setLiked(newLiked);
+        localStorage.setItem(LS_LIKED, JSON.stringify(newLiked));
+      }
+      showToast(dir === 'right' ? '🛒 פותח לינק...' : '❤️ נשמר למועדפים');
     } else {
       showToast('👋 דלגת');
     }
@@ -230,7 +232,9 @@ export default function HomePage() {
       <div className="flex-shrink-0 flex items-center justify-center gap-3 py-2 px-4 text-[11px] text-soft/60 select-none">
         <span>← שמאל לדלג</span>
         <span className="text-border">|</span>
-        <span>ימינה / למעלה לקנייה →</span>
+        <span>↑ למעלה לשמור</span>
+        <span className="text-border">|</span>
+        <span>ימינה לקנייה →</span>
       </div>
 
       {/* ── CARD AREA ── */}
@@ -274,9 +278,9 @@ export default function HomePage() {
       <div className="flex-shrink-0 pb-4 pt-2">
         <ActionButtons
           disabled={done}
-          onNope={() => topRef.current?.swipe('right')}
-          onSuperLike={() => topRef.current?.swipe('up')}
-          onLike={() => topRef.current?.swipe('right')}
+          onSkip={() => topRef.current?.swipe('left')}
+          onFavorite={() => topRef.current?.swipe('up')}
+          onBuy={() => topRef.current?.swipe('right')}
         />
       </div>
 
