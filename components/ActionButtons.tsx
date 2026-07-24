@@ -1,6 +1,6 @@
 'use client';
 
-import { X, Heart, Star } from 'lucide-react';
+import { Check, Heart, Star } from 'lucide-react';
 
 interface Props {
   onNope:      () => void;
@@ -12,17 +12,17 @@ interface Props {
 export default function ActionButtons({ onNope, onSuperLike, onLike, disabled }: Props) {
   return (
     <div className="flex items-center justify-center gap-5 pb-2">
-      {/* NOPE */}
+      {/* LIKE (green check — opens the product link, like swiping right) */}
       <button
         onClick={onNope}
         disabled={disabled}
-        aria-label="דלג"
-        className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-red-500
-                   shadow-lg border-2 border-red-100 transition-all active:scale-90
-                   hover:bg-red-50 hover:border-red-300 hover:shadow-red-200/60 hover:shadow-xl
+        aria-label="אהבתי"
+        className="w-16 h-16 rounded-full bg-white flex items-center justify-center text-green-500
+                   shadow-lg border-2 border-green-100 transition-all active:scale-90
+                   hover:bg-green-50 hover:border-green-300 hover:shadow-green-200/60 hover:shadow-xl
                    disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        <X className="w-7 h-7 stroke-[2.5]" />
+        <Check className="w-7 h-7 stroke-[2.5]" />
       </button>
 
       {/* SUPER LIKE */}

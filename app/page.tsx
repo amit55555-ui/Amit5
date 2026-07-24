@@ -274,7 +274,7 @@ export default function HomePage() {
       <div className="flex-shrink-0 pb-4 pt-2">
         <ActionButtons
           disabled={done}
-          onNope={() => topRef.current?.swipe('left')}
+          onNope={() => topRef.current?.swipe('right')}
           onSuperLike={() => topRef.current?.swipe('up')}
           onLike={() => topRef.current?.swipe('right')}
         />
