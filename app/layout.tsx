@@ -8,9 +8,29 @@ const heebo = Heebo({
   variable: '--font-heebo',
 });
 
+const SITE_URL = 'https://amit5.pages.dev';
+const TITLE = 'שוק הטעמים – מוצרים מנצחים מאלי אקספרס';
+const DESCRIPTION = 'גלה אלפי מוצרים מומלצים במחירי מבצע – החלק ימינה לקנייה, שמאלה לדילוג. פשוט, מהיר וכיף.';
+
 export const metadata: Metadata = {
-  title: 'שוק הטעמים – מוצרי אוכל ומטבח מאלי אקספרס',
-  description: 'גלה מוצרי אוכל ומטבח מומלצים מאלי אקספרס – החלק ימינה לקנייה, שמאלה לדילוג',
+  metadataBase: new URL(SITE_URL),
+  title: TITLE,
+  description: DESCRIPTION,
+  openGraph: {
+    type: 'website',
+    locale: 'he_IL',
+    url: SITE_URL,
+    siteName: 'שוק הטעמים',
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'שוק הטעמים' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: TITLE,
+    description: DESCRIPTION,
+    images: ['/og.png'],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

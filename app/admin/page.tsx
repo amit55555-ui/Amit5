@@ -6,7 +6,7 @@ import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star, Search, 
 import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Product, type Category, type Badge } from '@/types';
 import ExcelIO from '@/components/ExcelIO';
-import { getAnalytics, getTotals, resetAnalytics, type AnalyticsMap } from '@/lib/analytics';
+import { getAnalytics, totalsFrom, resetAnalytics, resetServerAnalytics, fetchServerAnalytics, type AnalyticsMap } from '@/lib/analytics';
 import { isVideoUrl, isYouTube, youTubeEmbed } from '@/lib/media';
 import { fetchCatalog, saveCatalog } from '@/lib/catalog';
 
@@ -344,6 +344,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [view, setView]                     = useState<'list' | 'add' | 'edit'>('list');
   const [tab, setTab]                       = useState<'products' | 'excel' | 'analytics'>('products');
   const [analytics, setAnalytics]           = useState<AnalyticsMap>({});
+  const [analyticsSource, setAnalyticsSource] = useState<'server' | 'local'>('local');
   const [editProduct, setEditProduct]       = useState<Product | null>(null);
   const [search, setSearch]                 = useState('');
   const [catFilter, setCatFilter]           = useState<Category | 'all'>('all');
@@ -362,13 +363,26 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
         try { const r = localStorage.getItem(LS_HIDDEN);    if (r) setHidden(JSON.parse(r)); }         catch { /**/ }
       }
     })();
-    setAnalytics(getAnalytics());
+    loadAnalytics();
   }, []);
+
+  // Prefer the shared cross-device totals from the server; fall back to the
+  // per-device local data if the server isn't reachable/configured.
+  const loadAnalytics = async () => {
+    const server = await fetchServerAnalytics(ADMIN_PASSWORD);
+    if (server && Object.keys(server).length > 0) {
+      setAnalytics(server);
+      setAnalyticsSource('server');
+    } else {
+      setAnalytics(getAnalytics());
+      setAnalyticsSource(server ? 'server' : 'local');
+    }
+  };
 
   // Refresh analytics whenever the tab is opened
   useEffect(() => {
-    if (tab === 'analytics') setAnalytics(getAnalytics());
-  }, [tab]);
+    if (tab === 'analytics') loadAnalytics();
+  }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Persist helpers — save to the shared server (KV) and cache locally.
   const safeSet = (key: string, value: string) => {
@@ -546,7 +560,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
         {/* Analytics tab */}
         {tab === 'analytics' && (() => {
-          const totals = getTotals();
+          const totals = totalsFrom(analytics);
           const rows = allProducts
             .map(p => ({ product: p, stat: analytics[p.id] || { views: 0, likes: 0, clicks: 0, shares: 0 } }))
             .sort((a, b) =>
@@ -580,7 +594,12 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                   <div className="text-xl font-black text-dark">{ctr}%</div>
                 </div>
                 <button
-                  onClick={() => { if (confirm('לאפס את כל נתוני הסטטיסטיקה?')) { resetAnalytics(); setAnalytics({}); } }}
+                  onClick={async () => {
+                    if (!confirm('לאפס את כל נתוני הסטטיסטיקה (לכל המשתמשים)?')) return;
+                    resetAnalytics();
+                    await resetServerAnalytics(ADMIN_PASSWORD);
+                    setAnalytics({});
+                  }}
                   className="text-xs bg-gray-100 hover:bg-gray-200 text-soft font-bold px-3 py-2 rounded-lg transition-colors"
                 >
                   אפס נתונים
@@ -610,7 +629,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                 ))}
               </div>
               <p className="text-[11px] text-soft text-center mt-3">
-                * הנתונים נאספים במכשיר זה בלבד (localStorage)
+                {analyticsSource === 'server'
+                  ? '🌐 נתונים משותפים מכל המשתמשים (בכל המכשירים)'
+                  : '⚠️ מוצג מהמכשיר הזה בלבד — השרת אינו זמין כרגע (ודא ש-PRODUCTS_KV מוגדר)'}
               </p>
             </motion.div>
           );

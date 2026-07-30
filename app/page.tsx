@@ -10,10 +10,28 @@ import OnboardingOverlay from '@/components/OnboardingOverlay';
 import { type SwipeCardHandle } from '@/components/SwipeCard';
 import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Category, type Product, type SwipeDirection } from '@/types';
-import { trackView, trackLike } from '@/lib/analytics';
+import { trackView, trackLike, getAnalytics } from '@/lib/analytics';
 import { fetchCatalog } from '@/lib/catalog';
 
 const CATS = Object.keys(CAT_LABELS) as Category[];
+
+// Badge desirability weights — "top sellers" and "sales" convert best.
+const BADGE_WEIGHT: Record<string, number> = { top: 40, sale: 35, rec: 20, new: 15 };
+
+// Score a product for the "smart order" of the main stack. Higher = shown earlier.
+// Combines discount depth, badge strength, star rating and (device-local) real
+// engagement so the most tempting offers rise to the top — across categories.
+function productScore(p: Product, stat?: { likes: number; clicks: number }): number {
+  let score = 0;
+  const price = parseFloat(p.price || '');
+  const orig  = parseFloat(p.orig || '');
+  if (orig > price && orig > 0) score += Math.round((1 - price / orig) * 100); // discount %
+  if (p.badge) score += BADGE_WEIGHT[p.badge] || 0;
+  score += (p.stars || 0) * 6;
+  if (stat) score += stat.clicks * 12 + stat.likes * 4; // proven engagement
+  return score;
+}
+
 const LS_CUSTOM    = 'shuk_custom_products';
 const LS_LIKED     = 'shuk_liked_ids';
 const LS_OVERRIDES = 'shuk_overrides';
@@ -73,6 +91,14 @@ export default function HomePage() {
         (p.desc && p.desc.toLowerCase().includes(q)) ||
         CAT_LABELS[p.cat].toLowerCase().includes(q)
       );
+    }
+    // Smart ordering: when browsing "all" without a search, surface the most
+    // compelling products first (best deals / top-rated / most engaged), even
+    // if that interleaves different categories. This lifts conversions by
+    // putting the strongest offers at the top of the stack.
+    if (activeCat === 'all' && !q) {
+      const stats = getAnalytics();
+      list = [...list].sort((a, b) => productScore(b, stats[b.id]) - productScore(a, stats[a.id]));
     }
     return list;
   }, [allProducts, activeCat, search]);
