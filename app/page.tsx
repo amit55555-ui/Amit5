@@ -155,15 +155,15 @@ export default function HomePage() {
       <header className="bg-dark flex-shrink-0 shadow-lg">
         <div className="max-w-lg mx-auto px-4 py-3 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center p-1.5 flex-shrink-0"
               style={{ background: 'linear-gradient(135deg,#ff6b35,#f9a825)' }}>
-              🛍️
+              <img src="/logo.svg" alt="מציאון" className="w-full h-full" />
             </div>
             <div className="leading-tight">
               <div className="text-white font-black text-base leading-none">
-                שוק <span className="text-gold">הטעמים</span>
+                מצי<span className="text-gold">און</span>
               </div>
-              <div className="text-white/40 text-[10px] leading-none mt-0.5">גלה מוצרים מדהימים</div>
+              <div className="text-white/40 text-[10px] leading-none mt-0.5">כל השלל של אלי אקספרס</div>
             </div>
           </div>
 

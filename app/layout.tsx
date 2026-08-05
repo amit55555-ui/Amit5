@@ -8,22 +8,23 @@ const heebo = Heebo({
   variable: '--font-heebo',
 });
 
-const SITE_URL = 'https://amit5.pages.dev';
-const TITLE = 'שוק הטעמים – מוצרים מנצחים מאלי אקספרס';
+const SITE_URL = 'https://metzion.co.il';
+const TITLE = 'מציאון – כל השלל של אלי אקספרס במקום אחד';
 const DESCRIPTION = 'גלה אלפי מוצרים מומלצים במחירי מבצע – החלק ימינה לקנייה, שמאלה לדילוג. פשוט, מהיר וכיף.';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: TITLE,
   description: DESCRIPTION,
+  icons: { icon: '/logo.svg', apple: '/logo.svg' },
   openGraph: {
     type: 'website',
     locale: 'he_IL',
     url: SITE_URL,
-    siteName: 'שוק הטעמים',
+    siteName: 'מציאון',
     title: TITLE,
     description: DESCRIPTION,
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'שוק הטעמים' }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'מציאון' }],
   },
   twitter: {
     card: 'summary_large_image',

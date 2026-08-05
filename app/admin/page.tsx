@@ -485,7 +485,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
               style={{ background: 'linear-gradient(135deg,#ff6b35,#f9a825)' }}>⚙️</div>
             <div>
               <div className="text-white font-black text-base leading-none">לוח ניהול</div>
-              <div className="text-white/40 text-[10px]">שוק הטעמים</div>
+              <div className="text-white/40 text-[10px]">מציאון</div>
             </div>
           </div>
           <div className="flex items-center gap-2">

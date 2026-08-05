@@ -36,21 +36,24 @@ export default function OnboardingOverlay() {
             className="bg-white rounded-3xl p-8 max-w-xs w-full text-center shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
-            <div className="text-5xl mb-4">🛍️</div>
-            <h2 className="text-2xl font-black text-dark mb-2">ברוכים הבאים!</h2>
-            <p className="text-soft text-sm mb-6 leading-relaxed">גלו מוצרים מדהימים בהחלקה פשוטה</p>
+            <div className="w-20 h-20 mx-auto mb-4 rounded-2xl p-3.5 flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg,#ff6b35,#f9a825)' }}>
+              <img src="/logo.svg" alt="מציאון" className="w-full h-full" />
+            </div>
+            <h2 className="text-2xl font-black text-dark mb-2">ברוכים הבאים למציאון!</h2>
+            <p className="text-soft text-sm mb-6 leading-relaxed">אלפי מציאות מאלי אקספרס — בהחלקה פשוטה</p>
 
             <div className="flex flex-col gap-3 mb-6 text-right">
               <SwipeHint
                 icon="👉"
                 color="bg-green-50 border-green-200"
-                text={<><span className="font-black text-green-700">החלק ימינה</span> — אהבתי! פותח את המוצר לקנייה</>}
+                text={<><span className="font-black text-green-700">החלק ימינה</span> — לקנייה! פותח את המוצר</>}
                 anim={{ x: [0, 60, 0], transition: { repeat: Infinity, duration: 1.6, delay: 0.2 } }}
               />
               <SwipeHint
                 icon="👆"
-                color="bg-blue-50 border-blue-200"
-                text={<><span className="font-black text-blue-700">החלק למעלה</span> — סופר לייק! גם פותח לקנייה</>}
+                color="bg-pink-50 border-pink-200"
+                text={<><span className="font-black text-pink-600">החלק למעלה</span> — שמור למועדפים</>}
                 anim={{ y: [0, -50, 0], transition: { repeat: Infinity, duration: 1.6, delay: 0.4 } }}
               />
               <SwipeHint
