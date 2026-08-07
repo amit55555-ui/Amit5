@@ -458,12 +458,31 @@
 
   function renderNew(justCreated) {
     if (justCreated) {
+      var hasPhotos = justCreated.photos && justCreated.photos.length;
+      var attachBox = "";
+      if (hasPhotos) {
+        var thumbs = justCreated.photos.map(function (p) {
+          return '<img src="' + p + '" alt="\u05EA\u05DE\u05D5\u05E0\u05EA \u05D4\u05EA\u05E7\u05DC\u05D4">';
+        }).join("");
+        var photoWord = justCreated.photos.length > 1 ? "\u05D4\u05EA\u05DE\u05D5\u05E0\u05D5\u05EA" : "\u05D4\u05EA\u05DE\u05D5\u05E0\u05D4";
+        attachBox =
+          '<div style="background:var(--soft);border-radius:12px;padding:14px;margin:0 auto 16px;max-width:400px;text-align:center">' +
+            '<div style="font-size:13px;font-weight:700;margin-bottom:8px">\u{1F4CE} ' + justCreated.photos.length + ' ' + (justCreated.photos.length > 1 ? "\u05EA\u05DE\u05D5\u05E0\u05D5\u05EA \u05E9\u05E6\u05D9\u05E8\u05E4\u05EA" : "\u05EA\u05DE\u05D5\u05E0\u05D4 \u05E9\u05E6\u05D9\u05E8\u05E4\u05EA") + '</div>' +
+            '<div class="gallery" style="justify-content:center;margin-bottom:10px">' + thumbs + '</div>' +
+            '<button class="btn block" id="sharePhotos" style="max-width:280px;margin:0 auto">\u{1F4CE} \u05E6\u05D9\u05E8\u05D5\u05E3 ' + photoWord + ' \u05DC\u05DE\u05D9\u05D9\u05DC</button>' +
+            '<p class="muted" style="font-size:12px;margin:8px 0 0">\u05E6\u05E8\u05E4\u05D5 \u05E7\u05D5\u05D3\u05DD \u05D0\u05EA ' + photoWord + ', \u05D5\u05D0\u05D6 \u05E9\u05DC\u05D7\u05D5 \u05D0\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC.</p>' +
+          '</div>';
+      }
       view.innerHTML =
         '<div class="card pad" style="text-align:center">' +
           '<div style="font-size:44px">\u{1F4E8}</div>' +
           '<h2 class="sec" style="margin:10px 0 6px">\u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05DE\u05D5\u05DB\u05E0\u05D4 \u05DC\u05E9\u05DC\u05D9\u05D7\u05D4</h2>' +
-          '<p class="muted" style="margin:0 auto 16px;max-width:430px">\u05DC\u05D7\u05E6\u05D5 \u05E2\u05DC \u05D4\u05DB\u05E4\u05EA\u05D5\u05E8 \u2014 \u05D0\u05E4\u05DC\u05D9\u05E7\u05E6\u05D9\u05D9\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC \u05EA\u05D9\u05E4\u05EA\u05D7 \u05E2\u05DD \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05DE\u05D5\u05DB\u05E0\u05D4 \u05D5\u05DE\u05DE\u05D5\u05E2\u05E0\u05EA \u05DC\u05D5\u05D5\u05E2\u05D3. \u05E4\u05E9\u05D5\u05D8 \u05E9\u05DC\u05D7\u05D5 \u05D0\u05D5\u05EA\u05D4. ' +
+          '<p class="muted" style="margin:0 auto 16px;max-width:430px">' +
+          (hasPhotos
+            ? '\u05E6\u05D9\u05E8\u05E4\u05EA \u05EA\u05DE\u05D5\u05E0\u05D4 \u2014 \u05DC\u05D7\u05E6\u05D5 \u00AB\u05E6\u05D9\u05E8\u05D5\u05E3 \u05DC\u05DE\u05D9\u05D9\u05DC\u00BB, \u05D5\u05D0\u05D6 \u00AB\u05E9\u05DC\u05D9\u05D7\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC \u05DC\u05D5\u05D5\u05E2\u05D3\u00BB. '
+            : '\u05DC\u05D7\u05E6\u05D5 \u05E2\u05DC \u05D4\u05DB\u05E4\u05EA\u05D5\u05E8 \u2014 \u05D0\u05E4\u05DC\u05D9\u05E7\u05E6\u05D9\u05D9\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC \u05EA\u05D9\u05E4\u05EA\u05D7 \u05E2\u05DD \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05DE\u05D5\u05DB\u05E0\u05D4 \u05D5\u05DE\u05DE\u05D5\u05E2\u05E0\u05EA \u05DC\u05D5\u05D5\u05E2\u05D3. \u05E4\u05E9\u05D5\u05D8 \u05E9\u05DC\u05D7\u05D5 \u05D0\u05D5\u05EA\u05D4. ') +
           '\u05D4\u05EA\u05E9\u05D5\u05D1\u05D4 \u05E9\u05DC \u05D4\u05D5\u05D5\u05E2\u05D3 \u05EA\u05D7\u05D6\u05D5\u05E8 \u05D9\u05E9\u05D9\u05E8\u05D5\u05EA \u05DC\u05DE\u05D9\u05D9\u05DC \u05E9\u05DC\u05DB\u05DD.</p>' +
+          attachBox +
           '<a class="btn block" href="' + esc(reportMailto(justCreated)) + '" style="max-width:340px;margin:0 auto">\u{1F4E7} \u05E9\u05DC\u05D9\u05D7\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC \u05DC\u05D5\u05D5\u05E2\u05D3</a>' +
           '<p class="muted" style="font-size:12px;margin:12px 0 0">\u05E4\u05E0\u05D9\u05D9\u05D4 <b>#' + justCreated.ref + '</b> \u00B7 \u05E0\u05E9\u05DE\u05E8\u05D4 \u05D2\u05DD \u05D1\u05DC\u05E9\u05D5\u05E0\u05D9\u05EA \u00AB\u05D4\u05E4\u05E0\u05D9\u05D5\u05EA \u05E9\u05DC\u05D9\u00BB.</p>' +
           '<div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap">' +
@@ -473,6 +492,26 @@
         '</div>';
       document.getElementById("again").onclick = function () { formState = null; renderNew(); };
       document.getElementById("goMine").onclick = function () { switchTab("mine"); };
+      if (hasPhotos) {
+        document.getElementById("sharePhotos").onclick = function () {
+          var files;
+          try {
+            files = justCreated.photos.map(function (p, i) {
+              var arr = p.split(","), mime = (arr[0].match(/:(.*?);/) || [])[1] || "image/jpeg";
+              var bin = atob(arr[1]), n = bin.length, u8 = new Uint8Array(n);
+              while (n--) u8[n] = bin.charCodeAt(n);
+              return new File([u8], "\u05EA\u05E7\u05DC\u05D4-" + justCreated.ref + "-" + (i + 1) + ".jpg", { type: mime });
+            });
+          } catch (e) { files = []; }
+          if (files.length && navigator.canShare && navigator.canShare({ files: files })) {
+            navigator.share({ files: files, title: "\u05EA\u05DE\u05D5\u05E0\u05D5\u05EA \u05EA\u05E7\u05DC\u05D4 #" + justCreated.ref }).catch(function () {});
+          } else {
+            // \u05D3\u05E4\u05D3\u05E4\u05DF \u05DC\u05DC\u05D0 \u05E9\u05D9\u05EA\u05D5\u05E3 (\u05D1\u05E2\u05D9\u05E7\u05E8 \u05D1\u05DE\u05D7\u05E9\u05D1) \u2014 \u05E4\u05D5\u05EA\u05D7\u05D9\u05DD \u05D0\u05EA \u05D4\u05EA\u05DE\u05D5\u05E0\u05D4 \u05DC\u05E6\u05D9\u05E8\u05D5\u05E3 \u05D9\u05D3\u05E0\u05D9
+            justCreated.photos.forEach(function (p) { window.open(p, "_blank"); });
+            toast("\u05E4\u05EA\u05D7\u05EA\u05D9 \u05D0\u05EA \u05D4\u05EA\u05DE\u05D5\u05E0\u05D4 \u2014 \u05E6\u05E8\u05E4\u05D5 \u05D0\u05D5\u05EA\u05D4 \u05DC\u05DE\u05D9\u05D9\u05DC");
+          }
+        };
+      }
       return;
     }
 
