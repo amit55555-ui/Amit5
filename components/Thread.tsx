@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Report } from '@/types';
 import { updateReport } from '@/lib/client';
 import { formatDateTime } from '@/lib/format';
+import { BUILDING_NAME } from '@/data/building';
 
 export default function Thread({
   report,
@@ -22,16 +23,25 @@ export default function Thread({
   const [sending, setSending] = useState(false);
 
   async function send() {
-    if (!text.trim()) return;
+    const msg = text.trim();
+    if (!msg) return;
     setSending(true);
     const updated = await updateReport(report.id, {
-      message: { author: role, authorName: authorName || (role === 'committee' ? 'ועד הבית' : 'דייר'), text },
+      message: { author: role, authorName: authorName || (role === 'committee' ? 'ועד הבית' : 'דייר'), text: msg },
       passcode,
     });
     setSending(false);
     if (updated) {
       setText('');
       onUpdated(updated);
+      // התראה לדייר: פותח מייל מוכן עם התשובה, כדי שהדייר יידע שקיבל מענה
+      if (role === 'committee' && report.reporterEmail) {
+        const subject = `מענה לפנייה #${report.ref} · ${BUILDING_NAME}`;
+        const body = `${msg}\n\n----------\nבמענה לפנייה #${report.ref}: ${report.title}\n${BUILDING_NAME}`;
+        window.location.href = `mailto:${encodeURIComponent(report.reporterEmail)}?subject=${encodeURIComponent(
+          subject,
+        )}&body=${encodeURIComponent(body)}`;
+      }
     }
   }
 
@@ -71,6 +81,11 @@ export default function Thread({
           {sending ? '...' : 'שליחה'}
         </button>
       </div>
+      {role === 'committee' && report.reporterEmail && (
+        <p className="mt-1.5 text-[11px] text-muted">
+          📧 לאחר שליחה ייפתח מייל מוכן להתראת הדייר — שלחו אותו כדי שיֵדע שקיבל מענה.
+        </p>
+      )}
     </div>
   );
 }
