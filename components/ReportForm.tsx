@@ -117,41 +117,12 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
       `שם המדווח: ${done.reporterName}`,
       `טלפון: ${done.reporterPhone}`,
       `אימייל לחזרה: ${done.reporterEmail || ''}`,
-      done.photos && done.photos.length ? `\n(צורפו ${done.photos.length} תמונות — צרפו אותן למייל דרך כפתור הצירוף)` : '',
+      done.photos && done.photos.length ? `\n(לפנייה צורפו ${done.photos.length} תמונות)` : '',
     ].filter((l) => l !== '');
     const subject = `דיווח תקלה #${done.ref} · ${cat.label} · כניסה ${done.entrance}`;
     const mailto = `mailto:${encodeURIComponent(COMMITTEE_EMAIL)}?subject=${encodeURIComponent(
       subject,
     )}&body=${encodeURIComponent(bodyLines.join('\n') + '\n')}`;
-
-    const hasPhotos = Boolean(done.photos && done.photos.length);
-    const photoWord = done.photos && done.photos.length > 1 ? 'התמונות' : 'התמונה';
-    const sharePhotos = async () => {
-      const photos = done.photos || [];
-      let files: File[] = [];
-      try {
-        files = photos.map((p, i) => {
-          const [head, b64] = p.split(',');
-          const mime = (head.match(/:(.*?);/) || [])[1] || 'image/jpeg';
-          const bin = atob(b64);
-          const u8 = new Uint8Array(bin.length);
-          for (let j = 0; j < bin.length; j++) u8[j] = bin.charCodeAt(j);
-          return new File([u8], `תקלה-${done.ref}-${i + 1}.jpg`, { type: mime });
-        });
-      } catch {
-        files = [];
-      }
-      const nav = navigator as Navigator & { canShare?: (d: { files: File[] }) => boolean };
-      if (files.length && nav.canShare && nav.canShare({ files })) {
-        try {
-          await navigator.share({ files, title: `תמונות תקלה #${done.ref}` });
-        } catch {
-          /* המשתמש ביטל — אין צורך בפעולה */
-        }
-      } else {
-        photos.forEach((p) => window.open(p, '_blank'));
-      }
-    };
 
     return (
       <div className="card p-6 text-center">
@@ -160,34 +131,9 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
         </div>
         <h3 className="text-lg font-bold">הפנייה מוכנה לשליחה</h3>
         <p className="mx-auto mt-1 max-w-md text-muted">
-          {hasPhotos
-            ? `צירפת תמונה — לחצו «צירוף ${photoWord} למייל», ואז «שליחת המייל לוועד». `
-            : 'לחצו על הכפתור — אפליקציית המייל תיפתח עם הפנייה מוכנה וממוענת לוועד. פשוט שלחו אותה. '}
+          לחצו על הכפתור — אפליקציית המייל תיפתח עם הפנייה מוכנה וממוענת לוועד. פשוט שלחו אותה.
           התשובה של הוועד תחזור ישירות למייל שלכם.
         </p>
-
-        {hasPhotos && (
-          <div className="mx-auto mt-4 max-w-sm rounded-xl bg-cloud p-4">
-            <div className="mb-2 text-sm font-bold">
-              📎 {done.photos!.length} {done.photos!.length > 1 ? 'תמונות שצירפת' : 'תמונה שצירפת'}
-            </div>
-            <div className="mb-3 flex flex-wrap justify-center gap-2">
-              {done.photos!.map((p, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={i}
-                  src={p}
-                  alt="תמונת התקלה"
-                  className="h-[88px] w-[88px] rounded-xl border border-line object-cover"
-                />
-              ))}
-            </div>
-            <button className="btn-ghost mx-auto block max-w-[280px]" onClick={sharePhotos}>
-              📎 צירוף {photoWord} למייל
-            </button>
-            <p className="mt-2 text-xs text-muted">צרפו קודם את {photoWord}, ואז שלחו את המייל.</p>
-          </div>
-        )}
 
         <a className="btn-primary mx-auto mt-4 block max-w-xs" href={mailto}>
           📧 שליחת המייל לוועד
@@ -329,12 +275,11 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
         <div>
           <label className="label">
             טלפון <span className="text-open">*</span>{' '}
-            <span className="text-xs font-normal text-muted">(052-1234567)</span>
+            <span className="text-xs font-normal text-muted">(לדוגמא: 052-1234567)</span>
           </label>
           <input
             className="field"
             inputMode="numeric"
-            placeholder="052-1234567"
             value={reporterPhone}
             onChange={(e) => setReporterPhone(e.target.value.replace(/[^0-9-]/g, ''))}
           />
