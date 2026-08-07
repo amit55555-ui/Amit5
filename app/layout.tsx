@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Heebo } from 'next/font/google';
 import './globals.css';
 
@@ -12,6 +12,12 @@ export const metadata: Metadata = {
   title: 'ניהול בניין – דיווח תקלות',
   description:
     'מערכת לדיירי הבניין לדיווח תקלות (נורה שרופה, אשפה ועוד), מעקב אחר הפניות והסטטוס שלהן, ותקשורת עם ועד הבית.',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
