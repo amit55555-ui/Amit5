@@ -12,7 +12,8 @@ export type Category =
   | 'camping'
   | 'jewelry'
   | 'summer'
-  | 'pets';
+  | 'pets'
+  | 'babies';
 
 export type Badge = 'sale' | 'new' | 'top' | 'rec' | '';
 export type SwipeDirection = 'right' | 'left' | 'up';
@@ -47,6 +48,7 @@ export const CAT_LABELS: Record<Category, string> = {
   jewelry:      'תכשיטים',
   summer:       'קיץ',
   pets:         'בעלי חיים',
+  babies:       'תינוקות',
 };
 
 export const CAT_EMOJI: Record<Category, string> = {
@@ -64,6 +66,7 @@ export const CAT_EMOJI: Record<Category, string> = {
   jewelry:      '💎',
   summer:       '☀️',
   pets:         '🐾',
+  babies:       '🍼',
 };
 
 export const CAT_BG: Record<Category, string> = {
@@ -81,6 +84,7 @@ export const CAT_BG: Record<Category, string> = {
   jewelry:      'linear-gradient(135deg,#fce4ec,#f48fb1)',
   summer:       'linear-gradient(135deg,#fff3e0,#ffcc80)',
   pets:         'linear-gradient(135deg,#efebe9,#bcaaa4)',
+  babies:       'linear-gradient(135deg,#fdf2f8,#fbcfe8)',
 };
 
 export const BADGE_CONFIG: Record<string, { label: string; cls: string }> = {
