@@ -75,6 +75,7 @@
   h2.sec { margin: 0 0 16px; font-size: 18px; font-weight: 700; }
   label.lbl { display: block; font-size: 13px; font-weight: 600; margin: 0 0 6px; }
   .req { color: var(--open); font-weight: 700; }
+  .ex { color: var(--muted); font-weight: 400; font-size: 12px; }
 
   .field {
     width: 100%; font: inherit; color: var(--ink);
@@ -522,7 +523,7 @@
             '</div></div>' +
           '<div class="row three">' +
             '<div><label class="lbl">\u05E9\u05DD \u05DE\u05DC\u05D0 <span class="req">*</span></label><input class="field" id="f_nm" value="' + esc(s.reporterName) + '"></div>' +
-            '<div><label class="lbl">\u05D8\u05DC\u05E4\u05D5\u05DF <span class="req">*</span></label><input class="field" id="f_ph" inputmode="tel" value="' + esc(s.reporterPhone) + '"></div>' +
+            '<div><label class="lbl">\u05D8\u05DC\u05E4\u05D5\u05DF <span class="req">*</span> <span class="ex">(052-1234567)</span></label><input class="field" id="f_ph" inputmode="numeric" placeholder="052-1234567" value="' + esc(s.reporterPhone) + '"></div>' +
             '<div><label class="lbl">\u05D0\u05D9\u05DE\u05D9\u05D9\u05DC (\u05DC\u05E2\u05D3\u05DB\u05D5\u05E0\u05D9\u05DD) <span class="req">*</span></label><input class="field" id="f_em" inputmode="email" value="' + esc(s.reporterEmail) + '"></div>' +
           '</div>' +
           '<div><button class="btn block" id="submit">\u05E9\u05DC\u05D9\u05D7\u05EA \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05DC\u05D5\u05D5\u05E2\u05D3</button>' +
@@ -563,6 +564,11 @@
     document.getElementById("thumbs").addEventListener("click", function (ev) {
       var b = ev.target.closest("[data-rmphoto]"); if (!b) return;
       sync(); s.photos.splice(parseInt(b.getAttribute("data-rmphoto"), 10), 1); renderNew();
+    });
+    // \u05E9\u05D3\u05D4 \u05D8\u05DC\u05E4\u05D5\u05DF \u2014 \u05E8\u05E7 \u05E1\u05E4\u05E8\u05D5\u05EA \u05D5\u05DE\u05E7\u05E3
+    document.getElementById("f_ph").addEventListener("input", function (ev) {
+      var cleaned = ev.target.value.replace(/[^0-9-]/g, "");
+      if (cleaned !== ev.target.value) ev.target.value = cleaned;
     });
     document.getElementById("submit").onclick = function () {
       sync();

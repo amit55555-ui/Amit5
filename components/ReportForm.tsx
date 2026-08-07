@@ -272,12 +272,16 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
           <input className="field" value={reporterName} onChange={(e) => setReporterName(e.target.value)} />
         </div>
         <div>
-          <label className="label">טלפון <span className="text-open">*</span></label>
+          <label className="label">
+            טלפון <span className="text-open">*</span>{' '}
+            <span className="text-xs font-normal text-muted">(052-1234567)</span>
+          </label>
           <input
             className="field"
-            inputMode="tel"
+            inputMode="numeric"
+            placeholder="052-1234567"
             value={reporterPhone}
-            onChange={(e) => setReporterPhone(e.target.value)}
+            onChange={(e) => setReporterPhone(e.target.value.replace(/[^0-9-]/g, ''))}
           />
         </div>
         <div>
