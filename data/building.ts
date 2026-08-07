@@ -7,6 +7,11 @@ import { Category } from '@/types';
 export const BUILDING_NAME =
   process.env.NEXT_PUBLIC_BUILDING_NAME || 'רחוב צה״ל';
 
+// כתובת המייל של הוועד — לכאן נשלחות הפניות (mailto מהמייל של הדייר).
+// הגדירו ב-NEXT_PUBLIC_COMMITTEE_EMAIL את הכתובת האמיתית של הוועד.
+export const COMMITTEE_EMAIL =
+  process.env.NEXT_PUBLIC_COMMITTEE_EMAIL || 'vaad.tzahal@gmail.com';
+
 // בניין ארוך עם מספר כניסות (מספרי בניין) המחוברים יחדיו.
 // ניתן להגדיר רשימה מופרדת בפסיקים ב-NEXT_PUBLIC_ENTRANCES, למשל: "12,14,16,18"
 export const ENTRANCES: string[] = (

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { NewReportInput, Priority, Report } from '@/types';
-import { CATEGORIES, ENTRANCES } from '@/data/building';
+import { CATEGORIES, ENTRANCES, COMMITTEE_EMAIL, BUILDING_NAME, categoryById } from '@/data/building';
 import { createReport, getResidentToken } from '@/lib/client';
 
 export default function ReportForm({ onCreated }: { onCreated: (r: Report) => void }) {
@@ -102,17 +102,45 @@ export default function ReportForm({ onCreated }: { onCreated: (r: Report) => vo
   }
 
   if (done) {
+    const cat = categoryById(done.categoryId);
+    const bodyLines = [
+      `דיווח תקלה חדש · ${BUILDING_NAME}`,
+      '',
+      `מספר פנייה: #${done.ref}`,
+      `סוג התקלה: ${cat.label}`,
+      `כותרת: ${done.title}`,
+      `תיאור: ${done.description}`,
+      `כניסה: ${done.entrance}`,
+      done.floor ? `קומה: ${done.floor}` : '',
+      `דחיפות: ${done.priority === 'urgent' ? 'דחוף' : 'רגיל'}`,
+      '',
+      `שם המדווח: ${done.reporterName}`,
+      `טלפון: ${done.reporterPhone}`,
+      `אימייל לחזרה: ${done.reporterEmail || ''}`,
+      done.photos && done.photos.length ? `\n(צורפו ${done.photos.length} תמונות — נא לצרף אותן ידנית למייל)` : '',
+    ].filter((l) => l !== '');
+    const subject = `דיווח תקלה #${done.ref} · ${cat.label} · כניסה ${done.entrance}`;
+    const mailto = `mailto:${encodeURIComponent(COMMITTEE_EMAIL)}?subject=${encodeURIComponent(
+      subject,
+    )}&body=${encodeURIComponent(bodyLines.join('\n') + '\n')}`;
+
     return (
       <div className="card p-6 text-center">
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-green-50 text-3xl">
-          ✅
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-brand/10 text-3xl">
+          📨
         </div>
-        <h3 className="text-lg font-bold">הפנייה נשלחה!</h3>
-        <p className="mt-1 text-muted">
-          מספר הפנייה שלך הוא <b>#{done.ref}</b>. הוועד קיבל את הדיווח ויחזור אליך.
-          אפשר לעקוב אחרי הסטטוס בלשונית «הפניות שלי».
+        <h3 className="text-lg font-bold">הפנייה מוכנה לשליחה</h3>
+        <p className="mx-auto mt-1 max-w-md text-muted">
+          לחצו על הכפתור — אפליקציית המייל תיפתח עם הפנייה מוכנה וממוענת לוועד. פשוט שלחו אותה.
+          התשובה של הוועד תחזור ישירות למייל שלכם.
         </p>
-        <button className="btn-primary mt-4" onClick={reset}>
+        <a className="btn-primary mx-auto mt-4 block max-w-xs" href={mailto}>
+          📧 שליחת המייל לוועד
+        </a>
+        <p className="mt-3 text-xs text-muted">
+          פנייה <b>#{done.ref}</b> · נשמרה גם בלשונית «הפניות שלי».
+        </p>
+        <button className="btn-ghost mt-4" onClick={reset}>
           דיווח על תקלה נוספת
         </button>
       </div>

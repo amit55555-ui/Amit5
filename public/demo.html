@@ -119,7 +119,7 @@
   .btn {
     font: inherit; font-weight: 700; font-size: 15px; cursor: pointer;
     border: 0; border-radius: 12px; padding: 12px 18px;
-    background: var(--brand); color: #fff; transition: .16s;
+    background: var(--brand); color: #fff; transition: .16s; text-decoration: none;
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   }
   .btn:hover { background: var(--brand-dark); }
@@ -248,8 +248,8 @@
   <main id="view"></main>
 
   <footer class="foot">
-    &#1490;&#1512;&#1505;&#1514; &#1491;&#1502;&#1493; &#8212; &#1499;&#1500; &#1492;&#1504;&#1514;&#1493;&#1504;&#1497;&#1501; &#1504;&#1513;&#1502;&#1512;&#1497;&#1501; &#1489;&#1502;&#1499;&#1513;&#1497;&#1512; &#1492;&#1494;&#1492; &#1489;&#1500;&#1489;&#1491; (localStorage).<br>
-    &#1489;&#1488;&#1508;&#1500;&#1497;&#1511;&#1510;&#1497;&#1492; &#1492;&#1502;&#1500;&#1488;&#1492; &#1499;&#1500; &#1508;&#1504;&#1497;&#1497;&#1492; &#1504;&#1513;&#1500;&#1495;&#1514; &#1500;&#1493;&#1493;&#1506;&#1491; &#1489;&#1502;&#1497;&#1497;&#1500; &#1493;&#1504;&#1497;&#1514;&#1503; &#1500;&#1492;&#1513;&#1497;&#1489; &#1489;&#1495;&#1494;&#1512;&#1492;.
+    &#1492;&#1508;&#1504;&#1497;&#1497;&#1492; &#1504;&#1513;&#1500;&#1495;&#1514; &#1502;&#1492;&#1502;&#1497;&#1497;&#1500; &#1513;&#1500;&#1499;&#1501; &#1497;&#1513;&#1497;&#1512;&#1493;&#1514; &#1500;&#1493;&#1493;&#1506;&#1491; &#8212; &#1492;&#1514;&#1513;&#1493;&#1489;&#1492; &#1513;&#1500; &#1492;&#1493;&#1493;&#1506;&#1491; &#1514;&#1495;&#1494;&#1493;&#1512; &#1488;&#1500;&#1497;&#1499;&#1501; &#1500;&#1502;&#1497;&#1497;&#1500;.<br>
+    &#1492;&#1508;&#1504;&#1497;&#1493;&#1514; &#1493;&#1492;&#1502;&#1506;&#1511;&#1489; &#1504;&#1513;&#1502;&#1512;&#1497;&#1501; &#1489;&#1502;&#1499;&#1513;&#1497;&#1512; &#1492;&#1494;&#1492; (localStorage).
   </footer>
 </div>
 
@@ -261,6 +261,8 @@
   var BUILDING_NAME = "\u05E8\u05D7\u05D5\u05D1 \u05E6\u05D4\u05F4\u05DC";
   var ENTRANCES = ["77", "79", "81", "83", "85"];
   var PASSCODE = "1234";
+  // \u25BC\u25BC \u05DB\u05EA\u05D5\u05D1\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC \u05E9\u05DC \u05D4\u05D5\u05D5\u05E2\u05D3 \u2014 \u05DC\u05DB\u05D0\u05DF \u05E0\u05E9\u05DC\u05D7\u05D5\u05EA \u05D4\u05E4\u05E0\u05D9\u05D5\u05EA. \u05D4\u05D7\u05DC\u05D9\u05E4\u05D5 \u05DC\u05DB\u05EA\u05D5\u05D1\u05EA \u05D4\u05D0\u05DE\u05D9\u05EA\u05D9\u05EA \u05E9\u05DC \u05D4\u05D5\u05D5\u05E2\u05D3 \u25BC\u25BC
+  var COMMITTEE_EMAIL = "vaad.tzahal@gmail.com";
   var CATEGORIES = [
     { id: "lightbulb", label: "\u05E0\u05D5\u05E8\u05D4 \u05E9\u05E8\u05D5\u05E4\u05D4", e: "\u{1F4A1}" },
     { id: "garbage", label: "\u05D0\u05E9\u05E4\u05D4", e: "\u{1F5D1}\uFE0F" },
@@ -322,6 +324,39 @@
       w.style.opacity = "0";
       setTimeout(function () { if (w.parentNode) w.parentNode.removeChild(w); }, 450);
     }, 3400);
+  }
+  // \u05D1\u05E0\u05D9\u05D9\u05EA \u05E7\u05D9\u05E9\u05D5\u05E8 mailto (\u05E4\u05D5\u05EA\u05D7 \u05D0\u05EA \u05D0\u05E4\u05DC\u05D9\u05E7\u05E6\u05D9\u05D9\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC \u05E2\u05DD \u05D4\u05DB\u05D5\u05DC \u05DE\u05D5\u05DB\u05DF)
+  function mailtoLink(to, subject, body) {
+    return "mailto:" + encodeURIComponent(to) +
+      "?subject=" + encodeURIComponent(subject) +
+      "&body=" + encodeURIComponent(body);
+  }
+  // \u05E7\u05D9\u05E9\u05D5\u05E8 \u05DC\u05E9\u05DC\u05D9\u05D7\u05EA \u05E4\u05E0\u05D9\u05D9\u05D4 \u05D7\u05D3\u05E9\u05D4 \u05DC\u05D5\u05D5\u05E2\u05D3
+  function reportMailto(rep) {
+    var c = cat(rep.categoryId);
+    var lines = [
+      "\u05D3\u05D9\u05D5\u05D5\u05D7 \u05EA\u05E7\u05DC\u05D4 \u05D7\u05D3\u05E9 \u00B7 " + BUILDING_NAME,
+      "",
+      "\u05DE\u05E1\u05E4\u05E8 \u05E4\u05E0\u05D9\u05D9\u05D4: #" + rep.ref,
+      "\u05E1\u05D5\u05D2 \u05D4\u05EA\u05E7\u05DC\u05D4: " + c.label,
+      "\u05DB\u05D5\u05EA\u05E8\u05EA: " + rep.title,
+      "\u05EA\u05D9\u05D0\u05D5\u05E8: " + rep.description,
+      "\u05DB\u05E0\u05D9\u05E1\u05D4: " + rep.entrance,
+      rep.apartment ? "\u05E7\u05D5\u05DE\u05D4: " + rep.apartment : "",
+      "\u05D3\u05D7\u05D9\u05E4\u05D5\u05EA: " + (rep.priority === "urgent" ? "\u05D3\u05D7\u05D5\u05E3" : "\u05E8\u05D2\u05D9\u05DC"),
+      "",
+      "\u05E9\u05DD \u05D4\u05DE\u05D3\u05D5\u05D5\u05D7: " + rep.reporterName,
+      "\u05D8\u05DC\u05E4\u05D5\u05DF: " + rep.reporterPhone,
+      "\u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05DC\u05D7\u05D6\u05E8\u05D4: " + rep.reporterEmail
+    ];
+    if (rep.photos && rep.photos.length) lines.push("", "(\u05E6\u05D5\u05E8\u05E4\u05D5 " + rep.photos.length + " \u05EA\u05DE\u05D5\u05E0\u05D5\u05EA \u2014 \u05E0\u05D0 \u05DC\u05E6\u05E8\u05E3 \u05D0\u05D5\u05EA\u05DF \u05D9\u05D3\u05E0\u05D9\u05EA \u05DC\u05DE\u05D9\u05D9\u05DC)");
+    var subject = "\u05D3\u05D9\u05D5\u05D5\u05D7 \u05EA\u05E7\u05DC\u05D4 #" + rep.ref + " \u00B7 " + c.label + " \u00B7 \u05DB\u05E0\u05D9\u05E1\u05D4 " + rep.entrance;
+    return mailtoLink(COMMITTEE_EMAIL, subject, lines.filter(function (x) { return x !== ""; }).join("\n") + "\n");
+  }
+  // \u05E7\u05D9\u05E9\u05D5\u05E8 \u05DC\u05EA\u05E9\u05D5\u05D1\u05EA \u05D5\u05E2\u05D3 \u05DC\u05D3\u05D9\u05D9\u05E8
+  function replyMailto(rep, text) {
+    var body = text + "\n\n----------\n\u05D1\u05DE\u05E2\u05E0\u05D4 \u05DC\u05E4\u05E0\u05D9\u05D9\u05D4 #" + rep.ref + ": " + rep.title + "\n" + BUILDING_NAME;
+    return mailtoLink(rep.reporterEmail, "\u05DE\u05E2\u05E0\u05D4 \u05DC\u05E4\u05E0\u05D9\u05D9\u05D4 #" + rep.ref + " \u00B7 " + BUILDING_NAME, body);
   }
   // \u05EA\u05E6\u05D5\u05D2\u05EA \u05EA\u05DE\u05D5\u05E0\u05D4 \u05D1\u05D2\u05D5\u05D3\u05DC \u05DE\u05DC\u05D0
   function openLightbox(src) {
@@ -424,12 +459,14 @@
     if (justCreated) {
       view.innerHTML =
         '<div class="card pad" style="text-align:center">' +
-          '<div style="font-size:44px">\u2705</div>' +
-          '<h2 class="sec" style="margin:10px 0 6px">\u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05E0\u05E9\u05DC\u05D7\u05D4!</h2>' +
-          '<p class="muted" style="margin:0 auto;max-width:420px">\u05DE\u05E1\u05E4\u05E8 \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05E9\u05DC\u05DA \u05D4\u05D5\u05D0 <b>#' + justCreated.ref + '</b>. ' +
-          '\u05D4\u05D5\u05D5\u05E2\u05D3 \u05E7\u05D9\u05D1\u05DC \u05D0\u05EA \u05D4\u05D3\u05D9\u05D5\u05D5\u05D7 \u05D5\u05D9\u05D7\u05D6\u05D5\u05E8 \u05D0\u05DC\u05D9\u05DA. \u05D0\u05E4\u05E9\u05E8 \u05DC\u05E2\u05E7\u05D5\u05D1 \u05D0\u05D7\u05E8\u05D9 \u05D4\u05E1\u05D8\u05D8\u05D5\u05E1 \u05D1\u05DC\u05E9\u05D5\u05E0\u05D9\u05EA \u00AB\u05D4\u05E4\u05E0\u05D9\u05D5\u05EA \u05E9\u05DC\u05D9\u00BB.</p>' +
+          '<div style="font-size:44px">\u{1F4E8}</div>' +
+          '<h2 class="sec" style="margin:10px 0 6px">\u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05DE\u05D5\u05DB\u05E0\u05D4 \u05DC\u05E9\u05DC\u05D9\u05D7\u05D4</h2>' +
+          '<p class="muted" style="margin:0 auto 16px;max-width:430px">\u05DC\u05D7\u05E6\u05D5 \u05E2\u05DC \u05D4\u05DB\u05E4\u05EA\u05D5\u05E8 \u2014 \u05D0\u05E4\u05DC\u05D9\u05E7\u05E6\u05D9\u05D9\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC \u05EA\u05D9\u05E4\u05EA\u05D7 \u05E2\u05DD \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05DE\u05D5\u05DB\u05E0\u05D4 \u05D5\u05DE\u05DE\u05D5\u05E2\u05E0\u05EA \u05DC\u05D5\u05D5\u05E2\u05D3. \u05E4\u05E9\u05D5\u05D8 \u05E9\u05DC\u05D7\u05D5 \u05D0\u05D5\u05EA\u05D4. ' +
+          '\u05D4\u05EA\u05E9\u05D5\u05D1\u05D4 \u05E9\u05DC \u05D4\u05D5\u05D5\u05E2\u05D3 \u05EA\u05D7\u05D6\u05D5\u05E8 \u05D9\u05E9\u05D9\u05E8\u05D5\u05EA \u05DC\u05DE\u05D9\u05D9\u05DC \u05E9\u05DC\u05DB\u05DD.</p>' +
+          '<a class="btn block" href="' + esc(reportMailto(justCreated)) + '" style="max-width:340px;margin:0 auto">\u{1F4E7} \u05E9\u05DC\u05D9\u05D7\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC \u05DC\u05D5\u05D5\u05E2\u05D3</a>' +
+          '<p class="muted" style="font-size:12px;margin:12px 0 0">\u05E4\u05E0\u05D9\u05D9\u05D4 <b>#' + justCreated.ref + '</b> \u00B7 \u05E0\u05E9\u05DE\u05E8\u05D4 \u05D2\u05DD \u05D1\u05DC\u05E9\u05D5\u05E0\u05D9\u05EA \u00AB\u05D4\u05E4\u05E0\u05D9\u05D5\u05EA \u05E9\u05DC\u05D9\u00BB.</p>' +
           '<div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap">' +
-            '<button class="btn" id="again">\u05D3\u05D9\u05D5\u05D5\u05D7 \u05E2\u05DC \u05EA\u05E7\u05DC\u05D4 \u05E0\u05D5\u05E1\u05E4\u05EA</button>' +
+            '<button class="btn ghost" id="again">\u05D3\u05D9\u05D5\u05D5\u05D7 \u05E2\u05DC \u05EA\u05E7\u05DC\u05D4 \u05E0\u05D5\u05E1\u05E4\u05EA</button>' +
             '<button class="btn ghost" id="goMine">\u05DC\u05DE\u05E2\u05E7\u05D1 \u05D4\u05E4\u05E0\u05D9\u05D5\u05EA \u05E9\u05DC\u05D9</button>' +
           '</div>' +
         '</div>';
@@ -549,7 +586,6 @@
         createdAt: now, updatedAt: now
       };
       var a = load(); a.push(rep); save(a);
-      toast("\u{1F4E7} \u05D4\u05E4\u05E0\u05D9\u05D9\u05D4 \u05E0\u05E9\u05DC\u05D7\u05D4 \u05D1\u05DE\u05D9\u05D9\u05DC \u05DC\u05D5\u05D5\u05E2\u05D3 \u05D4\u05D1\u05D9\u05EA");
       formState = null; // \u05D0\u05D9\u05E4\u05D5\u05E1 \u05DE\u05DC\u05D0 \u2014 \u05D4\u05D8\u05D5\u05E4\u05E1 \u05D9\u05D7\u05D6\u05D5\u05E8 \u05E8\u05D9\u05E7
       renderNew(rep);
     };
@@ -632,9 +668,7 @@
     var a = load(), rep = null;
     for (var i = 0; i < a.length; i++) if (a[i].id === id) { a[i].status = st; a[i].updatedAt = Date.now(); rep = a[i]; }
     save(a); render();
-    if (rep) toast(rep.reporterEmail
-      ? "\u{1F4E7} \u05E2\u05D3\u05DB\u05D5\u05DF \u05D4\u05E1\u05D8\u05D8\u05D5\u05E1 \u05E0\u05E9\u05DC\u05D7 \u05D1\u05DE\u05D9\u05D9\u05DC \u05DC\u05D3\u05D9\u05D9\u05E8: " + rep.reporterEmail
-      : "\u05D4\u05E1\u05D8\u05D8\u05D5\u05E1 \u05E2\u05D5\u05D3\u05DB\u05DF. \u05D4\u05D3\u05D9\u05D9\u05E8 \u05DC\u05D0 \u05D4\u05D6\u05D9\u05DF \u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05D1\u05E2\u05EA \u05D4\u05D3\u05D9\u05D5\u05D5\u05D7.");
+    if (rep) toast("\u05D4\u05E1\u05D8\u05D8\u05D5\u05E1 \u05E2\u05D5\u05D3\u05DB\u05DF \u05DC\u00AB" + STATUS[st].label + "\u00BB");
   }
   function addMessage(id, role, text) {
     if (!text.trim()) return;
@@ -645,10 +679,17 @@
       rep = a[i];
     }
     save(a); render();
-    if (rep && role === "committee") toast(rep.reporterEmail
-      ? "\u{1F4E7} \u05D4\u05EA\u05E9\u05D5\u05D1\u05D4 \u05E0\u05E9\u05DC\u05D7\u05D4 \u05D1\u05DE\u05D9\u05D9\u05DC \u05DC\u05D3\u05D9\u05D9\u05E8: " + rep.reporterEmail
-      : "\u05D4\u05EA\u05E9\u05D5\u05D1\u05D4 \u05E0\u05E9\u05DE\u05E8\u05D4. \u05D4\u05D3\u05D9\u05D9\u05E8 \u05DC\u05D0 \u05D4\u05D6\u05D9\u05DF \u05D0\u05D9\u05DE\u05D9\u05D9\u05DC \u05D1\u05E2\u05EA \u05D4\u05D3\u05D9\u05D5\u05D5\u05D7.");
-    else if (rep) toast("\u{1F4E7} \u05D4\u05EA\u05D2\u05D5\u05D1\u05D4 \u05E0\u05E9\u05DC\u05D7\u05D4 \u05D1\u05DE\u05D9\u05D9\u05DC \u05DC\u05D5\u05D5\u05E2\u05D3 \u05D4\u05D1\u05D9\u05EA");
+    // \u05E4\u05EA\u05D9\u05D7\u05EA \u05D4\u05DE\u05D9\u05D9\u05DC \u05D0\u05DC \u05D4\u05E6\u05D3 \u05D4\u05E9\u05E0\u05D9 (\u05D9\u05D5\u05E6\u05D0 \u05DE\u05D4\u05DE\u05D9\u05D9\u05DC \u05E9\u05DC \u05D4\u05E9\u05D5\u05DC\u05D7, \u05DB\u05DA \u05E9\u05D4\u05EA\u05E9\u05D5\u05D1\u05D4 \u05D7\u05D5\u05D6\u05E8\u05EA \u05D0\u05DC\u05D9\u05D5)
+    if (rep && role === "committee" && rep.reporterEmail) {
+      toast("\u{1F4E7} \u05E4\u05D5\u05EA\u05D7 \u05DE\u05D9\u05D9\u05DC \u05DC\u05E9\u05DC\u05D9\u05D7\u05D4 \u05DC\u05D3\u05D9\u05D9\u05E8\u2026");
+      setTimeout(function () { window.location.href = replyMailto(rep, text.trim()); }, 300);
+    } else if (rep && role === "resident") {
+      toast("\u{1F4E7} \u05E4\u05D5\u05EA\u05D7 \u05DE\u05D9\u05D9\u05DC \u05DC\u05E9\u05DC\u05D9\u05D7\u05D4 \u05DC\u05D5\u05D5\u05E2\u05D3\u2026");
+      setTimeout(function () {
+        window.location.href = mailtoLink(COMMITTEE_EMAIL, "\u05E2\u05D3\u05DB\u05D5\u05DF \u05DC\u05E4\u05E0\u05D9\u05D9\u05D4 #" + rep.ref + " \u00B7 " + BUILDING_NAME,
+          text.trim() + "\n\n----------\n\u05E4\u05E0\u05D9\u05D9\u05D4 #" + rep.ref + ": " + rep.title);
+      }, 300);
+    }
   }
 
   // ========== VIEW: MINE ==========
