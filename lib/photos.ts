@@ -4,13 +4,26 @@
 
 import { put } from '@vercel/blob';
 
+// מאתר את מפתח הכתיבה של Blob לא משנה איך נקרא המשתנה
+// (BLOB_READ_WRITE_TOKEN, או עם קידומת של שם המאגר, וכו').
+function blobToken(): string | undefined {
+  if (process.env.BLOB_READ_WRITE_TOKEN) return process.env.BLOB_READ_WRITE_TOKEN;
+  for (const [k, v] of Object.entries(process.env)) {
+    if (v && /READ_WRITE_TOKEN/i.test(k)) return v;
+  }
+  for (const v of Object.values(process.env)) {
+    if (typeof v === 'string' && v.startsWith('vercel_blob_rw_')) return v;
+  }
+  return undefined;
+}
+
 export function hasBlob(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  return Boolean(blobToken());
 }
 
 export async function uploadPhotos(photos: string[], refPrefix: string): Promise<string[]> {
   if (!photos || photos.length === 0) return [];
-  if (!hasBlob()) return photos;
+  const token = blobToken(); // אולי קיים, אולי לא — ב-Vercel לפעמים זמין אוטומטית
 
   const out: string[] = [];
   for (let i = 0; i < photos.length; i++) {
@@ -29,10 +42,12 @@ export async function uploadPhotos(photos: string[], refPrefix: string): Promise
       const blob = await put(`reports/${refPrefix}-${Date.now()}-${i}.${ext}`, buf, {
         access: 'public',
         contentType: mime,
+        ...(token ? { token } : {}),
       });
       out.push(blob.url);
     } catch {
-      // אם העלאה נכשלה – מדלגים על התמונה במקום להפיל את כל הפנייה
+      // אם ההעלאה ל-Blob לא זמינה – שומרים את התמונה עצמה (data URL) במסד
+      out.push(p);
     }
   }
   return out;
