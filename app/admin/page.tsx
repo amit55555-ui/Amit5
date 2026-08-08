@@ -9,6 +9,7 @@ import ExcelIO from '@/components/ExcelIO';
 import { getAnalytics, totalsFrom, resetAnalytics, resetServerAnalytics, fetchServerAnalytics, type AnalyticsMap } from '@/lib/analytics';
 import { isVideoUrl, isYouTube, youTubeEmbed } from '@/lib/media';
 import { fetchCatalog, saveCatalog } from '@/lib/catalog';
+import { runCacheMigration } from '@/lib/cacheReset';
 
 const ADMIN_PASSWORD = 'amit2389@';
 const LS_CUSTOM    = 'shuk_custom_products';
@@ -365,6 +366,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
   // Load the shared catalog from the server (fall back to local cache)
   useEffect(() => {
+    runCacheMigration();
     (async () => {
       const cat = await fetchCatalog();
       if (cat) {
