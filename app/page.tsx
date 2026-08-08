@@ -264,7 +264,7 @@ export default function HomePage() {
       </div>
 
       {/* ── CARD AREA ── */}
-      <div className="flex-1 flex items-center justify-center px-4 min-h-0">
+      <div className="flex-1 flex items-center justify-center px-4 py-2 min-h-0">
         {done ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -294,7 +294,7 @@ export default function HomePage() {
             </button>
           </motion.div>
         ) : (
-          <div className="relative w-full max-w-sm" style={{ height: 'min(72vh, 520px)' }}>
+          <div className="relative w-full max-w-sm h-full max-h-[520px]">
             <CardStack products={remaining} onSwipe={handleSwipe} topRef={topRef} />
           </div>
         )}
