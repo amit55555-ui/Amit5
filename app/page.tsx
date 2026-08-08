@@ -151,7 +151,7 @@ export default function HomePage() {
   const reset = () => setIdx(0);
 
   return (
-    <div className="flex flex-col h-screen bg-cream overflow-hidden">
+    <div className="flex flex-col h-screen [height:100dvh] bg-cream overflow-hidden">
 
       <OnboardingOverlay />
 
@@ -238,6 +238,14 @@ export default function HomePage() {
                   <Search className="absolute top-1/2 -translate-y-1/2 start-3 w-4 h-4 text-white/40" />
                   <input
                     autoFocus
+                    type="search"
+                    name="q"
+                    inputMode="search"
+                    enterKeyHint="search"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
                     value={search}
                     onChange={e => { setSearch(e.target.value); setIdx(0); }}
                     placeholder="חפש מוצר..."
