@@ -149,7 +149,8 @@ function ProductForm({
   const submit = () => {
     if (!form.name.trim()) { alert('נא להכניס שם מוצר'); return; }
     if (!form.link.trim()) { alert('נא להכניס לינק אפיליאציה'); return; }
-    onSave({ ...form, stars, ...(initial ? { id: initial.id } : {}) });
+    const cat2 = form.cat2 && form.cat2 !== form.cat ? form.cat2 : undefined;
+    onSave({ ...form, cat2, stars, ...(initial ? { id: initial.id } : {}) });
   };
 
   return (
@@ -204,9 +205,22 @@ function ProductForm({
             <option value="sale">🔥 מבצע</option>
             <option value="new">🆕 חדש</option>
             <option value="top">⭐ הכי נמכר</option>
-            <option value="rec">✅ ממליץ</option>
+            <option value="rec">✅ מומלץ</option>
           </select>
         </div>
+      </div>
+
+      <div>
+        <label className="text-xs font-black text-soft mb-1.5 block">קטגוריה נוספת (אופציונלי)</label>
+        <select
+          value={form.cat2 || ''}
+          onChange={e => setForm(f => ({ ...f, cat2: (e.target.value || undefined) as Category | undefined }))}
+          className="w-full border-2 border-border rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-orange bg-white"
+        >
+          <option value="">— ללא —</option>
+          {CATS.filter(c => c !== form.cat).map(c => <option key={c} value={c}>{CAT_EMOJI[c]} {CAT_LABELS[c]}</option>)}
+        </select>
+        <p className="text-[11px] text-soft mt-1">המוצר יופיע גם תחת הקטגוריה הזו וגם תחת הראשית</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3">
@@ -420,7 +434,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
 
   const filtered = useMemo(() => {
     let list = allProducts;
-    if (catFilter !== 'all') list = list.filter(p => p.cat === catFilter);
+    if (catFilter !== 'all') list = list.filter(p => p.cat === catFilter || p.cat2 === catFilter);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       list = list.filter(p => p.name.toLowerCase().includes(q) || CAT_LABELS[p.cat].includes(q));

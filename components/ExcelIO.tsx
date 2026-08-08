@@ -13,6 +13,7 @@ const COLUMNS = [
   { key: 'name',  heb: 'שם המוצר *',           hint: 'חובה' },
   { key: 'link',  heb: 'לינק אפיליאציה *',     hint: 'חובה – URL מלא' },
   { key: 'cat',   heb: 'קטגוריה',               hint: CATS.join(' | ') },
+  { key: 'cat2',  heb: 'קטגוריה נוספת',          hint: 'אופציונלי – ' + CATS.join(' | ') },
   { key: 'price', heb: 'מחיר (₪)',              hint: 'מספר בלבד, למשל: 49' },
   { key: 'orig',  heb: 'מחיר מקורי (₪)',        hint: 'מספר בלבד, למשל: 89' },
   { key: 'desc',  heb: 'תיאור',                 hint: 'תיאור קצר של המוצר' },
@@ -29,6 +30,15 @@ function normalizeCat(raw: string): Category {
   // Try Hebrew label match
   const found = CATS.find(c => CAT_LABELS[c] === raw.trim());
   return found ?? 'home';
+}
+
+// Optional category (for the second category column) — empty/invalid → undefined.
+function normalizeCatOpt(raw: string): Category | undefined {
+  const t = (raw ?? '').trim();
+  if (!t) return undefined;
+  const r = t.toLowerCase();
+  if (CATS.includes(r as Category)) return r as Category;
+  return CATS.find(c => CAT_LABELS[c] === t);
 }
 
 function normalizeBadge(raw: string): Badge {
@@ -73,6 +83,7 @@ export default function ExcelIO({ customProducts, overrides, onImport }: Props) 
       'שם המוצר *':         p.name,
       'לינק אפיליאציה *':   p.link,
       'קטגוריה':            p.cat,
+      'קטגוריה נוספת':      p.cat2 ?? '',
       'מחיר (₪)':           p.price ?? '',
       'מחיר מקורי (₪)':     p.orig ?? '',
       'תיאור':              p.desc ?? '',
@@ -89,6 +100,7 @@ export default function ExcelIO({ customProducts, overrides, onImport }: Props) 
       { wch: 35 }, // name
       { wch: 50 }, // link
       { wch: 20 }, // cat
+      { wch: 18 }, // cat2
       { wch: 12 }, // price
       { wch: 15 }, // orig
       { wch: 45 }, // desc
@@ -108,6 +120,7 @@ export default function ExcelIO({ customProducts, overrides, onImport }: Props) 
       ['שם המוצר *',    'שם המוצר שיופיע בכרטיס – חובה',              'טקסט חופשי'],
       ['לינק אפיליאציה *','URL של מוצר אליאקספרס – חובה',             'https://...'],
       ['קטגוריה',       'קטגוריית המוצר (אנגלית)',                     CATS.join(', ')],
+      ['קטגוריה נוספת', 'קטגוריה שנייה אופציונלית – המוצר יופיע בשתיהן', CATS.join(', ')],
       ['מחיר (₪)',      'מחיר מבצע בשקלים – מספר בלבד',              '49'],
       ['מחיר מקורי (₪)','מחיר לפני הנחה – מספר בלבד',               '89'],
       ['תיאור',         'תיאור קצר שיופיע מתחת לשם',                 'טקסט חופשי'],
@@ -128,6 +141,7 @@ export default function ExcelIO({ customProducts, overrides, onImport }: Props) 
       'שם המוצר *':         'מנורת לד חכמה',
       'לינק אפיליאציה *':   'https://s.click.aliexpress.com/e/_example',
       'קטגוריה':            'home',
+      'קטגוריה נוספת':      '',
       'מחיר (₪)':           '35',
       'מחיר מקורי (₪)':     '65',
       'תיאור':              'נורה חכמה 12W עם 16 מיליון צבעים',
@@ -138,7 +152,7 @@ export default function ExcelIO({ customProducts, overrides, onImport }: Props) 
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.json_to_sheet(sample, { header: COLUMNS.map(c => c.heb) });
-    ws['!cols'] = [{ wch: 35 },{ wch: 50 },{ wch: 20 },{ wch: 12 },{ wch: 15 },{ wch: 45 },{ wch: 10 },{ wch: 12 },{ wch: 10 }];
+    ws['!cols'] = [{ wch: 35 },{ wch: 50 },{ wch: 20 },{ wch: 18 },{ wch: 12 },{ wch: 15 },{ wch: 45 },{ wch: 10 },{ wch: 12 },{ wch: 10 }];
     ws['!sheetView'] = { rightToLeft: true };
     XLSX.utils.book_append_sheet(wb, ws, 'מוצרים');
 
@@ -147,6 +161,7 @@ export default function ExcelIO({ customProducts, overrides, onImport }: Props) 
       ['שם המוצר *',    'שם המוצר שיופיע בכרטיס – חובה',       'טקסט חופשי'],
       ['לינק אפיליאציה *','URL מלא – חובה',                     'https://...'],
       ['קטגוריה',       'אנגלית בלבד – ראה ערכים מותרים',       CATS.join(', ')],
+      ['קטגוריה נוספת', 'אופציונלי – קטגוריה שנייה למוצר',       CATS.join(', ')],
       ['מחיר (₪)',      'מספר בלבד ללא סימן ₪',                  '49'],
       ['מחיר מקורי (₪)','מספר בלבד ללא סימן ₪',                 '89'],
       ['תיאור',         'תיאור קצר',                             'טקסט חופשי'],
@@ -185,10 +200,13 @@ export default function ExcelIO({ customProducts, overrides, onImport }: Props) 
           else if (!link.startsWith('http')) errors.push('לינק לא תקין');
 
           const cat  = normalizeCat(String(row['קטגוריה'] ?? row['cat'] ?? 'home'));
+          const cat2raw = normalizeCatOpt(String(row['קטגוריה נוספת'] ?? row['cat2'] ?? ''));
+          const cat2 = cat2raw && cat2raw !== cat ? cat2raw : undefined;
           const data: Omit<Product,'id'> = {
             name,
             link,
             cat,
+            cat2,
             price:     String(row['מחיר (₪)']      ?? row['price'] ?? '').trim() || undefined,
             orig:      String(row['מחיר מקורי (₪)'] ?? row['orig']  ?? '').trim() || undefined,
             desc:      String(row['תיאור']          ?? row['desc']  ?? '').trim(),

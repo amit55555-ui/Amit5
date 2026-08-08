@@ -202,8 +202,15 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
               <span className="text-yellow-400 text-sm tracking-wide">
                 {'★'.repeat(product.stars)}{'☆'.repeat(5 - product.stars)}
               </span>
-              <span className="text-xs text-soft bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-full font-semibold">
-                {CAT_EMOJI[product.cat]} {CAT_LABELS[product.cat]}
+              <span className="flex items-center gap-1">
+                <span className="text-xs text-soft bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-full font-semibold">
+                  {CAT_EMOJI[product.cat]} {CAT_LABELS[product.cat]}
+                </span>
+                {product.cat2 && (
+                  <span className="text-xs text-soft bg-orange-50 border border-orange-100 px-2 py-0.5 rounded-full font-semibold">
+                    {CAT_EMOJI[product.cat2]} {CAT_LABELS[product.cat2]}
+                  </span>
+                )}
               </span>
             </div>
             <h2 className="text-lg font-black text-dark leading-snug">{product.name}</h2>

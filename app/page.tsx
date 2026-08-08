@@ -84,7 +84,7 @@ export default function HomePage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let list = activeCat === 'all' ? allProducts : allProducts.filter(p => p.cat === activeCat);
+    let list = activeCat === 'all' ? allProducts : allProducts.filter(p => p.cat === activeCat || p.cat2 === activeCat);
     if (q) {
       list = list.filter(p =>
         p.name.toLowerCase().includes(q) ||

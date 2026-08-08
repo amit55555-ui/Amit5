@@ -22,6 +22,7 @@ export interface Product {
   id: string;
   name: string;
   cat: Category;
+  cat2?: Category;   // optional second category — product shows under both
   desc: string;
   price?: string;
   orig?: string;
@@ -91,5 +92,5 @@ export const BADGE_CONFIG: Record<string, { label: string; cls: string }> = {
   sale: { label: '🔥 מבצע',      cls: 'bg-amber-100 text-amber-800 border-amber-200' },
   new:  { label: '🆕 חדש',       cls: 'bg-sky-100 text-sky-800 border-sky-200' },
   top:  { label: '⭐ הכי נמכר',  cls: 'bg-purple-100 text-purple-800 border-purple-200' },
-  rec:  { label: '✅ ממליץ',     cls: 'bg-green-100 text-green-800 border-green-200' },
+  rec:  { label: '✅ מומלץ',     cls: 'bg-green-100 text-green-800 border-green-200' },
 };
