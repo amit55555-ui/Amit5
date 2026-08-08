@@ -34,8 +34,9 @@ export interface Product {
   mediaType?: 'image' | 'video' | null;
 }
 
+// The key order here also defines the order categories appear in the app tabs.
 export const CAT_LABELS: Record<Category, string> = {
-  tactical:     'ציוד טקטי',
+  babies:       'תינוקות',
   pokemon:      'פוקימון',
   kids:         'ילדים',
   garden:       'גינה',
@@ -49,7 +50,7 @@ export const CAT_LABELS: Record<Category, string> = {
   jewelry:      'תכשיטים',
   summer:       'קיץ',
   pets:         'בעלי חיים',
-  babies:       'תינוקות',
+  tactical:     'ציוד טקטי',
 };
 
 export const CAT_EMOJI: Record<Category, string> = {
