@@ -13,6 +13,7 @@ import { CAT_LABELS, CAT_EMOJI, type Category, type Product, type SwipeDirection
 import { trackView, trackLike, getAnalytics } from '@/lib/analytics';
 import { fetchCatalog } from '@/lib/catalog';
 import { runCacheMigration } from '@/lib/cacheReset';
+import { startVisitTracking } from '@/lib/visits';
 
 const CATS = Object.keys(CAT_LABELS) as Category[];
 
@@ -54,6 +55,9 @@ export default function HomePage() {
   useEffect(() => {
     // Drop any stale cached catalog from an older build (once per version).
     runCacheMigration();
+
+    // Track site traffic (visits + live presence).
+    startVisitTracking();
 
     // Liked history stays per-device (localStorage)
     try { const r = localStorage.getItem(LS_LIKED); if (r) setLiked(JSON.parse(r)); } catch { /**/ }

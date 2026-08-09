@@ -2,11 +2,12 @@
 
 import { useState, useEffect, useRef, useMemo, Component, type ReactNode } from 'react';
 import { motion } from 'framer-motion';
-import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star, Search, RotateCcw, FileSpreadsheet, BarChart3, Eye, Heart, MousePointerClick, Share2 } from 'lucide-react';
+import { Lock, LogOut, Plus, Pencil, Trash2, Save, X, ArrowRight, Star, Search, RotateCcw, FileSpreadsheet, BarChart3, Eye, Heart, MousePointerClick, Share2, Activity, Users } from 'lucide-react';
 import { PRODUCTS } from '@/data/products';
 import { CAT_LABELS, CAT_EMOJI, type Product, type Category, type Badge } from '@/types';
 import ExcelIO from '@/components/ExcelIO';
 import { getAnalytics, totalsFrom, resetAnalytics, resetServerAnalytics, fetchServerAnalytics, type AnalyticsMap } from '@/lib/analytics';
+import { fetchVisits, type VisitStats } from '@/lib/visits';
 import { isVideoUrl, isYouTube, youTubeEmbed } from '@/lib/media';
 import { fetchCatalog, saveCatalog } from '@/lib/catalog';
 import { runCacheMigration } from '@/lib/cacheReset';
@@ -357,8 +358,9 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   const [overrides, setOverrides]           = useState<Record<string, Product>>({});
   const [hidden, setHidden]                 = useState<string[]>([]);
   const [view, setView]                     = useState<'list' | 'add' | 'edit'>('list');
-  const [tab, setTab]                       = useState<'products' | 'excel' | 'analytics'>('products');
+  const [tab, setTab]                       = useState<'products' | 'excel' | 'analytics' | 'visits'>('products');
   const [analytics, setAnalytics]           = useState<AnalyticsMap>({});
+  const [visits, setVisits]                 = useState<VisitStats | null>(null);
   const [analyticsSource, setAnalyticsSource] = useState<'server' | 'local'>('local');
   const [editProduct, setEditProduct]       = useState<Product | null>(null);
   const [search, setSearch]                 = useState('');
@@ -399,6 +401,16 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   useEffect(() => {
     if (tab === 'analytics') loadAnalytics();
   }, [tab]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Traffic tab: load now and auto-refresh every 25s (keeps "online" live).
+  useEffect(() => {
+    if (tab !== 'visits') return;
+    let alive = true;
+    const load = async () => { const v = await fetchVisits(ADMIN_PASSWORD); if (alive) setVisits(v); };
+    load();
+    const id = setInterval(load, 25_000);
+    return () => { alive = false; clearInterval(id); };
+  }, [tab]);
 
   // Persist helpers — save to the shared server (KV) and cache locally.
   const safeSet = (key: string, value: string) => {
@@ -563,12 +575,20 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             📦 מוצרים
           </button>
           <button
+            onClick={() => setTab('visits')}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black transition-all
+              ${tab === 'visits' ? 'bg-white shadow text-dark' : 'text-soft hover:text-dark'}`}
+          >
+            <Activity className="w-4 h-4" />
+            תנועה
+          </button>
+          <button
             onClick={() => setTab('analytics')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black transition-all
               ${tab === 'analytics' ? 'bg-white shadow text-dark' : 'text-soft hover:text-dark'}`}
           >
             <BarChart3 className="w-4 h-4" />
-            סטטיסטיקה
+            מעורבות
           </button>
           <button
             onClick={() => setTab('excel')}
@@ -592,6 +612,63 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             </button>
           </div>
         )}
+
+        {/* Traffic tab */}
+        {tab === 'visits' && (() => {
+          const maxC = visits ? Math.max(1, ...visits.series.map(s => s.count)) : 1;
+          const cards = [
+            { label: 'עכשיו באתר', value: visits?.online ?? 0, icon: <Activity className="w-4 h-4" />, color: 'text-green-600 bg-green-50', live: true },
+            { label: 'היום', value: visits?.today ?? 0, icon: <Users className="w-4 h-4" />, color: 'text-sky-600 bg-sky-50' },
+            { label: '7 ימים', value: visits?.last7 ?? 0, icon: <Users className="w-4 h-4" />, color: 'text-orange bg-orange-50' },
+            { label: '30 יום', value: visits?.last30 ?? 0, icon: <Users className="w-4 h-4" />, color: 'text-purple-600 bg-purple-50' },
+          ];
+          return (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                {cards.map(s => (
+                  <div key={s.label} className="bg-white rounded-2xl p-4 shadow-sm border border-border flex items-center gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${s.color}`}>{s.icon}</div>
+                    <div>
+                      <div className="text-2xl font-black text-dark leading-none flex items-center gap-1.5">
+                        {s.value}
+                        {s.live && <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block" />}
+                      </div>
+                      <div className="text-[11px] text-soft font-semibold mt-0.5">{s.label}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* 14-day bar chart */}
+              <div className="bg-white rounded-2xl p-4 shadow-sm border border-border">
+                <div className="text-xs font-black text-soft mb-3">כניסות ב-14 הימים האחרונים</div>
+                {!visits ? (
+                  <p className="text-center text-soft text-sm py-8">טוען נתונים...</p>
+                ) : (
+                  <div className="flex items-end justify-between gap-1 h-40">
+                    {visits.series.map(s => {
+                      const [, m, d] = s.date.split('-');
+                      return (
+                        <div key={s.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                          <span className="text-[9px] font-bold text-soft">{s.count > 0 ? s.count : ''}</span>
+                          <div
+                            className="w-full rounded-t-md bg-gradient-to-t from-orange to-gold"
+                            style={{ height: `${Math.round((s.count / maxC) * 100)}%`, minHeight: s.count > 0 ? 4 : 2, opacity: s.count > 0 ? 1 : 0.25 }}
+                          />
+                          <span className="text-[8px] text-gray-400">{d}/{m}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <p className="text-[11px] text-soft text-center mt-3">
+                🌐 &quot;עכשיו באתר&quot; = גולשים פעילים ב-90 השניות האחרונות · מתעדכן אוטומטית
+              </p>
+            </motion.div>
+          );
+        })()}
 
         {/* Analytics tab */}
         {tab === 'analytics' && (() => {
