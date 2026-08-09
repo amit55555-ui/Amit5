@@ -455,14 +455,33 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
       // Edit built-in → save as override
       commit({ custom: customProducts, overrides: { ...overrides, [data.id]: { ...data, id: data.id } as Product }, hidden });
     }
-    setView('list');
-    setEditProduct(null);
+    closeForm();
   };
 
-  const handleEdit = (p: Product) => {
-    setEditProduct(p);
-    setView('edit');
+  // ── Browser-back integration ──
+  // Opening the add/edit form pushes a history entry, so pressing Back (or
+  // Backspace) returns to the product list instead of leaving the admin panel.
+  const openForm = (product: Product | null) => {
+    setEditProduct(product);
+    setView(product ? 'edit' : 'add');
+    try { window.history.pushState({ mzForm: true }, ''); } catch { /**/ }
   };
+  const closeForm = () => {
+    if (typeof window !== 'undefined' && window.history.state?.mzForm) {
+      window.history.back(); // consumes the form entry → popstate resets the view
+    } else {
+      setView('list');
+      setEditProduct(null);
+    }
+  };
+
+  useEffect(() => {
+    const onPop = () => { setView('list'); setEditProduct(null); };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
+  const handleEdit = (p: Product) => openForm(p);
 
   const handleDelete = (p: Product & { _source: 'builtin' | 'custom' }) => {
     if (!confirm('למחוק את המוצר? ניתן לשחזר בכל עת.')) return;
@@ -686,7 +705,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                   />
                 </div>
                 <button
-                  onClick={() => { setView('add'); setEditProduct(null); }}
+                  onClick={() => openForm(null)}
                   className="bg-orange hover:bg-deep-orange text-white font-black px-4 py-2.5 rounded-xl transition-colors flex items-center gap-1.5 shadow-lg shadow-orange/25 flex-shrink-0"
                 >
                   <Plus className="w-4 h-4" />
@@ -789,7 +808,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                     {view === 'edit' ? '✏️ עריכת מוצר' : '➕ הוספת מוצר חדש'}
                   </h2>
                   <button
-                    onClick={() => { setView('list'); setEditProduct(null); }}
+                    onClick={closeForm}
                     className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"
                   >
                     <X className="w-4 h-4 text-gray-500" />
@@ -799,7 +818,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                   initial={editProduct || undefined}
                   isBuiltIn={editProduct ? isBuiltIn(editProduct.id) : false}
                   onSave={handleSave}
-                  onCancel={() => { setView('list'); setEditProduct(null); }}
+                  onCancel={closeForm}
                 />
               </div>
             </motion.div>
