@@ -26,6 +26,7 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
   const rotate = useTransform(x, [-260, 260], [-20, 20]);
   const [muted, setMuted] = useState(true);
   const [videoFailed, setVideoFailed] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const likeOpacity  = useTransform(x, [30, 120], [0, 1]);
@@ -161,11 +162,15 @@ export const SwipeCard = forwardRef<SwipeCardHandle, Props>(function SwipeCard(
                   </button>
                 </>
               )
+            ) : imgFailed ? (
+              // Image couldn't load (e.g. host blocks hotlinking) — graceful fallback
+              <div className="w-full h-full flex items-center justify-center text-[5rem]">{emoji}</div>
             ) : (
               <>
-                {/* Blurred fill of the same image so nothing is cropped, on any device */}
-                <img src={product.mediaData} aria-hidden alt="" className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-60" />
-                <img src={product.mediaData} alt={product.name} className="absolute inset-0 w-full h-full object-contain" />
+                {/* Blurred fill of the same image so nothing is cropped, on any device.
+                    referrerPolicy=no-referrer bypasses AliExpress hotlink protection. */}
+                <img src={product.mediaData} aria-hidden alt="" referrerPolicy="no-referrer" className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-60" />
+                <img src={product.mediaData} alt={product.name} referrerPolicy="no-referrer" onError={() => setImgFailed(true)} className="absolute inset-0 w-full h-full object-contain" />
               </>
             )
           ) : (

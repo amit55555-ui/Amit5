@@ -116,7 +116,7 @@ function LikedItem({ product }: { product: Product }) {
     >
       <div className="w-14 h-14 rounded-xl overflow-hidden bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0">
         {product.mediaData && product.mediaType === 'image'
-          ? <img src={product.mediaData} alt={product.name} className="w-full h-full object-cover" />
+          ? <img src={product.mediaData} alt={product.name} referrerPolicy="no-referrer" className="w-full h-full object-cover" />
           : (product.emoji || CAT_EMOJI[product.cat])}
       </div>
 

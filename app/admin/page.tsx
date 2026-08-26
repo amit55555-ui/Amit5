@@ -285,7 +285,7 @@ function ProductForm({
                 ? (isYouTube(preview)
                     ? <iframe src={youTubeEmbed(preview)} className="w-full h-32 mx-auto rounded-lg" style={{ border: 0 }} allow="autoplay; encrypted-media" title="preview" />
                     : <video src={preview} className="max-h-32 mx-auto rounded-lg" controls />)
-                : <img src={preview} className="max-h-32 mx-auto rounded-lg object-cover" alt="" />}
+                : <img src={preview} referrerPolicy="no-referrer" className="max-h-32 mx-auto rounded-lg object-cover" alt="" />}
               <button
                 onClick={e => { e.stopPropagation(); setPreview(null); setForm(f => ({ ...f, mediaData: null, mediaType: null })); }}
                 className="absolute top-1 end-1 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow text-gray-500"
@@ -827,7 +827,7 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
                     {/* Thumbnail */}
                     <div className="w-12 h-12 rounded-xl overflow-hidden bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0">
                       {product.mediaData && product.mediaType === 'image'
-                        ? <img src={product.mediaData} alt="" className="w-full h-full object-cover" />
+                        ? <img src={product.mediaData} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
                         : (product.emoji || CAT_EMOJI[product.cat])}
                     </div>
 
