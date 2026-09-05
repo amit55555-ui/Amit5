@@ -1,86 +1,21 @@
-// ===== מודל הנתונים של אפליקציית ניהול הבניין =====
+// ===== מודל הנתונים של מפת דיווחי נזילות מים =====
 
-// סטטוס הטיפול בפנייה
-export type ReportStatus = 'open' | 'in_progress' | 'closed';
-
-// רמת דחיפות
-export type Priority = 'normal' | 'urgent';
-
-// מי כתב הודעה בשרשור הפנייה
-export type Author = 'resident' | 'committee';
-
-// קטגוריית התקלה
-export interface Category {
+// דיווח על נזילת מים במקום מסוים במפה
+export interface Leak {
   id: string;
-  label: string;
-  emoji: string;
-}
-
-// הודעה בודדת בשרשור התכתובת של פנייה
-export interface ReportMessage {
-  id: string;
-  author: Author;
-  authorName: string;
-  text: string;
+  lat: number;
+  lng: number;
+  description: string;
+  // כתובת ה-URL של תמונת הנזילה
+  photoUrl: string;
   createdAt: number;
 }
 
-// פנייה / דיווח תקלה
-export interface Report {
-  id: string;
-  // מספר רץ ידידותי להצגה (#104)
-  ref: number;
-
-  categoryId: string;
-  title: string;
+// גוף בקשה ליצירת דיווח חדש (מה שהלקוח שולח)
+export interface NewLeakInput {
+  lat: number;
+  lng: number;
   description: string;
-
-  // מיקום בבניין הארוך
-  entrance: string;   // מספר הכניסה / מספר הבניין
-  floor: string;      // קומה (אופציונלי)
-
-  // פרטי המדווח
-  reporterName: string;
-  reporterPhone: string;
-  reporterEmail?: string;
-  // טוקן אנונימי שמזהה את הדפדפן של המדווח (לצורך "הפניות שלי")
-  reporterToken: string;
-
-  priority: Priority;
-  status: ReportStatus;
-
-  // תמונות של התקלה (data URLs)
-  photos?: string[];
-
-  // שרשור ההתכתבות בין הדייר לוועד
-  messages: ReportMessage[];
-
-  createdAt: number;
-  updatedAt: number;
+  // תמונת הנזילה כ-data URL
+  photo: string;
 }
-
-// גוף בקשה ליצירת פנייה חדשה (מה שהלקוח שולח)
-export interface NewReportInput {
-  categoryId: string;
-  title: string;
-  description: string;
-  entrance: string;
-  floor: string;
-  reporterName: string;
-  reporterPhone: string;
-  reporterEmail?: string;
-  reporterToken: string;
-  priority: Priority;
-  photos?: string[];
-}
-
-export const STATUS_LABELS: Record<ReportStatus, string> = {
-  open: 'פתוח',
-  in_progress: 'בטיפול',
-  closed: 'סגור',
-};
-
-export const PRIORITY_LABELS: Record<Priority, string> = {
-  normal: 'רגיל',
-  urgent: 'דחוף',
-};

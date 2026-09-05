@@ -1,7 +1,5 @@
 // ===== עזרי תצוגה =====
 
-import { ReportStatus } from '@/types';
-
 export function timeAgo(ts: number): string {
   const diff = Date.now() - ts;
   const m = Math.floor(diff / 60000);
@@ -23,9 +21,3 @@ export function formatDateTime(ts: number): string {
     minute: '2-digit',
   });
 }
-
-export const STATUS_STYLE: Record<ReportStatus, { bg: string; text: string; dot: string }> = {
-  open: { bg: 'bg-red-50', text: 'text-open', dot: 'bg-open' },
-  in_progress: { bg: 'bg-amber-50', text: 'text-progress', dot: 'bg-progress' },
-  closed: { bg: 'bg-green-50', text: 'text-closed', dot: 'bg-closed' },
-};
