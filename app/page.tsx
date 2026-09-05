@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { Leak } from '@/types';
 import ReportLeakForm from '@/components/ReportLeakForm';
+import type { FlyTarget } from '@/components/LeakMap';
 
 const LeakMap = dynamic(() => import('@/components/LeakMap'), {
   ssr: false,
@@ -12,10 +13,16 @@ const LeakMap = dynamic(() => import('@/components/LeakMap'), {
   ),
 });
 
+type Mode = 'idle' | 'locating' | 'confirm' | 'manual';
+
 export default function Home() {
   const [leaks, setLeaks] = useState<Leak[]>([]);
-  const [placing, setPlacing] = useState(false);
+  const [mode, setMode] = useState<Mode>('idle');
   const [pending, setPending] = useState<{ lat: number; lng: number } | null>(null);
+  const [reportLocation, setReportLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [flyTarget, setFlyTarget] = useState<FlyTarget | null>(null);
+  const [flyToken, setFlyToken] = useState(0);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -36,6 +43,52 @@ export default function Home() {
     };
   }, []);
 
+  function flyTo(lat: number, lng: number, zoom: number) {
+    const token = flyToken + 1;
+    setFlyToken(token);
+    setFlyTarget({ lat, lng, zoom, token });
+  }
+
+  function goManual(message: string | null) {
+    setNotice(message);
+    setPending(null);
+    setMode('manual');
+  }
+
+  function startReportFlow() {
+    setNotice(null);
+    if (!('geolocation' in navigator)) {
+      goManual('הדפדפן לא תומך באיתור מיקום אוטומטי — בחרו מיקום ידנית על המפה');
+      return;
+    }
+    setMode('locating');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setPending({ lat: latitude, lng: longitude });
+        flyTo(latitude, longitude, 17);
+        setMode('confirm');
+      },
+      () => {
+        goManual('לא הצלחנו לאתר את מיקומך — בחרו מיקום ידנית על המפה');
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  }
+
+  function cancelFlow() {
+    setMode('idle');
+    setPending(null);
+    setNotice(null);
+  }
+
+  function confirmLocation() {
+    if (!pending) return;
+    setReportLocation(pending);
+    setMode('idle');
+    setPending(null);
+  }
+
   return (
     <div className="relative h-dvh w-full overflow-hidden">
       <header className="pointer-events-none absolute inset-x-0 top-0 z-[500] flex justify-center p-3">
@@ -45,40 +98,83 @@ export default function Home() {
         </div>
       </header>
 
-      <LeakMap leaks={leaks} placing={placing} pending={pending} onPick={(lat, lng) => {
-        setPending({ lat, lng });
-        setPlacing(false);
-      }} />
+      <LeakMap
+        leaks={leaks}
+        clickable={mode === 'manual' || mode === 'confirm'}
+        pending={pending}
+        pendingDraggable={mode === 'confirm'}
+        flyTarget={flyTarget}
+        onPick={(lat, lng) => {
+          setPending({ lat, lng });
+          if (mode === 'manual') setMode('confirm');
+        }}
+        onDragPending={(lat, lng) => setPending({ lat, lng })}
+      />
 
-      {placing && (
+      {mode === 'locating' && (
         <div className="pointer-events-none absolute inset-x-0 top-20 z-[500] flex justify-center px-3">
-          <div className="pointer-events-auto rounded-xl bg-ink/90 px-4 py-2 text-sm font-medium text-white shadow">
-            לחצו על המפה במקום שבו יש נזילה
+          <div className="pointer-events-auto flex items-center gap-2 rounded-xl bg-ink/90 px-4 py-2 text-sm font-medium text-white shadow">
+            <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+            מאתרים את מיקומך…
           </div>
         </div>
       )}
 
-      <div className="absolute inset-x-0 bottom-5 z-[500] flex justify-center px-4">
-        {!placing && !pending && (
-          <button onClick={() => setPlacing(true)} className="btn-primary shadow-lg">
+      {mode === 'confirm' && (
+        <div className="pointer-events-none absolute inset-x-0 top-20 z-[500] flex justify-center px-3">
+          <div className="pointer-events-auto max-w-xs rounded-xl bg-ink/90 px-4 py-2 text-center text-sm font-medium text-white shadow">
+            זה המיקום של הנזילה? אפשר לגרור את הסימון או ללחוץ במקום אחר במפה לדיוק
+          </div>
+        </div>
+      )}
+
+      {mode === 'manual' && (
+        <div className="pointer-events-none absolute inset-x-0 top-20 z-[500] flex justify-center px-3">
+          <div className="pointer-events-auto max-w-xs rounded-xl bg-ink/90 px-4 py-2 text-center text-sm font-medium text-white shadow">
+            {notice ?? 'לחצו על המפה במקום שבו יש נזילה'}
+          </div>
+        </div>
+      )}
+
+      <div className="absolute inset-x-0 bottom-5 z-[500] flex justify-center gap-2 px-4">
+        {mode === 'idle' && (
+          <button onClick={startReportFlow} className="btn-primary shadow-lg">
             <span className="text-lg">➕</span>
             דיווח על נזילה
           </button>
         )}
-        {placing && (
-          <button onClick={() => setPlacing(false)} className="btn-ghost shadow-lg">
+        {mode === 'locating' && (
+          <button onClick={cancelFlow} className="btn-ghost shadow-lg">
+            ביטול
+          </button>
+        )}
+        {mode === 'confirm' && (
+          <>
+            <button onClick={cancelFlow} className="btn-ghost shadow-lg">
+              ביטול
+            </button>
+            <button onClick={() => goManual(null)} className="btn-ghost shadow-lg">
+              בחירה ידנית במפה
+            </button>
+            <button onClick={confirmLocation} className="btn-primary shadow-lg">
+              אשר מיקום ✔
+            </button>
+          </>
+        )}
+        {mode === 'manual' && (
+          <button onClick={cancelFlow} className="btn-ghost shadow-lg">
             ביטול
           </button>
         )}
       </div>
 
-      {pending && (
+      {reportLocation && (
         <ReportLeakForm
-          location={pending}
-          onClose={() => setPending(null)}
+          location={reportLocation}
+          onClose={() => setReportLocation(null)}
           onCreated={(leak) => {
             setLeaks((prev) => [leak, ...prev]);
-            setPending(null);
+            setReportLocation(null);
           }}
         />
       )}

@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
+import { useEffect, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import { Leak } from '@/types';
 import { timeAgo } from '@/lib/format';
@@ -24,6 +24,18 @@ const pendingIcon = L.divIcon({
   iconAnchor: [17, 32],
 });
 
+export type FlyTarget = { lat: number; lng: number; zoom: number; token: number };
+
+function FlyTo({ target }: { target: FlyTarget | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!target) return;
+    map.flyTo([target.lat, target.lng], target.zoom, { duration: 0.75 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [target?.token]);
+  return null;
+}
+
 function ClickCatcher({ active, onPick }: { active: boolean; onPick: (lat: number, lng: number) => void }) {
   useMapEvents({
     click(e) {
@@ -36,14 +48,20 @@ function ClickCatcher({ active, onPick }: { active: boolean; onPick: (lat: numbe
 
 export default function LeakMap({
   leaks,
-  placing,
+  clickable,
   pending,
+  pendingDraggable,
+  flyTarget,
   onPick,
+  onDragPending,
 }: {
   leaks: Leak[];
-  placing: boolean;
+  clickable: boolean;
   pending: { lat: number; lng: number } | null;
+  pendingDraggable: boolean;
+  flyTarget: FlyTarget | null;
   onPick: (lat: number, lng: number) => void;
+  onDragPending: (lat: number, lng: number) => void;
 }) {
   const markers = useMemo(() => leaks, [leaks]);
 
@@ -52,14 +70,15 @@ export default function LeakMap({
       center={TLV_CENTER}
       zoom={13}
       minZoom={11}
-      className={`h-full w-full ${placing ? 'cursor-crosshair' : ''}`}
+      className={`h-full w-full ${clickable ? 'cursor-crosshair' : ''}`}
       attributionControl={true}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       />
-      <ClickCatcher active={placing} onPick={onPick} />
+      <ClickCatcher active={clickable} onPick={onPick} />
+      <FlyTo target={flyTarget} />
 
       {markers.map((leak) => (
         <Marker key={leak.id} position={[leak.lat, leak.lng]} icon={leakIcon}>
@@ -78,7 +97,20 @@ export default function LeakMap({
         </Marker>
       ))}
 
-      {pending && <Marker position={[pending.lat, pending.lng]} icon={pendingIcon} />}
+      {pending && (
+        <Marker
+          position={[pending.lat, pending.lng]}
+          icon={pendingIcon}
+          draggable={pendingDraggable}
+          eventHandlers={{
+            dragend: (e) => {
+              const m = e.target as L.Marker;
+              const { lat, lng } = m.getLatLng();
+              onDragPending(lat, lng);
+            },
+          }}
+        />
+      )}
     </MapContainer>
   );
 }
