@@ -65,3 +65,28 @@ export function ensureSchema(): Promise<void> {
   });
   return schemaReady;
 }
+
+// טבלת מערכת הנוכחות (עצמאית מטבלת הפניות)
+let attendanceSchemaReady: Promise<void> | null = null;
+export function ensureAttendanceSchema(): Promise<void> {
+  if (attendanceSchemaReady) return attendanceSchemaReady;
+  const db = sql();
+  attendanceSchemaReady = (async () => {
+    await db`
+      CREATE TABLE IF NOT EXISTS attendance_entries (
+        id TEXT PRIMARY KEY,
+        clock_in BIGINT NOT NULL,
+        clock_out BIGINT,
+        note TEXT NOT NULL DEFAULT '',
+        edited_by_admin BOOLEAN NOT NULL DEFAULT false,
+        created_at BIGINT NOT NULL,
+        updated_at BIGINT NOT NULL
+      )
+    `;
+    await db`CREATE INDEX IF NOT EXISTS attendance_clock_in_idx ON attendance_entries (clock_in DESC)`;
+  })().catch((e) => {
+    attendanceSchemaReady = null;
+    throw e;
+  });
+  return attendanceSchemaReady;
+}

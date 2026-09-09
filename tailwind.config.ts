@@ -19,6 +19,9 @@ const config: Config = {
         open:        '#dc2626', // אדום – פתוח
         progress:    '#d97706', // כתום – בטיפול
         closed:      '#16a34a', // ירוק – סגור
+        // מערכת נוכחות: סימון עריכת מנהל (שקוף ומובחן מרשומות רגילות)
+        admin:       '#7c3aed', // סגול – נערך ע"י מנהל
+        'admin-light':'#ede9fe',
       },
       fontFamily: {
         heebo: ['var(--font-heebo)', 'sans-serif'],

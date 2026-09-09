@@ -84,3 +84,29 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
   normal: 'רגיל',
   urgent: 'דחוף',
 };
+
+// ===== מערכת נוכחות (שעון עבודה) =====
+
+// רשומת נוכחות בודדת (כניסה ↔ יציאה)
+export interface AttendanceEntry {
+  id: string;
+  clockIn: number;            // חותמת זמן (מ"ש) של הכניסה
+  clockOut: number | null;    // חותמת זמן של היציאה, או null אם עדיין בעבודה
+  note: string;
+  // true אם הרשומה נוצרה או נערכה ע"י מנהל (עריכה ידנית של שעות / הוספה לתאריך אחר)
+  editedByAdmin: boolean;
+  createdAt: number;
+  updatedAt: number;
+}
+
+// גוף בקשה ליצירת רשומת כניסה רגילה (עובד, ללא הרשאת מנהל)
+export interface NewAttendanceInput {
+  note?: string;
+}
+
+// גוף בקשה ליצירת רשומה ע"י מנהל (תאריך/שעה חופשיים)
+export interface NewAdminAttendanceInput {
+  clockIn: number;
+  clockOut: number | null;
+  note?: string;
+}
