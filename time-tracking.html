@@ -1,0 +1,649 @@
+<title>מערכת נוכחות</title>
+<style>
+  :root{
+    --bg:#f5f6f8;
+    --card:#ffffff;
+    --text:#1c1f26;
+    --muted:#6b7280;
+    --border:#e5e7eb;
+    --primary:#2563eb;
+    --primary-dark:#1d4ed8;
+    --danger:#dc2626;
+    --danger-dark:#b91c1c;
+    --success:#16a34a;
+    --warn-bg:#fff7ed;
+    --warn-border:#fdba74;
+    --warn-text:#9a3412;
+    --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.08);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#14161b;
+      --card:#1e2128;
+      --text:#e8e9ec;
+      --muted:#9aa1ac;
+      --border:#2f333c;
+      --primary:#3b82f6;
+      --primary-dark:#60a5fa;
+      --danger:#ef4444;
+      --danger-dark:#f87171;
+      --success:#22c55e;
+      --warn-bg:#2a1f14;
+      --warn-border:#7c4a1f;
+      --warn-text:#fdba74;
+      --shadow: 0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.5);
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#14161b;
+    --card:#1e2128;
+    --text:#e8e9ec;
+    --muted:#9aa1ac;
+    --border:#2f333c;
+    --primary:#3b82f6;
+    --primary-dark:#60a5fa;
+    --danger:#ef4444;
+    --danger-dark:#f87171;
+    --success:#22c55e;
+    --warn-bg:#2a1f14;
+    --warn-border:#7c4a1f;
+    --warn-text:#fdba74;
+    --shadow: 0 1px 3px rgba(0,0,0,.4), 0 1px 2px rgba(0,0,0,.5);
+  }
+  *{box-sizing:border-box}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, "Heebo", sans-serif;
+    direction:rtl;
+    text-align:right;
+    padding:16px;
+  }
+  .wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+  h1{font-size:1.4rem;margin:4px 0 0}
+  .subtitle{color:var(--muted);font-size:.9rem;margin:0}
+  .card{
+    background:var(--card);
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:18px;
+    box-shadow:var(--shadow);
+  }
+  .status-line{display:flex;align-items:center;gap:8px;font-size:1.05rem;margin-bottom:14px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--muted);flex-shrink:0}
+  .dot.on{background:var(--success)}
+  .status-text{font-weight:600}
+  .warn-box{
+    background:var(--warn-bg);
+    border:1px solid var(--warn-border);
+    color:var(--warn-text);
+    border-radius:10px;
+    padding:12px 14px;
+    font-size:.9rem;
+    margin-bottom:14px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .warn-box .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap}
+  button{
+    font-family:inherit;
+    font-size:1rem;
+    border:none;
+    border-radius:12px;
+    cursor:pointer;
+    transition:filter .15s, transform .05s;
+  }
+  button:active{transform:scale(.98)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .btn-main{
+    flex:1 1 140px;
+    padding:18px 16px;
+    font-size:1.15rem;
+    font-weight:700;
+    color:#fff;
+  }
+  .btn-in{background:var(--success)}
+  .btn-in:not(:disabled):hover{filter:brightness(1.08)}
+  .btn-out{background:var(--danger)}
+  .btn-out:not(:disabled):hover{filter:brightness(1.08)}
+  .btn-secondary{
+    padding:10px 14px;
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text);
+  }
+  .btn-secondary:hover{background:var(--bg)}
+  .btn-small{
+    padding:6px 10px;
+    font-size:.85rem;
+    background:var(--primary);
+    color:#fff;
+  }
+  .btn-small.secondary{background:transparent;border:1px solid var(--border);color:var(--text)}
+  input[type=text], input[type=time], input[type=date], select{
+    font-family:inherit;
+    font-size:.95rem;
+    padding:8px 10px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--card);
+    color:var(--text);
+  }
+  label{font-size:.85rem;color:var(--muted)}
+  .note-field{display:flex;flex-direction:column;gap:4px;margin-top:14px}
+  .note-field input{width:100%}
+  .tabs{display:flex;gap:6px;border-bottom:1px solid var(--border);margin-bottom:14px}
+  .tab{
+    padding:10px 16px;
+    cursor:pointer;
+    color:var(--muted);
+    border-bottom:2px solid transparent;
+    font-weight:600;
+    font-size:.95rem;
+  }
+  .tab.active{color:var(--primary);border-color:var(--primary)}
+  .nav-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}
+  .nav-row .label{font-weight:700;font-size:1.05rem;flex:1;text-align:center}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{padding:8px 6px;text-align:center;border-bottom:1px solid var(--border)}
+  th{color:var(--muted);font-weight:600;font-size:.82rem}
+  tr:last-child td{border-bottom:none}
+  .today-row td{background:color-mix(in srgb, var(--primary) 10%, transparent)}
+  .empty{color:var(--muted);text-align:center;padding:24px 0;font-size:.9rem}
+  .total-line{
+    display:flex;justify-content:space-between;align-items:center;
+    margin-top:14px;padding-top:14px;border-top:1px dashed var(--border);
+    font-weight:700;font-size:1.05rem;
+  }
+  .actions-top{display:flex;justify-content:flex-end;gap:8px;margin-bottom:10px}
+  .entry-note{color:var(--muted);font-size:.8rem;display:block;margin-top:2px}
+  .del-btn{background:transparent;border:none;color:var(--danger);cursor:pointer;font-size:1rem;padding:2px 6px}
+  footer{text-align:center;color:var(--muted);font-size:.78rem;margin-top:4px}
+  @media (max-width:480px){
+    table{font-size:.78rem}
+    th,td{padding:6px 3px}
+  }
+</style>
+
+<div class="wrap">
+  <div>
+    <h1>מערכת נוכחות</h1>
+    <p class="subtitle">מעקב שעות עבודה אישי — נשמר בדפדפן שלך</p>
+  </div>
+
+  <div class="card">
+    <div id="warnBox"></div>
+    <div class="status-line">
+      <span class="dot" id="statusDot"></span>
+      <span class="status-text" id="statusText">טוען...</span>
+    </div>
+    <div class="btn-row">
+      <button class="btn-main btn-in" id="clockInBtn">כניסה</button>
+      <button class="btn-main btn-out" id="clockOutBtn">יציאה</button>
+    </div>
+    <div class="note-field">
+      <label for="noteInput">הערה (אופציונלי)</label>
+      <input type="text" id="noteInput" placeholder="לדוגמה: פגישה עם לקוח" maxlength="200">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="tabs">
+      <div class="tab active" data-tab="daily">דוח יומי</div>
+      <div class="tab" data-tab="monthly">דוח חודשי</div>
+    </div>
+
+    <div id="dailyPanel">
+      <div class="nav-row">
+        <button class="btn-secondary" id="prevDay">‹ יום קודם</button>
+        <span class="label" id="dailyLabel"></span>
+        <button class="btn-secondary" id="nextDay">יום הבא ›</button>
+      </div>
+      <div id="dailyContent"></div>
+    </div>
+
+    <div id="monthlyPanel" style="display:none">
+      <div class="nav-row">
+        <button class="btn-secondary" id="prevMonth">‹ חודש קודם</button>
+        <span class="label" id="monthlyLabel"></span>
+        <button class="btn-secondary" id="nextMonth">חודש הבא ›</button>
+      </div>
+      <div class="actions-top">
+        <button class="btn-small" id="exportCsvBtn">ייצוא CSV</button>
+      </div>
+      <div id="monthlyContent"></div>
+    </div>
+  </div>
+
+  <footer>הנתונים נשמרים מקומית בדפדפן זה בלבד (localStorage)</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "timeTracking.v1";
+
+  function loadData(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return { version:1, entries:[] };
+      var parsed = JSON.parse(raw);
+      if(!parsed || !Array.isArray(parsed.entries)) return { version:1, entries:[] };
+      return parsed;
+    }catch(e){
+      return { version:1, entries:[] };
+    }
+  }
+
+  function saveData(){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  }
+
+  var state = loadData();
+
+  function uid(){
+    return Date.now().toString(36) + Math.random().toString(36).slice(2,8);
+  }
+
+  function pad2(n){ return String(n).padStart(2,"0"); }
+
+  function fmtTime(iso){
+    var d = new Date(iso);
+    return pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+  }
+
+  function fmtDateKey(d){
+    return d.getFullYear() + "-" + pad2(d.getMonth()+1) + "-" + pad2(d.getDate());
+  }
+
+  function dateKeyFromIso(iso){
+    return fmtDateKey(new Date(iso));
+  }
+
+  function durationMs(startIso, endIso){
+    return new Date(endIso).getTime() - new Date(startIso).getTime();
+  }
+
+  function fmtDuration(ms){
+    if(ms < 0) ms = 0;
+    var totalMin = Math.round(ms/60000);
+    var h = Math.floor(totalMin/60);
+    var m = totalMin % 60;
+    return h + " שעות " + pad2(m) + " דק'";
+  }
+
+  function fmtHoursDecimal(ms){
+    return (ms/3600000).toFixed(2);
+  }
+
+  function findOpenEntry(){
+    for(var i=0;i<state.entries.length;i++){
+      if(!state.entries[i].clockOut) return state.entries[i];
+    }
+    return null;
+  }
+
+  function sortedEntries(){
+    return state.entries.slice().sort(function(a,b){
+      return new Date(a.clockIn) - new Date(b.clockIn);
+    });
+  }
+
+  // ---------- Clock in/out ----------
+
+  var noteInput = document.getElementById("noteInput");
+  var clockInBtn = document.getElementById("clockInBtn");
+  var clockOutBtn = document.getElementById("clockOutBtn");
+  var statusDot = document.getElementById("statusDot");
+  var statusText = document.getElementById("statusText");
+  var warnBox = document.getElementById("warnBox");
+
+  function isStale(entry){
+    // open entry from a previous day (not today) counts as "forgot to clock out"
+    var today = fmtDateKey(new Date());
+    return dateKeyFromIso(entry.clockIn) !== today;
+  }
+
+  function render(){
+    renderStatus();
+    renderDaily();
+    renderMonthly();
+  }
+
+  function renderStatus(){
+    var open = findOpenEntry();
+    warnBox.innerHTML = "";
+
+    if(open){
+      statusDot.classList.add("on");
+      statusText.textContent = "בעבודה מ-" + fmtTime(open.clockIn);
+      clockInBtn.disabled = true;
+      clockOutBtn.disabled = false;
+
+      if(isStale(open)){
+        var box = document.createElement("div");
+        box.className = "warn-box";
+
+        var row1 = document.createElement("div");
+        row1.className = "row";
+        row1.textContent = "⚠️ נראה שנשארת \"בעבודה\" מתאריך " + dateKeyFromIso(open.clockIn) + " ולא סגרת יציאה. אפשר לסגור ידנית:";
+        box.appendChild(row1);
+
+        var row2 = document.createElement("div");
+        row2.className = "row";
+
+        var dateInput = document.createElement("input");
+        dateInput.type = "date";
+        dateInput.value = dateKeyFromIso(open.clockIn);
+
+        var timeInput = document.createElement("input");
+        timeInput.type = "time";
+        timeInput.value = "18:00";
+
+        var closeBtn = document.createElement("button");
+        closeBtn.className = "btn-small";
+        closeBtn.textContent = "סגור יציאה ידנית";
+        closeBtn.addEventListener("click", function(){
+          var dateVal = dateInput.value;
+          var timeVal = timeInput.value;
+          if(!dateVal || !timeVal){
+            alert("נא לבחור תאריך ושעה");
+            return;
+          }
+          var closeIso = new Date(dateVal + "T" + timeVal + ":00").toISOString();
+          if(new Date(closeIso) <= new Date(open.clockIn)){
+            alert("שעת היציאה חייבת להיות אחרי שעת הכניסה");
+            return;
+          }
+          open.clockOut = closeIso;
+          saveData();
+          render();
+        });
+
+        row2.appendChild(dateInput);
+        row2.appendChild(timeInput);
+        row2.appendChild(closeBtn);
+        box.appendChild(row2);
+
+        warnBox.appendChild(box);
+      }
+    } else {
+      statusDot.classList.remove("on");
+      statusText.textContent = "לא נוכח כרגע";
+      clockInBtn.disabled = false;
+      clockOutBtn.disabled = true;
+    }
+  }
+
+  clockInBtn.addEventListener("click", function(){
+    if(findOpenEntry()) return;
+    var entry = {
+      id: uid(),
+      clockIn: new Date().toISOString(),
+      clockOut: null,
+      note: noteInput.value.trim()
+    };
+    state.entries.push(entry);
+    noteInput.value = "";
+    saveData();
+    render();
+  });
+
+  clockOutBtn.addEventListener("click", function(){
+    var open = findOpenEntry();
+    if(!open) return;
+    open.clockOut = new Date().toISOString();
+    if(!open.note && noteInput.value.trim()){
+      open.note = noteInput.value.trim();
+    }
+    noteInput.value = "";
+    saveData();
+    render();
+  });
+
+  // ---------- Tabs ----------
+
+  var tabs = document.querySelectorAll(".tab");
+  var dailyPanel = document.getElementById("dailyPanel");
+  var monthlyPanel = document.getElementById("monthlyPanel");
+
+  tabs.forEach(function(tab){
+    tab.addEventListener("click", function(){
+      tabs.forEach(function(t){ t.classList.remove("active"); });
+      tab.classList.add("active");
+      if(tab.dataset.tab === "daily"){
+        dailyPanel.style.display = "";
+        monthlyPanel.style.display = "none";
+      } else {
+        dailyPanel.style.display = "none";
+        monthlyPanel.style.display = "";
+      }
+    });
+  });
+
+  // ---------- Daily report ----------
+
+  var currentDay = new Date();
+  currentDay.setHours(0,0,0,0);
+
+  var WEEKDAYS = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+  var MONTHS = ["ינואר","פברואר","מרץ","אפריל","מאי","יוני","יולי","אוגוסט","ספטמבר","אוקטובר","נובמבר","דצמבר"];
+
+  function fmtDayLabel(d){
+    return WEEKDAYS[d.getDay()] + ", " + d.getDate() + " ב" + MONTHS[d.getMonth()] + " " + d.getFullYear();
+  }
+
+  document.getElementById("prevDay").addEventListener("click", function(){
+    currentDay.setDate(currentDay.getDate()-1);
+    renderDaily();
+  });
+  document.getElementById("nextDay").addEventListener("click", function(){
+    currentDay.setDate(currentDay.getDate()+1);
+    renderDaily();
+  });
+
+  function deleteEntry(id){
+    if(!confirm("למחוק רשומה זו?")) return;
+    state.entries = state.entries.filter(function(e){ return e.id !== id; });
+    saveData();
+    render();
+  }
+
+  function renderDaily(){
+    document.getElementById("dailyLabel").textContent = fmtDayLabel(currentDay);
+    var key = fmtDateKey(currentDay);
+    var dayEntries = sortedEntries().filter(function(e){
+      return dateKeyFromIso(e.clockIn) === key;
+    });
+
+    var content = document.getElementById("dailyContent");
+    content.innerHTML = "";
+
+    if(dayEntries.length === 0){
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "אין רשומות ליום זה";
+      content.appendChild(empty);
+      return;
+    }
+
+    var table = document.createElement("table");
+    table.innerHTML = "<thead><tr><th>כניסה</th><th>יציאה</th><th>משך</th><th></th></tr></thead>";
+    var tbody = document.createElement("tbody");
+
+    var totalMs = 0;
+    dayEntries.forEach(function(e){
+      var tr = document.createElement("tr");
+      var endTime = e.clockOut ? fmtTime(e.clockOut) : "—";
+      var dur = e.clockOut ? durationMs(e.clockIn, e.clockOut) : 0;
+      if(e.clockOut) totalMs += dur;
+
+      var tdIn = document.createElement("td");
+      tdIn.innerHTML = fmtTime(e.clockIn) + (e.note ? '<span class="entry-note">' + escapeHtml(e.note) + "</span>" : "");
+
+      var tdOut = document.createElement("td");
+      tdOut.textContent = e.clockOut ? endTime : "פתוח";
+
+      var tdDur = document.createElement("td");
+      tdDur.textContent = e.clockOut ? fmtDuration(dur) : "—";
+
+      var tdDel = document.createElement("td");
+      var delBtn = document.createElement("button");
+      delBtn.className = "del-btn";
+      delBtn.textContent = "🗑";
+      delBtn.title = "מחיקה";
+      delBtn.addEventListener("click", function(){ deleteEntry(e.id); });
+      tdDel.appendChild(delBtn);
+
+      tr.appendChild(tdIn);
+      tr.appendChild(tdOut);
+      tr.appendChild(tdDur);
+      tr.appendChild(tdDel);
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    content.appendChild(table);
+
+    var totalLine = document.createElement("div");
+    totalLine.className = "total-line";
+    totalLine.innerHTML = "<span>סה\"כ שעות ליום</span><span>" + fmtDuration(totalMs) + "</span>";
+    content.appendChild(totalLine);
+  }
+
+  function escapeHtml(str){
+    var div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // ---------- Monthly report ----------
+
+  var currentMonth = new Date();
+  currentMonth.setDate(1);
+  currentMonth.setHours(0,0,0,0);
+
+  document.getElementById("prevMonth").addEventListener("click", function(){
+    currentMonth.setMonth(currentMonth.getMonth()-1);
+    renderMonthly();
+  });
+  document.getElementById("nextMonth").addEventListener("click", function(){
+    currentMonth.setMonth(currentMonth.getMonth()+1);
+    renderMonthly();
+  });
+
+  function monthTotals(){
+    var year = currentMonth.getFullYear();
+    var month = currentMonth.getMonth();
+    var daysInMonth = new Date(year, month+1, 0).getDate();
+    var totals = {};
+    for(var d=1; d<=daysInMonth; d++){
+      totals[d] = 0;
+    }
+    sortedEntries().forEach(function(e){
+      if(!e.clockOut) return;
+      var d = new Date(e.clockIn);
+      if(d.getFullYear() === year && d.getMonth() === month){
+        totals[d.getDate()] += durationMs(e.clockIn, e.clockOut);
+      }
+    });
+    return { totals: totals, daysInMonth: daysInMonth, year: year, month: month };
+  }
+
+  function renderMonthly(){
+    document.getElementById("monthlyLabel").textContent = MONTHS[currentMonth.getMonth()] + " " + currentMonth.getFullYear();
+    var info = monthTotals();
+    var content = document.getElementById("monthlyContent");
+    content.innerHTML = "";
+
+    var hasData = Object.keys(info.totals).some(function(d){ return info.totals[d] > 0; });
+
+    if(!hasData){
+      var empty = document.createElement("div");
+      empty.className = "empty";
+      empty.textContent = "אין נתונים לחודש זה";
+      content.appendChild(empty);
+      return;
+    }
+
+    var table = document.createElement("table");
+    table.innerHTML = "<thead><tr><th>תאריך</th><th>יום</th><th>סה\"כ שעות</th></tr></thead>";
+    var tbody = document.createElement("tbody");
+
+    var todayKey = fmtDateKey(new Date());
+    var totalMonthMs = 0;
+
+    for(var d=1; d<=info.daysInMonth; d++){
+      var ms = info.totals[d];
+      totalMonthMs += ms;
+      if(ms === 0) continue;
+
+      var dateObj = new Date(info.year, info.month, d);
+      var key = fmtDateKey(dateObj);
+      var tr = document.createElement("tr");
+      if(key === todayKey) tr.classList.add("today-row");
+
+      tr.innerHTML = "<td>" + d + "/" + (info.month+1) + "</td>" +
+                      "<td>" + WEEKDAYS[dateObj.getDay()] + "</td>" +
+                      "<td>" + fmtDuration(ms) + "</td>";
+      tbody.appendChild(tr);
+    }
+
+    table.appendChild(tbody);
+    content.appendChild(table);
+
+    var totalLine = document.createElement("div");
+    totalLine.className = "total-line";
+    totalLine.innerHTML = "<span>סה\"כ שעות לחודש</span><span>" + fmtDuration(totalMonthMs) + "</span>";
+    content.appendChild(totalLine);
+  }
+
+  // ---------- CSV export ----------
+
+  document.getElementById("exportCsvBtn").addEventListener("click", function(){
+    var info = monthTotals();
+    var rows = [["תאריך","יום בשבוע","סה\"כ שעות (עשרוני)","סה\"כ שעות"]];
+
+    for(var d=1; d<=info.daysInMonth; d++){
+      var ms = info.totals[d];
+      if(ms === 0) continue;
+      var dateObj = new Date(info.year, info.month, d);
+      rows.push([
+        fmtDateKey(dateObj),
+        WEEKDAYS[dateObj.getDay()],
+        fmtHoursDecimal(ms),
+        fmtDuration(ms)
+      ]);
+    }
+
+    var totalMs = 0;
+    Object.keys(info.totals).forEach(function(k){ totalMs += info.totals[k]; });
+    rows.push(["", "סה\"כ חודשי", fmtHoursDecimal(totalMs), fmtDuration(totalMs)]);
+
+    var csv = "﻿" + rows.map(function(r){
+      return r.map(function(cell){
+        var s = String(cell);
+        if(s.indexOf(",") !== -1 || s.indexOf('"') !== -1){
+          s = '"' + s.replace(/"/g,'""') + '"';
+        }
+        return s;
+      }).join(",");
+    }).join("\r\n");
+
+    var blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "דוח-נוכחות-" + info.year + "-" + pad2(info.month+1) + ".csv";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  render();
+})();
+</script>
