@@ -5,7 +5,7 @@
 import { NextRequest } from 'next/server';
 
 export function attendanceAdminPasscode(): string {
-  return process.env.ATTENDANCE_ADMIN_PASSCODE || '1234';
+  return process.env.ATTENDANCE_ADMIN_PASSCODE || '1836';
 }
 
 export function isAttendanceAdmin(req: NextRequest): boolean {
