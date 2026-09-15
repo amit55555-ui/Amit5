@@ -58,6 +58,10 @@ export default function Home() {
 
       <footer className="mt-10 text-center text-xs text-muted">
         בנוי לניהול בניין · הפניות נשלחות לוועד במייל
+        <br />
+        <a href="/paper" className="mt-1 inline-block font-semibold text-brand hover:underline">
+          📄 מעקב כמות ניירת
+        </a>
       </footer>
     </div>
   );
