@@ -3,19 +3,29 @@
 import { useEffect, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
-import { Leak } from '@/types';
-import { timeAgo } from '@/lib/format';
+import { Leak, LeakStatus } from '@/types';
+import LeakPopup from '@/components/LeakPopup';
+import { STATUS_ICONS } from '@/components/StatusBadge';
 
 // מרכז תל אביב-יפו
 const TLV_CENTER: [number, number] = [32.0853, 34.7818];
 
-const leakIcon = L.divIcon({
-  className: '',
-  html: '<div class="leak-pin"><span>💧</span></div>',
-  iconSize: [34, 34],
-  iconAnchor: [17, 32],
-  popupAnchor: [0, -30],
-});
+// סימון לכל סטטוס – צבע מסגרת + אייקון שונה
+function statusIcon(status: LeakStatus) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="leak-pin leak-pin-${status}"><span>${STATUS_ICONS[status]}</span></div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 32],
+    popupAnchor: [0, -30],
+  });
+}
+
+const leakIcons: Record<LeakStatus, L.DivIcon> = {
+  open: statusIcon('open'),
+  in_progress: statusIcon('in_progress'),
+  resolved: statusIcon('resolved'),
+};
 
 const pendingIcon = L.divIcon({
   className: '',
@@ -54,6 +64,7 @@ export default function LeakMap({
   flyTarget,
   onPick,
   onDragPending,
+  onLeakUpdated,
 }: {
   leaks: Leak[];
   clickable: boolean;
@@ -62,6 +73,7 @@ export default function LeakMap({
   flyTarget: FlyTarget | null;
   onPick: (lat: number, lng: number) => void;
   onDragPending: (lat: number, lng: number) => void;
+  onLeakUpdated: (leak: Leak) => void;
 }) {
   const markers = useMemo(() => leaks, [leaks]);
 
@@ -81,18 +93,9 @@ export default function LeakMap({
       <FlyTo target={flyTarget} />
 
       {markers.map((leak) => (
-        <Marker key={leak.id} position={[leak.lat, leak.lng]} icon={leakIcon}>
-          <Popup>
-            <div className="w-48 text-right" dir="rtl">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={leak.photoUrl}
-                alt="תמונת נזילה"
-                className="mb-2 h-32 w-full rounded-lg object-cover"
-              />
-              {leak.description && <p className="mb-1 text-sm text-ink">{leak.description}</p>}
-              <p className="text-xs text-muted">{timeAgo(leak.createdAt)}</p>
-            </div>
+        <Marker key={leak.id} position={[leak.lat, leak.lng]} icon={leakIcons[leak.status]}>
+          <Popup minWidth={240} autoPanPaddingTopLeft={[20, 130]}>
+            <LeakPopup leak={leak} onUpdated={onLeakUpdated} />
           </Popup>
         </Marker>
       ))}

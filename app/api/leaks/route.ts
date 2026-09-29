@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { listLeaks, createLeak } from '@/lib/leaks-store';
+import { listLeaks, createLeak, toPublic } from '@/lib/leaks-store';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const leaks = await listLeaks();
-  return NextResponse.json({ leaks });
+  return NextResponse.json({ leaks: leaks.map(toPublic) });
 }
 
 export async function POST(req: NextRequest) {
@@ -28,5 +28,5 @@ export async function POST(req: NextRequest) {
   }
 
   const leak = await createLeak({ lat, lng, description, photo });
-  return NextResponse.json({ leak }, { status: 201 });
+  return NextResponse.json({ leak: toPublic(leak) }, { status: 201 });
 }

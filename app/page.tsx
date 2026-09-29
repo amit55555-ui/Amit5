@@ -95,6 +95,7 @@ export default function Home() {
         <div className="pointer-events-auto rounded-2xl border border-line bg-white/95 px-4 py-2 text-center shadow backdrop-blur">
           <h1 className="text-base font-bold sm:text-lg">💧 מפת נזילות מים — תל אביב</h1>
           <p className="text-xs text-muted">דיווח אנונימי על טפטופי מים ברחבי העיר</p>
+          <p className="mt-1 text-[11px] text-muted">💧 פתוח · 🛠️ בטיפול · ✅ טופל</p>
         </div>
       </header>
 
@@ -109,6 +110,9 @@ export default function Home() {
           if (mode === 'manual') setMode('confirm');
         }}
         onDragPending={(lat, lng) => setPending({ lat, lng })}
+        onLeakUpdated={(updated) =>
+          setLeaks((prev) => prev.map((l) => (l.id === updated.id ? updated : l)))
+        }
       />
 
       {mode === 'locating' && (

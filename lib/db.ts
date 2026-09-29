@@ -47,6 +47,22 @@ export function ensureSchema(): Promise<void> {
       )
     `;
     await db`CREATE INDEX IF NOT EXISTS leaks_created_at_idx ON leaks (created_at DESC)`;
+    // עמודות ניהול (נוספו בהמשך – בטוח להריץ גם על טבלה קיימת)
+    await db`ALTER TABLE leaks ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'open'`;
+    await db`ALTER TABLE leaks ADD COLUMN IF NOT EXISTS resolved_at BIGINT`;
+    await db`ALTER TABLE leaks ADD COLUMN IF NOT EXISTS photo_hidden BOOLEAN NOT NULL DEFAULT false`;
+    await db`ALTER TABLE leaks ADD COLUMN IF NOT EXISTS area TEXT NOT NULL DEFAULT ''`;
+    await db`
+      CREATE TABLE IF NOT EXISTS leak_comments (
+        id TEXT PRIMARY KEY,
+        leak_id TEXT NOT NULL REFERENCES leaks(id) ON DELETE CASCADE,
+        text TEXT NOT NULL,
+        author TEXT NOT NULL DEFAULT 'public',
+        kind TEXT NOT NULL DEFAULT 'comment',
+        created_at BIGINT NOT NULL
+      )
+    `;
+    await db`CREATE INDEX IF NOT EXISTS leak_comments_leak_idx ON leak_comments (leak_id, created_at)`;
   })().catch((e) => {
     schemaReady = null; // אפשר לנסות שוב בבקשה הבאה
     throw e;
