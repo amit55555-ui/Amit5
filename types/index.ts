@@ -1,86 +1,54 @@
-// ===== מודל הנתונים של אפליקציית ניהול הבניין =====
+// ===== מודל הנתונים של מפת דיווחי נזילות מים =====
 
-// סטטוס הטיפול בפנייה
-export type ReportStatus = 'open' | 'in_progress' | 'closed';
+// סטטוס טיפול בדיווח:
+// open – פתוח, in_progress – בטיפול (נקבע ע"י מנהל), resolved – טופל
+export type LeakStatus = 'open' | 'in_progress' | 'resolved';
 
-// רמת דחיפות
-export type Priority = 'normal' | 'urgent';
+export const LEAK_STATUSES: LeakStatus[] = ['open', 'in_progress', 'resolved'];
 
-// מי כתב הודעה בשרשור הפנייה
-export type Author = 'resident' | 'committee';
-
-// קטגוריית התקלה
-export interface Category {
-  id: string;
-  label: string;
-  emoji: string;
-}
-
-// הודעה בודדת בשרשור התכתובת של פנייה
-export interface ReportMessage {
-  id: string;
-  author: Author;
-  authorName: string;
-  text: string;
-  createdAt: number;
-}
-
-// פנייה / דיווח תקלה
-export interface Report {
-  id: string;
-  // מספר רץ ידידותי להצגה (#104)
-  ref: number;
-
-  categoryId: string;
-  title: string;
-  description: string;
-
-  // מיקום בבניין הארוך
-  entrance: string;   // מספר הכניסה / מספר הבניין
-  floor: string;      // קומה (אופציונלי)
-
-  // פרטי המדווח
-  reporterName: string;
-  reporterPhone: string;
-  reporterEmail?: string;
-  // טוקן אנונימי שמזהה את הדפדפן של המדווח (לצורך "הפניות שלי")
-  reporterToken: string;
-
-  priority: Priority;
-  status: ReportStatus;
-
-  // תמונות של התקלה (data URLs)
-  photos?: string[];
-
-  // שרשור ההתכתבות בין הדייר לוועד
-  messages: ReportMessage[];
-
-  createdAt: number;
-  updatedAt: number;
-}
-
-// גוף בקשה ליצירת פנייה חדשה (מה שהלקוח שולח)
-export interface NewReportInput {
-  categoryId: string;
-  title: string;
-  description: string;
-  entrance: string;
-  floor: string;
-  reporterName: string;
-  reporterPhone: string;
-  reporterEmail?: string;
-  reporterToken: string;
-  priority: Priority;
-  photos?: string[];
-}
-
-export const STATUS_LABELS: Record<ReportStatus, string> = {
+export const STATUS_LABELS: Record<LeakStatus, string> = {
   open: 'פתוח',
   in_progress: 'בטיפול',
-  closed: 'סגור',
+  resolved: 'טופל',
 };
 
-export const PRIORITY_LABELS: Record<Priority, string> = {
-  normal: 'רגיל',
-  urgent: 'דחוף',
-};
+export function isLeakStatus(v: unknown): v is LeakStatus {
+  return typeof v === 'string' && (LEAK_STATUSES as string[]).includes(v);
+}
+
+// הערה על דיווח – מתושב (אנונימי) או ממנהל
+export interface LeakComment {
+  id: string;
+  leakId: string;
+  text: string;
+  author: 'public' | 'admin';
+  // comment – הערה רגילה; status – רישום של שינוי סטטוס
+  kind: 'comment' | 'status';
+  createdAt: number;
+}
+
+// דיווח על נזילת מים במקום מסוים במפה
+export interface Leak {
+  id: string;
+  lat: number;
+  lng: number;
+  description: string;
+  // כתובת ה-URL של תמונת הנזילה (ריקה בתצוגה הציבורית כשהתמונה הוסתרה)
+  photoUrl: string;
+  photoHidden: boolean;
+  status: LeakStatus;
+  resolvedAt: number | null;
+  // שכונה / אזור בעיר (מחושב אוטומטית לפי המיקום)
+  area: string;
+  createdAt: number;
+  comments: LeakComment[];
+}
+
+// גוף בקשה ליצירת דיווח חדש (מה שהלקוח שולח)
+export interface NewLeakInput {
+  lat: number;
+  lng: number;
+  description: string;
+  // תמונת הנזילה כ-data URL
+  photo: string;
+}

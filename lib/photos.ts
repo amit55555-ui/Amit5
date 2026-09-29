@@ -6,7 +6,7 @@ import { put } from '@vercel/blob';
 
 // מאתר את מפתח הכתיבה של Blob לא משנה איך נקרא המשתנה
 // (BLOB_READ_WRITE_TOKEN, או עם קידומת של שם המאגר, וכו').
-function blobToken(): string | undefined {
+export function blobToken(): string | undefined {
   if (process.env.BLOB_READ_WRITE_TOKEN) return process.env.BLOB_READ_WRITE_TOKEN;
   for (const [k, v] of Object.entries(process.env)) {
     if (v && /READ_WRITE_TOKEN/i.test(k)) return v;

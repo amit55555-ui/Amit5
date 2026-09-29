@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Heebo } from 'next/font/google';
+import 'leaflet/dist/leaflet.css';
 import './globals.css';
 
 const heebo = Heebo({
@@ -9,14 +10,15 @@ const heebo = Heebo({
 });
 
 export const metadata: Metadata = {
-  title: 'ניהול בניין – דיווח תקלות',
+  title: 'מפת נזילות מים – תל אביב',
   description:
-    'מערכת לדיירי הבניין לדיווח תקלות (נורה שרופה, אשפה ועוד), מעקב אחר הפניות והסטטוס שלהן, ותקשורת עם ועד הבית.',
+    'מפה ציבורית ואנונימית לדיווח על נזילות וטפטופי מים ברחבי תל אביב-יפו, כולל תמונה ומיקום מדויק.',
 };
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 1,
   viewportFit: 'cover',
 };
 
