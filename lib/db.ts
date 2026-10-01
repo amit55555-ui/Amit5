@@ -59,6 +59,30 @@ export function ensureSchema(): Promise<void> {
     `;
     await db`CREATE INDEX IF NOT EXISTS reports_created_at_idx ON reports (created_at DESC)`;
     await db`CREATE INDEX IF NOT EXISTS reports_token_idx ON reports (reporter_token)`;
+
+    // ניהול משימות: אנשי צוות ומשימות
+    await db`
+      CREATE TABLE IF NOT EXISTS members (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        email TEXT NOT NULL,
+        created_at BIGINT NOT NULL
+      )
+    `;
+    await db`
+      CREATE TABLE IF NOT EXISTS tasks (
+        id TEXT PRIMARY KEY,
+        ref INTEGER NOT NULL,
+        title TEXT NOT NULL,
+        description TEXT NOT NULL DEFAULT '',
+        assignee_id TEXT,
+        priority TEXT NOT NULL,
+        status TEXT NOT NULL,
+        due_date TEXT NOT NULL DEFAULT '',
+        created_at BIGINT NOT NULL,
+        updated_at BIGINT NOT NULL
+      )
+    `;
   })().catch((e) => {
     schemaReady = null; // אפשר לנסות שוב בבקשה הבאה
     throw e;

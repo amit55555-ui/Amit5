@@ -84,3 +84,46 @@ export const PRIORITY_LABELS: Record<Priority, string> = {
   normal: 'רגיל',
   urgent: 'דחוף',
 };
+
+// ===== ניהול משימות =====
+
+// סטטוס משימה
+export type TaskStatus = 'todo' | 'in_progress' | 'done';
+
+// איש צוות שאפשר לשייך לו משימות
+export interface Member {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: number;
+}
+
+// משימה
+export interface Task {
+  id: string;
+  // מספר רץ ידידותי להצגה (#12)
+  ref: number;
+  title: string;
+  description: string;
+  assigneeId: string | null;
+  priority: Priority;
+  status: TaskStatus;
+  // תאריך יעד בפורמט YYYY-MM-DD (אופציונלי)
+  dueDate: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface NewTaskInput {
+  title: string;
+  description: string;
+  assigneeId: string | null;
+  priority: Priority;
+  dueDate: string;
+}
+
+export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
+  todo: 'לביצוע',
+  in_progress: 'בעבודה',
+  done: 'הושלם',
+};

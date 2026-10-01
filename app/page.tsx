@@ -5,8 +5,9 @@ import { BUILDING_NAME } from '@/data/building';
 import ReportForm from '@/components/ReportForm';
 import MyReports from '@/components/MyReports';
 import CommitteeDashboard from '@/components/CommitteeDashboard';
+import TasksBoard from '@/components/TasksBoard';
 
-type Tab = 'new' | 'mine' | 'committee';
+type Tab = 'new' | 'mine' | 'committee' | 'tasks';
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>('new');
@@ -16,6 +17,7 @@ export default function Home() {
     { id: 'new', label: 'דיווח חדש', icon: '➕' },
     { id: 'mine', label: 'הפניות שלי', icon: '📋' },
     { id: 'committee', label: 'ועד הבית', icon: '🛠️' },
+    { id: 'tasks', label: 'משימות', icon: '✅' },
   ];
 
   return (
@@ -28,12 +30,12 @@ export default function Home() {
       </header>
 
       {/* טאבים */}
-      <nav className="sticky top-2 z-10 mb-5 grid grid-cols-3 gap-1 rounded-2xl border border-line bg-white/90 p-1 backdrop-blur">
+      <nav className="sticky top-2 z-10 mb-5 grid grid-cols-4 gap-1 rounded-2xl border border-line bg-white/90 p-1 backdrop-blur">
         {tabs.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
-            className={`rounded-xl px-2 py-2.5 text-sm font-semibold transition ${
+            className={`rounded-xl px-1 py-2.5 text-xs font-semibold sm:px-2 sm:text-sm transition ${
               tab === t.id ? 'bg-brand text-white' : 'text-muted hover:bg-cloud'
             }`}
           >
@@ -54,6 +56,7 @@ export default function Home() {
         )}
         {tab === 'mine' && <MyReports refreshKey={refreshKey} />}
         {tab === 'committee' && <CommitteeDashboard />}
+        {tab === 'tasks' && <TasksBoard />}
       </main>
 
       <footer className="mt-10 text-center text-xs text-muted">

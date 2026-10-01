@@ -2,7 +2,7 @@
 // - בעת פנייה חדשה: מייל לוועד (עם Reply-To של הדייר, כך שאפשר להשיב ישירות).
 // - בעת תגובת הוועד / שינוי סטטוס: מייל לדייר.
 
-import { Report, STATUS_LABELS } from '@/types';
+import { Member, Report, STATUS_LABELS, Task, TASK_STATUS_LABELS } from '@/types';
 import { categoryById, BUILDING_NAME } from '@/data/building';
 import { COMMITTEE_EMAIL, getGmail, isMailConfigured } from '@/lib/google';
 
@@ -34,17 +34,28 @@ function encodeMessage(opts: {
     .replace(/=+$/, '');
 }
 
-async function send(opts: { to: string; replyTo?: string; subject: string; html: string }): Promise<void> {
+// מחזיר true אם המייל נשלח בהצלחה
+async function send(opts: { to: string; replyTo?: string; subject: string; html: string }): Promise<boolean> {
   const gmail = getGmail();
-  if (!gmail) return;
+  if (!gmail) return false;
   try {
     await gmail.users.messages.send({
       userId: 'me',
       requestBody: { raw: encodeMessage(opts) },
     });
+    return true;
   } catch (err) {
     console.error('gmail send error', err);
+    return false;
   }
+}
+
+function esc(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 function shell(title: string, inner: string): string {
@@ -149,6 +160,50 @@ export async function notifyResident(
     to: report.reporterEmail,
     replyTo: COMMITTEE_EMAIL,
     subject: `עדכון בפנייה #${report.ref} — ${cat.label}`,
+    html,
+  });
+}
+
+// מייל לאיש צוות בעת שיוך משימה אליו
+export async function notifyTaskAssigned(
+  task: Task,
+  member: Member,
+  opts: { appUrl?: string; reassigned?: boolean } = {},
+): Promise<boolean> {
+  if (!isMailConfigured() || !member.email) return false;
+  const urgent = task.priority === 'urgent' ? ' 🔴 דחוף' : '';
+  const due = task.dueDate
+    ? new Date(task.dueDate + 'T00:00:00').toLocaleDateString('he-IL')
+    : '—';
+  const rows: [string, string][] = [
+    ['מספר משימה', `#${task.ref}`],
+    ['משימה', esc(task.title)],
+    ['אחראי/ת', esc(member.name)],
+    ['תאריך יעד', due],
+    ['דחיפות', task.priority === 'urgent' ? '🔴 דחוף' : 'רגיל'],
+    ['סטטוס', TASK_STATUS_LABELS[task.status]],
+  ];
+  const table = rows
+    .map(
+      ([k, v]) =>
+        `<tr><td style="padding:6px 0;color:#64748b;width:110px">${k}</td><td style="padding:6px 0;font-weight:600">${v}</td></tr>`,
+    )
+    .join('');
+  const desc = task.description.trim()
+    ? `<div style="margin-top:16px;padding:14px;background:#f0fdfa;border-radius:10px;white-space:pre-wrap">${esc(task.description)}</div>`
+    : '';
+  const link = opts.appUrl
+    ? `<p style="margin-top:20px"><a href="${esc(opts.appUrl)}" style="background:#0f766e;color:#fff;padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:bold">פתיחת המערכת</a></p>`
+    : '';
+  const html = shell(
+    `שלום ${esc(member.name)}, ${opts.reassigned ? 'הועברה' : 'שויכה'} אליך משימה${urgent}`,
+    `<table style="width:100%;border-collapse:collapse;font-size:14px">${table}</table>${desc}${link}
+     <p style="margin-top:16px;color:#64748b;font-size:13px">לשאלות אפשר להשיב ישירות למייל הזה.</p>`,
+  );
+  return send({
+    to: member.email,
+    replyTo: COMMITTEE_EMAIL,
+    subject: `[משימה #${task.ref}] ${task.title}${urgent}`,
     html,
   });
 }
