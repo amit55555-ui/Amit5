@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { api } from '@/lib/client';
+import { api, getLocation } from '@/lib/client';
 import {
   breakMs, clockT, DAYNAMES, dayKey, hm, hms, MONTHS, money, monthKey, monthTitle, onBreak,
   shiftMonth, summarize, weekStart, workMs, zparts,
@@ -70,12 +70,22 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
   const [recent, setRecent] = useState<Shift[]>(me.recent);
   const [tab, setTab] = useState<'today' | 'month'>('today');
   const [busy, setBusy] = useState(false);
+  const [locating, setLocating] = useState(false);
   useEffect(() => { setActive(me.active); setRecent(me.recent); }, [me]);
 
   async function clock(action: 'in' | 'out' | 'break') {
     setBusy(true);
+    let loc: { lat: number; lng: number; acc: number } | undefined;
+    if (action !== 'break') {
+      setLocating(true);
+      const g = await getLocation();
+      setLocating(false);
+      if ('error' in g) {
+        if (st.requireLocation) { toast(g.error); setBusy(false); return; }
+      } else loc = g;
+    }
     try {
-      const r = await api<{ active: Shift | null; closed?: Shift }>('/api/clock', 'POST', { action });
+      const r = await api<{ active: Shift | null; closed?: Shift }>('/api/clock', 'POST', { action, loc });
       if (action === 'in') toast(`נרשמה כניסה ב-${clockT(Date.now())}`);
       if (action === 'out' && r.closed) toast(`נרשמה יציאה. עבדת ${hm(workMs(r.closed, Date.now()))} שעות`);
       if (action === 'break') toast(r.active && onBreak(r.active) ? 'יצאת להפסקה' : 'חזרת מהפסקה');
@@ -125,6 +135,8 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
                 </>
               )}
             </div>
+            {locating ? <p className="hint" role="status" style={{ textAlign: 'center' }}>מאתר מיקום…</p>
+              : st.requireLocation ? <p className="hint" style={{ textAlign: 'center' }}>בכניסה וביציאה נשמר המיקום שלך. הטלפון יבקש אישור בפעם הראשונה.</p> : null}
           </div>
 
           <div className="stats">

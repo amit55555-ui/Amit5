@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, downloadCsv } from '@/lib/client';
 import { breakMs, clockT, dayKey, DAYNAMES, hm, hours, money, monthKey, monthTitle, shiftMonth, summarize, workMs, zparts } from '@/lib/calc';
 import type { PublicSettings, PublicUser, Shift } from '@/lib/types';
-import { MonthNav, Sheet, ShiftEditor, ShiftRow, useNow, useToast } from '@/components/ui';
+import { mapUrl, MonthNav, Sheet, ShiftEditor, ShiftRow, useNow, useToast } from '@/components/ui';
 
 type Status = { admin: boolean; defaultPassword: boolean; database: boolean };
 type Toast = (m: string) => void;
@@ -109,10 +109,11 @@ function ReportView({ rep, month, setMonth, reload, toast }: { rep: Report; mont
     downloadCsv(`attendance-summary-${month}.csv`, out);
   }
   function exportDetail() {
-    const out: (string | number)[][] = [['עובד', 'תאריך', 'יום', 'כניסה', 'יציאה', 'הפסקה (דק׳)', 'שעות', 'הערה', 'תיקון ידני']];
+    const out: (string | number)[][] = [['עובד', 'תאריך', 'יום', 'כניסה', 'יציאה', 'הפסקה (דק׳)', 'שעות', 'הערה', 'תיקון ידני', 'מיקום כניסה', 'מיקום יציאה']];
     const list = [...rep.shifts].sort((a, b) => (names.get(a.userId) || '').localeCompare(names.get(b.userId) || '', 'he') || a.start - b.start);
     for (const s of list) out.push([names.get(s.userId) || '', dayKey(s.start), DAYNAMES[zparts(s.start).wd], clockT(s.start), s.end ? clockT(s.end) : '',
-      Math.round(breakMs(s, now) / 60000), hours(workMs(s, now)), s.note, s.editedBy === 'admin' ? 'מנהל' : s.editedBy === 'user' ? 'עובד' : '']);
+      Math.round(breakMs(s, now) / 60000), hours(workMs(s, now)), s.note, s.editedBy === 'admin' ? 'מנהל' : s.editedBy === 'user' ? 'עובד' : '',
+      s.inLoc ? mapUrl(s.inLoc) : '', s.outLoc ? mapUrl(s.outLoc) : '']);
     downloadCsv(`attendance-detail-${month}.csv`, out);
   }
 
@@ -123,7 +124,9 @@ function ReportView({ rep, month, setMonth, reload, toast }: { rep: Report; mont
         <h2 style={{ marginBottom: 10 }}>במשמרת עכשיו ({rep.active.length})</h2>
         {rep.active.length === 0 ? <p className="muted" style={{ margin: 0 }}>אף עובד לא במשמרת כרגע.</p> : (
           <div className="chips">
-            {rep.active.map((s) => <span className="chip" key={s.id}>{names.get(s.userId) || '—'} · <span className="num">{clockT(s.start)}</span></span>)}
+            {rep.active.map((s) => s.inLoc
+              ? <a className="chip" key={s.id} href={mapUrl(s.inLoc)} target="_blank" rel="noopener noreferrer" title="מיקום הכניסה במפה">{names.get(s.userId) || '—'} · <span className="num">{clockT(s.start)}</span> · 📍</a>
+              : <span className="chip" key={s.id}>{names.get(s.userId) || '—'} · <span className="num">{clockT(s.start)}</span></span>)}
           </div>
         )}
       </div>
@@ -194,7 +197,7 @@ function EmployeeSheet({ u, shifts, st, month, now, reload, toast, onClose }: {
   }
   if (edit) {
     return <ShiftEditor shift={edit === 'new' ? null : edit} now={now} title={`${edit === 'new' ? 'הוספת משמרת' : 'תיקון משמרת'} · ${u.name}`}
-      onSave={save} onDelete={edit === 'new' ? undefined : del} onClose={() => setEdit(null)} />;
+      onSave={save} onDelete={edit === 'new' ? undefined : del} onClose={() => setEdit(null)} showLocations />;
   }
   return (
     <Sheet title={`${u.name} · ${monthTitle(month)}`} onClose={onClose}>
@@ -213,7 +216,7 @@ function EmployeeSheet({ u, shifts, st, month, now, reload, toast, onClose }: {
         <div className="list">
           {shifts.length === 0 ? <div className="empty muted">אין משמרות בחודש הזה.</div>
             : [...shifts].sort((a, b) => b.start - a.start).map((s) => (
-              <ShiftRow key={s.id} s={s} now={now} stdHours={st.stdHours} otEnabled={st.otEnabled} onClick={() => setEdit(s)} />
+              <ShiftRow key={s.id} s={s} now={now} stdHours={st.stdHours} otEnabled={st.otEnabled} onClick={() => setEdit(s)} showLoc />
             ))}
         </div>
       </div>
@@ -376,6 +379,8 @@ function SettingsView({ st, reload, toast }: { st: PublicSettings; reload: () =>
           <span>עובדים יכולים להוסיף ולתקן משמרות בעצמם<br /><span className="hint">כל תיקון מסומן בדוח כ&quot;הוזן ידנית&quot;.</span></span></label>
         <label className="toggle" htmlFor="sPay"><input id="sPay" type="checkbox" checked={f.showPayToEmployees} onChange={(e) => set('showPayToEmployees', e.target.checked)} />
           עובדים רואים את השכר המשוער שלהם</label>
+        <label className="toggle" htmlFor="sLoc"><input id="sLoc" type="checkbox" checked={f.requireLocation} onChange={(e) => set('requireLocation', e.target.checked)} />
+          <span>חובה לאשר מיקום בכניסה וביציאה<br /><span className="hint">המיקום נשמר רק ברגע הלחיצה, לא במעקב רציף. כבוי: המיקום נשמר רק אם העובד אישר.</span></span></label>
       </fieldset>
 
       <fieldset>

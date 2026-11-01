@@ -27,6 +27,7 @@ export async function PUT(req: Request) {
     travelPerDay: Math.max(0, num(b.travelPerDay, st.travelPerDay)),
     allowEmployeeEdit: Boolean(b.allowEmployeeEdit),
     showPayToEmployees: Boolean(b.showPayToEmployees),
+    requireLocation: Boolean(b.requireLocation),
   };
   const newPw = typeof b.newAdminPassword === 'string' ? b.newAdminPassword : '';
   if (newPw) {

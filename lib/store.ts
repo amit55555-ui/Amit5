@@ -42,6 +42,8 @@ function pgStore(): Store {
       id TEXT PRIMARY KEY, user_id TEXT NOT NULL, start_at BIGINT NOT NULL, end_at BIGINT,
       breaks JSONB NOT NULL DEFAULT '[]'::jsonb, break_min INTEGER NOT NULL DEFAULT 0, note TEXT NOT NULL DEFAULT '',
       edited_by TEXT, updated_at BIGINT NOT NULL)`;
+    await sql`ALTER TABLE att_shifts ADD COLUMN IF NOT EXISTS in_loc JSONB`;
+    await sql`ALTER TABLE att_shifts ADD COLUMN IF NOT EXISTS out_loc JSONB`;
     await sql`CREATE INDEX IF NOT EXISTS att_shifts_user_start ON att_shifts (user_id, start_at)`;
     await sql`CREATE INDEX IF NOT EXISTS att_shifts_start ON att_shifts (start_at)`;
     await sql`CREATE TABLE IF NOT EXISTS att_settings (k TEXT PRIMARY KEY, v JSONB NOT NULL)`;
@@ -56,6 +58,7 @@ function pgStore(): Store {
   const toShift = (r: any): Shift => ({
     id: r.id, userId: r.user_id, start: Number(r.start_at), end: r.end_at == null ? null : Number(r.end_at),
     breaks: r.breaks || [], breakMin: Number(r.break_min), note: r.note || '', editedBy: r.edited_by, updatedAt: Number(r.updated_at),
+    inLoc: r.in_loc || null, outLoc: r.out_loc || null,
   });
 
   return {
@@ -88,10 +91,12 @@ function pgStore(): Store {
     },
     async saveShift(s) {
       await init();
-      await sql`INSERT INTO att_shifts (id, user_id, start_at, end_at, breaks, break_min, note, edited_by, updated_at)
-        VALUES (${s.id}, ${s.userId}, ${s.start}, ${s.end}, ${JSON.stringify(s.breaks)}::jsonb, ${s.breakMin}, ${s.note}, ${s.editedBy}, ${s.updatedAt})
+      const inLoc = s.inLoc ? JSON.stringify(s.inLoc) : null, outLoc = s.outLoc ? JSON.stringify(s.outLoc) : null;
+      await sql`INSERT INTO att_shifts (id, user_id, start_at, end_at, breaks, break_min, note, edited_by, updated_at, in_loc, out_loc)
+        VALUES (${s.id}, ${s.userId}, ${s.start}, ${s.end}, ${JSON.stringify(s.breaks)}::jsonb, ${s.breakMin}, ${s.note}, ${s.editedBy}, ${s.updatedAt}, ${inLoc}::jsonb, ${outLoc}::jsonb)
         ON CONFLICT (id) DO UPDATE SET user_id=EXCLUDED.user_id, start_at=EXCLUDED.start_at, end_at=EXCLUDED.end_at,
-        breaks=EXCLUDED.breaks, break_min=EXCLUDED.break_min, note=EXCLUDED.note, edited_by=EXCLUDED.edited_by, updated_at=EXCLUDED.updated_at`;
+        breaks=EXCLUDED.breaks, break_min=EXCLUDED.break_min, note=EXCLUDED.note, edited_by=EXCLUDED.edited_by, updated_at=EXCLUDED.updated_at,
+        in_loc=EXCLUDED.in_loc, out_loc=EXCLUDED.out_loc`;
     },
     async deleteShift(id) { await init(); await sql`DELETE FROM att_shifts WHERE id=${id}`; },
     async settings() {

@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { breakMs, clockT, dayKey, dayLabel, hm, H, workMs } from '@/lib/calc';
-import type { Shift } from '@/lib/types';
+import type { Loc, Shift } from '@/lib/types';
 
 export function useNow(ms = 1000) {
   const [now, setNow] = useState(() => Date.now());
@@ -35,7 +35,28 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
   );
 }
 
-export function ShiftRow({ s, now, stdHours, otEnabled, onClick }: { s: Shift; now: number; stdHours: number; otEnabled: boolean; onClick?: () => void }) {
+export const mapUrl = (l: Loc) => `https://www.google.com/maps?q=${l.lat},${l.lng}`;
+
+/** קישורים למפה של מיקום הכניסה והיציאה */
+export function LocLinks({ s }: { s: Shift }) {
+  const item = (label: string, l: Loc | null | undefined, t: number | null) => (
+    <div className="payline">
+      <span>{label}{t ? <> · <span className="num">{clockT(t)}</span></> : null}</span>
+      {l ? (
+        <a href={mapUrl(l)} target="_blank" rel="noopener noreferrer">פתיחה במפה{l.acc ? ` (דיוק ±${l.acc} מ׳)` : ''}</a>
+      ) : <span className="muted">{t ? 'לא נרשם' : '—'}</span>}
+    </div>
+  );
+  return (
+    <div className="pay" style={{ background: 'var(--sunk)', borderRadius: 10, padding: '10px 12px' }}>
+      <span className="label">מיקום</span>
+      {item('כניסה', s.inLoc, s.start)}
+      {item('יציאה', s.outLoc, s.end)}
+    </div>
+  );
+}
+
+export function ShiftRow({ s, now, stdHours, otEnabled, onClick, showLoc }: { s: Shift; now: number; stdHours: number; otEnabled: boolean; onClick?: () => void; showLoc?: boolean }) {
   const w = workMs(s, now);
   const over = otEnabled ? Math.max(0, w - stdHours * H) : 0;
   const br = breakMs(s, now);
@@ -51,6 +72,7 @@ export function ShiftRow({ s, now, stdHours, otEnabled, onClick }: { s: Shift; n
         <div className="tot">
           <span className="num" style={{ fontWeight: 600 }}>{hm(w)}</span>
           {!s.end ? <span className="tag live">פעיל</span> : over > 0 ? <span className="tag ot">+{hm(over)} נוספות</span> : null}
+          {showLoc && !s.editedBy ? (s.inLoc || s.outLoc ? <span className="tag live">📍 מיקום</span> : <span className="tag edit">ללא מיקום</span>) : null}
           {s.editedBy ? <span className="tag edit">{s.editedBy === 'admin' ? 'תוקן ע״י מנהל' : 'הוזן ידנית'}</span> : null}
         </div>
       </div>
@@ -59,8 +81,8 @@ export function ShiftRow({ s, now, stdHours, otEnabled, onClick }: { s: Shift; n
 }
 
 /** טופס הוספה/תיקון משמרת. onSave מחזיר הודעת שגיאה או null */
-export function ShiftEditor({ shift, now, title, onSave, onDelete, onClose }: {
-  shift: Shift | null; now: number; title: string;
+export function ShiftEditor({ shift, now, title, onSave, onDelete, onClose, showLocations }: {
+  shift: Shift | null; now: number; title: string; showLocations?: boolean;
   onSave: (v: { date: string; in: string; out: string; breakMin: number; note: string }) => Promise<string | null>;
   onDelete?: () => Promise<string | null>;
   onClose: () => void;
@@ -92,6 +114,7 @@ export function ShiftEditor({ shift, now, title, onSave, onDelete, onClose }: {
   return (
     <Sheet title={title} onClose={onClose}>
       <form className="form" onSubmit={submit}>
+        {showLocations && shift ? <LocLinks s={shift} /> : null}
         <div className="field"><label className="label" htmlFor="eDate">תאריך</label>
           <input id="eDate" type="date" required value={date} onChange={(e) => setDate(e.target.value)} /></div>
         <div className="grid2">

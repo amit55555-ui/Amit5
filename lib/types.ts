@@ -13,6 +13,9 @@ export type PublicUser = Omit<User, 'passHash'>;
 
 export type Brk = { s: number; e: number | null };
 
+/** מיקום שנרשם בלחיצה על כניסה/יציאה */
+export type Loc = { lat: number; lng: number; acc: number; t: number };
+
 export type Shift = {
   id: string;
   userId: string;
@@ -22,6 +25,8 @@ export type Shift = {
   breakMin: number; // הפסקה שהוזנה ידנית (דקות)
   note: string;
   editedBy: 'admin' | 'user' | null; // מי תיקן ידנית
+  inLoc?: Loc | null;
+  outLoc?: Loc | null;
   updatedAt: number;
 };
 
@@ -35,6 +40,7 @@ export type Settings = {
   travelPerDay: number;
   allowEmployeeEdit: boolean; // עובד יכול להוסיף/לתקן משמרות בעצמו
   showPayToEmployees: boolean;
+  requireLocation: boolean; // חובה לאשר מיקום בכניסה וביציאה
   adminPassHash?: string;
 };
 
@@ -48,6 +54,7 @@ export const DEFAULT_SETTINGS: Settings = {
   travelPerDay: 0,
   allowEmployeeEdit: false,
   showPayToEmployees: true,
+  requireLocation: true,
 };
 
 export type PublicSettings = Omit<Settings, 'adminPassHash'>;
