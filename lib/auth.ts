@@ -10,8 +10,15 @@ const ADMIN_COOKIE = 'att_admin';
 const USER_DAYS = 60;
 const ADMIN_HOURS = 12;
 
+// מפתח החתימה: SESSION_SECRET אם הוגדר; אחרת נגזר מכתובת מסד הנתונים (שהיא סודית ממילא),
+// כך שבפריסה עם Neon אין צורך להגדיר משתנה נוסף.
+let cachedSecret: string | null = null;
 function secret() {
-  return process.env.SESSION_SECRET || 'dev-only-secret-change-me';
+  if (cachedSecret) return cachedSecret;
+  const db = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+  cachedSecret = process.env.SESSION_SECRET
+    || (db ? crypto.createHash('sha256').update('attendance-session|' + db).digest('hex') : 'dev-only-secret-change-me');
+  return cachedSecret;
 }
 
 export function hashPassword(pw: string) {
