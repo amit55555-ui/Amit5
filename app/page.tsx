@@ -2,11 +2,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { api, getLocation } from '@/lib/client';
 import {
-  breakMs, clockT, DAYNAMES, dayKey, hm, hms, MONTHS, money, monthKey, monthTitle, onBreak,
+  breakMs, clockT, DAYNAMES, dayKey, hm, hmLong, hms, MONTHS, money, monthKey, monthTitle, onBreak,
   shiftMonth, summarize, weekStart, workMs, zparts,
 } from '@/lib/calc';
 import type { PublicSettings, PublicUser, Shift } from '@/lib/types';
-import { MonthNav, ShiftEditor, ShiftRow, useNow, useToast } from '@/components/ui';
+import { HoursStat, MonthNav, PayBreakdown, ShiftEditor, ShiftRow, useNow, useToast } from '@/components/ui';
 import { LocationPrompt } from '@/components/LocationPrompt';
 
 type Me = { user: PublicUser | null; companyName?: string; settings?: PublicSettings; active?: Shift | null; recent?: Shift[] };
@@ -90,7 +90,7 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
     try {
       const r = await api<{ active: Shift | null; closed?: Shift }>('/api/clock', 'POST', { action, loc });
       if (action === 'in') toast(`נרשמה כניסה ב-${clockT(Date.now())}`);
-      if (action === 'out' && r.closed) toast(`נרשמה יציאה. עבדת ${hm(workMs(r.closed, Date.now()))} שעות`);
+      if (action === 'out' && r.closed) toast(`נרשמה יציאה. עבדת ${hmLong(workMs(r.closed, Date.now()))}`);
       if (action === 'break') toast(r.active && onBreak(r.active) ? 'יצאת להפסקה' : 'חזרת מהפסקה');
       await reload();
     } catch (e) { toast((e as Error).message); await reload(); }
@@ -143,12 +143,12 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
           </div>
 
           <div className="stats">
-            <div className="stat"><span className="label">השבוע</span><span className="num">{hm(weekMs)}</span></div>
-            <div className="stat"><span className="label">החודש</span><span className="num">{hm(ms.tot)}</span></div>
+            <HoursStat label="השבוע" ms={weekMs} />
+            <HoursStat label="החודש" ms={ms.tot} />
             <div className="stat"><span className="label">ימי עבודה החודש</span><span className="num">{ms.nDays}</span></div>
             {st.showPayToEmployees
               ? <div className="stat"><span className="label">שכר משוער החודש</span><span className="num">{money(ms.pay.total)}</span></div>
-              : <div className="stat"><span className="label">שעות נוספות החודש</span><span className="num">{hm(ms.ot1 + ms.ot2)}</span></div>}
+              : <HoursStat label="שעות נוספות החודש" ms={ms.ot1 + ms.ot2} />}
           </div>
 
           <div className="card">
@@ -209,24 +209,24 @@ function MyMonth({ user, st, now, toast, onChange }: { user: PublicUser; st: Pub
     <>
       <MonthNav title={monthTitle(month)} onPrev={() => setMonth(shiftMonth(month, -1))} onNext={() => setMonth(shiftMonth(month, 1))} />
       <div className="stats">
-        <div className="stat"><span className="label">סה״כ שעות</span><span className="num">{hm(sum.tot)}</span></div>
+        <HoursStat label="סה״כ שעות" ms={sum.tot} />
         <div className="stat"><span className="label">ימי עבודה</span><span className="num">{sum.nDays}</span></div>
-        <div className="stat"><span className="label">נוספות {Math.round(st.ot1Rate * 100)}%</span><span className="num">{hm(sum.ot1)}</span></div>
-        <div className="stat"><span className="label">נוספות {Math.round(st.ot2Rate * 100)}%</span><span className="num">{hm(sum.ot2)}</span></div>
+        <HoursStat label={`נוספות ${Math.round(st.ot1Rate * 100)}%`} ms={sum.ot1} />
+        <HoursStat label={`נוספות ${Math.round(st.ot2Rate * 100)}%`} ms={sum.ot2} />
       </div>
       {st.showPayToEmployees ? (
+        <PayBreakdown sum={sum} st={st} wage={user.wage} travel={user.travel} title="שכר משוער" />
+      ) : (
         <div className="card pay">
-          <h2 style={{ marginBottom: 4 }}>שכר משוער</h2>
-          <div className="payline"><span>שעות רגילות ({hm(sum.reg)})</span><span className="num">{money(sum.pay.reg)}</span></div>
+          <h2 style={{ marginBottom: 4 }}>פירוט שעות</h2>
+          <div className="payline"><span>שעות רגילות</span><span>{hmLong(sum.reg)}</span></div>
           {st.otEnabled ? <>
-            <div className="payline"><span>נוספות {Math.round(st.ot1Rate * 100)}% ({hm(sum.ot1)})</span><span className="num">{money(sum.pay.ot1)}</span></div>
-            <div className="payline"><span>נוספות {Math.round(st.ot2Rate * 100)}% ({hm(sum.ot2)})</span><span className="num">{money(sum.pay.ot2)}</span></div>
+            <div className="payline"><span>נוספות {Math.round(st.ot1Rate * 100)}%</span><span>{hmLong(sum.ot1)}</span></div>
+            <div className="payline"><span>נוספות {Math.round(st.ot2Rate * 100)}%</span><span>{hmLong(sum.ot2)}</span></div>
           </> : null}
-          {sum.pay.travel ? <div className="payline"><span>נסיעות ({sum.nDays} ימים)</span><span className="num">{money(sum.pay.travel)}</span></div> : null}
-          <div className="payline total"><span>סה״כ ברוטו</span><span className="num">{money(sum.pay.total)}</span></div>
-          <p className="hint">הערכה לפני מסים וניכויים.</p>
+          <div className="payline total"><span>סה״כ</span><span>{hmLong(sum.tot)}</span></div>
         </div>
-      ) : null}
+      )}
       <div className="card">
         <div className="bar" style={{ marginBottom: 6 }}>
           <h2>פירוט ימים</h2>

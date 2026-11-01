@@ -154,3 +154,8 @@ tfoot td { font-weight: 700; border-bottom: 0; }
 /* חלון אישור מיקום */
 .steps { margin: 0; padding-inline-start: 22px; display: flex; flex-direction: column; gap: 8px; }
 .locicon { font-size: 2.6rem; text-align: center; line-height: 1; }
+
+/* פירוט שעות ושכר */
+.statsub { font-size: .82rem; color: var(--muted); }
+.paytxt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.payline { align-items: flex-start; }

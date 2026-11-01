@@ -1,9 +1,9 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, downloadCsv } from '@/lib/client';
-import { breakMs, clockT, dayKey, DAYNAMES, hm, hours, money, monthKey, monthTitle, shiftMonth, summarize, workMs, zparts } from '@/lib/calc';
+import { breakMs, clockT, dayKey, DAYNAMES, hm, hmLong, hmShort, hours, money, monthKey, monthTitle, shiftMonth, summarize, workMs, zparts } from '@/lib/calc';
 import type { PublicSettings, PublicUser, Shift } from '@/lib/types';
-import { mapUrl, MonthNav, Sheet, ShiftEditor, ShiftRow, useNow, useToast } from '@/components/ui';
+import { HoursStat, mapUrl, MonthNav, PayBreakdown, Sheet, ShiftEditor, ShiftRow, useNow, useToast } from '@/components/ui';
 
 type Status = { admin: boolean; defaultPassword: boolean; database: boolean };
 type Toast = (m: string) => void;
@@ -103,16 +103,16 @@ function ReportView({ rep, month, setMonth, reload, toast }: { rep: Report; mont
   const r1 = Math.round(st.ot1Rate * 100), r2 = Math.round(st.ot2Rate * 100);
 
   function exportSummary() {
-    const out: (string | number)[][] = [[`דוח נוכחות ${monthTitle(month)}`], [], ['עובד', 'שם משתמש', 'ימי עבודה', 'סה"כ שעות', 'שעות רגילות', `נוספות ${r1}%`, `נוספות ${r2}%`, 'שכר לשעה', 'נסיעות', 'שכר משוער']];
-    for (const { u, sum } of rows) out.push([u.name, u.username, sum.nDays, hours(sum.tot), hours(sum.reg), hours(sum.ot1), hours(sum.ot2), u.wage, sum.pay.travel.toFixed(2), sum.pay.total.toFixed(2)]);
-    out.push(['סה"כ', '', tot.days, hours(tot.ms), '', hours(tot.ot1), hours(tot.ot2), '', '', tot.pay.toFixed(2)]);
+    const out: (string | number)[][] = [[`דוח נוכחות ${monthTitle(month)}`], [], ['עובד', 'שם משתמש', 'ימי עבודה', 'סה"כ (שעות ודקות)', 'סה"כ שעות (עשרוני)', 'שעות רגילות', `נוספות ${r1}%`, `נוספות ${r2}%`, 'שכר לשעה', 'נסיעות', 'שכר משוער']];
+    for (const { u, sum } of rows) out.push([u.name, u.username, sum.nDays, hmLong(sum.tot), hours(sum.tot), hours(sum.reg), hours(sum.ot1), hours(sum.ot2), u.wage, sum.pay.travel.toFixed(2), sum.pay.total.toFixed(2)]);
+    out.push(['סה"כ', '', tot.days, hmLong(tot.ms), hours(tot.ms), '', hours(tot.ot1), hours(tot.ot2), '', '', tot.pay.toFixed(2)]);
     downloadCsv(`attendance-summary-${month}.csv`, out);
   }
   function exportDetail() {
-    const out: (string | number)[][] = [['עובד', 'תאריך', 'יום', 'כניסה', 'יציאה', 'הפסקה (דק׳)', 'שעות', 'הערה', 'תיקון ידני', 'מיקום כניסה', 'מיקום יציאה']];
+    const out: (string | number)[][] = [['עובד', 'תאריך', 'יום', 'כניסה', 'יציאה', 'הפסקה (דק׳)', 'שעות ודקות', 'שעות (עשרוני)', 'הערה', 'תיקון ידני', 'מיקום כניסה', 'מיקום יציאה']];
     const list = [...rep.shifts].sort((a, b) => (names.get(a.userId) || '').localeCompare(names.get(b.userId) || '', 'he') || a.start - b.start);
     for (const s of list) out.push([names.get(s.userId) || '', dayKey(s.start), DAYNAMES[zparts(s.start).wd], clockT(s.start), s.end ? clockT(s.end) : '',
-      Math.round(breakMs(s, now) / 60000), hours(workMs(s, now)), s.note, s.editedBy === 'admin' ? 'מנהל' : s.editedBy === 'user' ? 'עובד' : '',
+      Math.round(breakMs(s, now) / 60000), hmLong(workMs(s, now)), hours(workMs(s, now)), s.note, s.editedBy === 'admin' ? 'מנהל' : s.editedBy === 'user' ? 'עובד' : '',
       s.inLoc ? mapUrl(s.inLoc) : '', s.outLoc ? mapUrl(s.outLoc) : '']);
     downloadCsv(`attendance-detail-${month}.csv`, out);
   }
@@ -133,9 +133,9 @@ function ReportView({ rep, month, setMonth, reload, toast }: { rep: Report; mont
 
       <MonthNav title={monthTitle(month)} onPrev={() => setMonth(shiftMonth(month, -1))} onNext={() => setMonth(shiftMonth(month, 1))} />
       <div className="stats">
-        <div className="stat"><span className="label">סה״כ שעות</span><span className="num">{hm(tot.ms)}</span></div>
+        <HoursStat label="סה״כ שעות" ms={tot.ms} />
         <div className="stat"><span className="label">ימי עבודה (כל העובדים)</span><span className="num">{tot.days}</span></div>
-        <div className="stat"><span className="label">שעות נוספות</span><span className="num">{hm(tot.ot1 + tot.ot2)}</span></div>
+        <HoursStat label="שעות נוספות" ms={tot.ot1 + tot.ot2} />
         <div className="stat"><span className="label">עלות שכר משוערת</span><span className="num">{money(tot.pay)}</span></div>
       </div>
 
@@ -153,19 +153,19 @@ function ReportView({ rep, month, setMonth, reload, toast }: { rep: Report; mont
           <div className="tablewrap">
             <table>
               <thead><tr>
-                <th>עובד</th><th className="n">ימים</th><th className="n">שעות</th><th className="n">{r1}%</th><th className="n">{r2}%</th><th className="n">שכר משוער</th>
+                <th>עובד</th><th className="n">ימים</th><th>שעות</th><th>נוספות {r1}%</th><th>נוספות {r2}%</th><th className="n">שכר משוער</th>
               </tr></thead>
               <tbody>
                 {rows.map(({ u, sum }) => (
                   <tr key={u.id} onClick={() => setOpenUser(u.id)} tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') setOpenUser(u.id); }}>
                     <td>{u.name}{!u.active ? <span className="tag edit" style={{ marginInlineStart: 6 }}>מושבת</span> : null}</td>
-                    <td className="n">{sum.nDays}</td><td className="n">{hm(sum.tot)}</td><td className="n">{hm(sum.ot1)}</td><td className="n">{hm(sum.ot2)}</td>
+                    <td className="n">{sum.nDays}</td><td className="hm">{hmShort(sum.tot)}</td><td className="hm">{hmShort(sum.ot1)}</td><td className="hm">{hmShort(sum.ot2)}</td>
                     <td className="n">{money(sum.pay.total)}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot><tr>
-                <td>סה״כ</td><td className="n">{tot.days}</td><td className="n">{hm(tot.ms)}</td><td className="n">{hm(tot.ot1)}</td><td className="n">{hm(tot.ot2)}</td><td className="n">{money(tot.pay)}</td>
+                <td>סה״כ</td><td className="n">{tot.days}</td><td className="hm">{hmShort(tot.ms)}</td><td className="hm">{hmShort(tot.ot1)}</td><td className="hm">{hmShort(tot.ot2)}</td><td className="n">{money(tot.pay)}</td>
               </tr></tfoot>
             </table>
           </div>
@@ -203,16 +203,7 @@ function EmployeeSheet({ u, shifts, st, month, now, reload, toast, onClose }: {
   return (
     <Sheet title={`${u.name} · ${monthTitle(month)}`} onClose={onClose}>
       <div className="form">
-        <div className="pay">
-          <div className="payline"><span>ימי עבודה</span><span className="num">{sum.nDays}</span></div>
-          <div className="payline"><span>שעות רגילות ({hm(sum.reg)} × {money(u.wage)})</span><span className="num">{money(sum.pay.reg)}</span></div>
-          {st.otEnabled ? <>
-            <div className="payline"><span>נוספות {Math.round(st.ot1Rate * 100)}% ({hm(sum.ot1)})</span><span className="num">{money(sum.pay.ot1)}</span></div>
-            <div className="payline"><span>נוספות {Math.round(st.ot2Rate * 100)}% ({hm(sum.ot2)})</span><span className="num">{money(sum.pay.ot2)}</span></div>
-          </> : null}
-          {sum.pay.travel ? <div className="payline"><span>נסיעות</span><span className="num">{money(sum.pay.travel)}</span></div> : null}
-          <div className="payline total"><span>סה״כ ברוטו · {hm(sum.tot)} שעות</span><span className="num">{money(sum.pay.total)}</span></div>
-        </div>
+        <PayBreakdown sum={sum} st={st} wage={u.wage} travel={u.travel} title="שעות ושכר החודש" />
         <div className="bar"><h3>משמרות</h3><button className="btn ghost sm" type="button" onClick={() => setEdit('new')}>+ הוספת משמרת</button></div>
         <div className="list">
           {shifts.length === 0 ? <div className="empty muted">אין משמרות בחודש הזה.</div>

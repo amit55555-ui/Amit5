@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { breakMs, clockT, dayKey, dayLabel, hm, H, workMs } from '@/lib/calc';
-import type { Loc, Shift } from '@/lib/types';
+import { breakMs, clockT, dayKey, dayLabel, hm, hmLong, H, hours, money, workMs, type Summary } from '@/lib/calc';
+import type { Loc, PublicSettings, Shift } from '@/lib/types';
 
 export function useNow(ms = 1000) {
   const [now, setNow] = useState(() => Date.now());
@@ -31,6 +31,52 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
         </div>
         {children}
       </div>
+    </div>
+  );
+}
+
+/** אריח סיכום: 10:30 גדול, ומתחתיו "10 שעות ו-30 דקות" */
+export function HoursStat({ label, ms }: { label: string; ms: number }) {
+  return (
+    <div className="stat">
+      <span className="label">{label}</span>
+      <span className="num">{hm(ms)}</span>
+      <span className="statsub">{hmLong(ms)}</span>
+    </div>
+  );
+}
+
+/** פירוט שכר שקוף: שעות ודקות × תעריף = סכום */
+export function PayBreakdown({ sum, st, wage, travel, title }: { sum: Summary; st: PublicSettings; wage: number; travel: number | null; title: string }) {
+  const line = (name: string, ms: number, rate: number, amount: number) => (
+    <div className="payline">
+      <span className="paytxt">
+        <span>{name}</span>
+        <span className="hint">{hmLong(ms)} <span className="num">({hours(ms)})</span> × {money(wage)}{rate !== 1 ? ` × ${Math.round(rate * 100)}%` : ''}</span>
+      </span>
+      <span className="num">{money(amount)}</span>
+    </div>
+  );
+  const perDay = travel ?? st.travelPerDay ?? 0;
+  return (
+    <div className="card pay">
+      <h2 style={{ marginBottom: 4 }}>{title}</h2>
+      {line('שעות רגילות', sum.reg, 1, sum.pay.reg)}
+      {st.otEnabled ? <>
+        {line(`שעות נוספות ${Math.round(st.ot1Rate * 100)}%`, sum.ot1, st.ot1Rate, sum.pay.ot1)}
+        {line(`שעות נוספות ${Math.round(st.ot2Rate * 100)}%`, sum.ot2, st.ot2Rate, sum.pay.ot2)}
+      </> : null}
+      {sum.pay.travel ? (
+        <div className="payline">
+          <span className="paytxt"><span>נסיעות</span><span className="hint">{sum.nDays} ימי עבודה × {money(perDay)}</span></span>
+          <span className="num">{money(sum.pay.travel)}</span>
+        </div>
+      ) : null}
+      <div className="payline total">
+        <span className="paytxt"><span>סה״כ ברוטו</span><span className="hint" style={{ fontWeight: 400 }}>סה״כ {hmLong(sum.tot)} ב-{sum.nDays} ימי עבודה</span></span>
+        <span className="num">{money(sum.pay.total)}</span>
+      </div>
+      <p className="hint">הערכה לפני מסים וניכויים. כל משמרת מחושבת לפי דקות שלמות. המספר בסוגריים הוא השעות בשבר עשרוני, כמו בתלוש.</p>
     </div>
   );
 }

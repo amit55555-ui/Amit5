@@ -67,8 +67,22 @@ export function weekStart(now: number) {
 
 export const hm = (ms: number) => { const m = Math.max(0, Math.round(ms / 60000)); return `${Math.floor(m / 60)}:${pad(m % 60)}`; };
 export const hms = (ms: number) => { const s = Math.max(0, Math.floor(ms / 1000)); return `${pad(Math.floor(s / 3600))}:${pad(Math.floor(s / 60) % 60)}:${pad(s % 60)}`; };
-export const money = (v: number) => '₪' + (Math.round(v * 100) / 100).toLocaleString('he-IL', { maximumFractionDigits: 2 });
+export const money = (v: number) => '₪' + (Math.round(v * 100) / 100).toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 export const hours = (ms: number) => (ms / H).toFixed(2);
+const mins = (ms: number) => Math.max(0, Math.round(ms / 60000));
+/** "10 שעות ו-30 דקות" */
+export function hmLong(ms: number) {
+  const m = mins(ms), h = Math.floor(m / 60), mm = m % 60;
+  const hs = h === 0 ? '' : h === 1 ? 'שעה אחת' : `${h} שעות`;
+  const ms2 = mm === 0 ? '' : mm === 1 ? 'דקה אחת' : `${mm} דקות`;
+  if (hs && ms2) return `${hs} ו-${ms2}`;
+  return hs || ms2 || '0 דקות';
+}
+/** "10 ש׳ 30 ד׳" — לטבלאות */
+export function hmShort(ms: number) {
+  const m = mins(ms);
+  return `${Math.floor(m / 60)} ש׳ ${m % 60} ד׳`;
+}
 
 export function breakMs(s: Shift, now: number) {
   let b = (s.breakMin || 0) * 60000;
@@ -91,7 +105,7 @@ export function summarize(shifts: Shift[], st: PublicSettings, wage: number, tra
     const k = dayKey(s.start);
     let d = map.get(k);
     if (!d) { d = { key: k, ms: 0, reg: 0, ot1: 0, ot2: 0, shifts: [] }; map.set(k, d); }
-    d.ms += workMs(s, now);
+    d.ms += Math.round(workMs(s, now) / 60000) * 60000; // דקות שלמות — כך התצוגה והשכר תואמים בדיוק
     d.shifts.push(s);
   }
   const std = (st.stdHours || 8.4) * H;
