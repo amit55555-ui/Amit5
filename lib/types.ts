@@ -40,7 +40,7 @@ export type Settings = {
   travelPerDay: number;
   allowEmployeeEdit: boolean; // עובד יכול להוסיף/לתקן משמרות בעצמו
   showPayToEmployees: boolean;
-  requireLocation: boolean; // חובה לאשר מיקום בכניסה וביציאה
+  requireLocation: boolean; // רישום מיקום בכניסה וביציאה (כבוי = לא מבקשים מיקום בכלל)
   adminPassHash?: string;
 };
 
@@ -54,7 +54,7 @@ export const DEFAULT_SETTINGS: Settings = {
   travelPerDay: 0,
   allowEmployeeEdit: false,
   showPayToEmployees: true,
-  requireLocation: true,
+  requireLocation: false,
 };
 
 export type PublicSettings = Omit<Settings, 'adminPassHash'>;

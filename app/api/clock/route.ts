@@ -12,8 +12,8 @@ export async function POST(req: Request) {
   if (!u) return fail('יש להתחבר מחדש', 401);
   const b = await body(req);
   const action = b.action;
-  const loc = parseLoc(b.loc);
   const st = await store().settings();
+  const loc = st.requireLocation ? parseLoc(b.loc) : null;
   if (st.requireLocation && (action === 'in' || action === 'out') && !loc) {
     return fail('כדי להחתים צריך לאשר גישה למיקום בטלפון', 428);
   }

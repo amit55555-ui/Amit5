@@ -197,7 +197,8 @@ function EmployeeSheet({ u, shifts, st, month, now, reload, toast, onClose }: {
   }
   if (edit) {
     return <ShiftEditor shift={edit === 'new' ? null : edit} now={now} title={`${edit === 'new' ? 'הוספת משמרת' : 'תיקון משמרת'} · ${u.name}`}
-      onSave={save} onDelete={edit === 'new' ? undefined : del} onClose={() => setEdit(null)} showLocations />;
+      onSave={save} onDelete={edit === 'new' ? undefined : del} onClose={() => setEdit(null)}
+      showLocations={st.requireLocation || (edit !== 'new' && !!(edit.inLoc || edit.outLoc))} />;
   }
   return (
     <Sheet title={`${u.name} · ${monthTitle(month)}`} onClose={onClose}>
@@ -216,7 +217,7 @@ function EmployeeSheet({ u, shifts, st, month, now, reload, toast, onClose }: {
         <div className="list">
           {shifts.length === 0 ? <div className="empty muted">אין משמרות בחודש הזה.</div>
             : [...shifts].sort((a, b) => b.start - a.start).map((s) => (
-              <ShiftRow key={s.id} s={s} now={now} stdHours={st.stdHours} otEnabled={st.otEnabled} onClick={() => setEdit(s)} showLoc />
+              <ShiftRow key={s.id} s={s} now={now} stdHours={st.stdHours} otEnabled={st.otEnabled} onClick={() => setEdit(s)} showLoc={st.requireLocation} />
             ))}
         </div>
       </div>
@@ -380,7 +381,7 @@ function SettingsView({ st, reload, toast }: { st: PublicSettings; reload: () =>
         <label className="toggle" htmlFor="sPay"><input id="sPay" type="checkbox" checked={f.showPayToEmployees} onChange={(e) => set('showPayToEmployees', e.target.checked)} />
           עובדים רואים את השכר המשוער שלהם</label>
         <label className="toggle" htmlFor="sLoc"><input id="sLoc" type="checkbox" checked={f.requireLocation} onChange={(e) => set('requireLocation', e.target.checked)} />
-          <span>חובה לאשר מיקום בכניסה וביציאה<br /><span className="hint">המיקום נשמר רק ברגע הלחיצה, לא במעקב רציף. כבוי: המיקום נשמר רק אם העובד אישר.</span></span></label>
+          <span>רישום מיקום בכניסה וביציאה<br /><span className="hint">כשמופעל: העובד חייב לאשר מיקום כדי להחתים, והמיקום נשמר רק ברגע הלחיצה. כשכבוי: לא מבקשים מיקום בכלל.</span></span></label>
       </fieldset>
 
       <fieldset>

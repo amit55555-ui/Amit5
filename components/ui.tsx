@@ -72,7 +72,7 @@ export function ShiftRow({ s, now, stdHours, otEnabled, onClick, showLoc }: { s:
         <div className="tot">
           <span className="num" style={{ fontWeight: 600 }}>{hm(w)}</span>
           {!s.end ? <span className="tag live">פעיל</span> : over > 0 ? <span className="tag ot">+{hm(over)} נוספות</span> : null}
-          {showLoc && !s.editedBy ? (s.inLoc || s.outLoc ? <span className="tag live">📍 מיקום</span> : <span className="tag edit">ללא מיקום</span>) : null}
+          {s.inLoc || s.outLoc ? <span className="tag live">📍 מיקום</span> : showLoc && !s.editedBy ? <span className="tag edit">ללא מיקום</span> : null}
           {s.editedBy ? <span className="tag edit">{s.editedBy === 'admin' ? 'תוקן ע״י מנהל' : 'הוזן ידנית'}</span> : null}
         </div>
       </div>

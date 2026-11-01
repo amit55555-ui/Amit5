@@ -78,13 +78,14 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
   async function clock(action: 'in' | 'out' | 'break') {
     setBusy(true);
     let loc: { lat: number; lng: number; acc: number } | undefined;
-    if (action !== 'break') {
+    if (action !== 'break' && st.requireLocation) {
       setLocating(true);
       const g = await getLocation();
       setLocating(false);
       if ('error' in g) {
-        if (st.requireLocation) { setLocPrompt((n) => n + 1); setBusy(false); return; }
-      } else loc = g;
+        setLocPrompt((n) => n + 1); setBusy(false); return;
+      }
+      loc = g;
     }
     try {
       const r = await api<{ active: Shift | null; closed?: Shift }>('/api/clock', 'POST', { action, loc });
