@@ -1,0 +1,135 @@
+'use client';
+import { useEffect, useState } from 'react';
+import { breakMs, clockT, dayKey, dayLabel, hm, H, workMs } from '@/lib/calc';
+import type { Shift } from '@/lib/types';
+
+export function useNow(ms = 1000) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), ms); return () => clearInterval(t); }, [ms]);
+  return now;
+}
+
+export function useToast() {
+  const [msg, setMsg] = useState('');
+  useEffect(() => { if (!msg) return; const t = setTimeout(() => setMsg(''), 2800); return () => clearTimeout(t); }, [msg]);
+  const node = msg ? <div className="toast" role="status">{msg}</div> : null;
+  return [node, setMsg] as const;
+}
+
+export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [onClose]);
+  return (
+    <div className="sheet-bg" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="sheet" role="dialog" aria-modal="true" aria-label={title}>
+        <div className="bar" style={{ marginBottom: 12 }}>
+          <h2>{title}</h2>
+          <button type="button" className="iconbtn" onClick={onClose} aria-label="סגירה">✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function ShiftRow({ s, now, stdHours, otEnabled, onClick }: { s: Shift; now: number; stdHours: number; otEnabled: boolean; onClick?: () => void }) {
+  const w = workMs(s, now);
+  const over = otEnabled ? Math.max(0, w - stdHours * H) : 0;
+  const br = breakMs(s, now);
+  const dl = dayLabel(dayKey(s.start));
+  return (
+    <button type="button" className="rowbtn" onClick={onClick} aria-disabled={!onClick}>
+      <div className="row">
+        <div className="day"><b>{dl.d}</b><small>{dl.wd}</small></div>
+        <div className="mid">
+          <span className="num" style={{ textAlign: 'right' }}>{clockT(s.start)} – {s.end ? clockT(s.end) : '…'}</span>
+          <span className="note">{br ? `הפסקה ${hm(br)}` : 'ללא הפסקה'}{s.note ? ` · ${s.note}` : ''}</span>
+        </div>
+        <div className="tot">
+          <span className="num" style={{ fontWeight: 600 }}>{hm(w)}</span>
+          {!s.end ? <span className="tag live">פעיל</span> : over > 0 ? <span className="tag ot">+{hm(over)} נוספות</span> : null}
+          {s.editedBy ? <span className="tag edit">{s.editedBy === 'admin' ? 'תוקן ע״י מנהל' : 'הוזן ידנית'}</span> : null}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/** טופס הוספה/תיקון משמרת. onSave מחזיר הודעת שגיאה או null */
+export function ShiftEditor({ shift, now, title, onSave, onDelete, onClose }: {
+  shift: Shift | null; now: number; title: string;
+  onSave: (v: { date: string; in: string; out: string; breakMin: number; note: string }) => Promise<string | null>;
+  onDelete?: () => Promise<string | null>;
+  onClose: () => void;
+}) {
+  const [date, setDate] = useState(shift ? dayKey(shift.start) : dayKey(now));
+  const [tin, setTin] = useState(shift ? clockT(shift.start) : '09:00');
+  const [tout, setTout] = useState(shift ? (shift.end ? clockT(shift.end) : '') : '17:30');
+  const [brk, setBrk] = useState(String(shift ? Math.round(breakMs(shift, now) / 60000) : 30));
+  const [note, setNote] = useState(shift?.note || '');
+  const [err, setErr] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setBusy(true); setErr('');
+    const r = await onSave({ date, in: tin, out: tout, breakMin: Number(brk) || 0, note });
+    setBusy(false);
+    if (r) setErr(r);
+  }
+  async function del() {
+    if (!onDelete) return;
+    setBusy(true);
+    const r = await onDelete();
+    setBusy(false);
+    if (r) setErr(r);
+  }
+
+  return (
+    <Sheet title={title} onClose={onClose}>
+      <form className="form" onSubmit={submit}>
+        <div className="field"><label className="label" htmlFor="eDate">תאריך</label>
+          <input id="eDate" type="date" required value={date} onChange={(e) => setDate(e.target.value)} /></div>
+        <div className="grid2">
+          <div className="field"><label className="label" htmlFor="eIn">כניסה</label>
+            <input id="eIn" type="time" required value={tin} onChange={(e) => setTin(e.target.value)} /></div>
+          <div className="field"><label className="label" htmlFor="eOut">יציאה</label>
+            <input id="eOut" type="time" value={tout} onChange={(e) => setTout(e.target.value)} required={!(shift && !shift.end)} /></div>
+        </div>
+        <div className="field"><label className="label" htmlFor="eBrk">הפסקה (דקות)</label>
+          <input id="eBrk" type="number" min={0} step={5} inputMode="numeric" value={brk} onChange={(e) => setBrk(e.target.value)} /></div>
+        <div className="field"><label className="label" htmlFor="eNote">הערה</label>
+          <input id="eNote" type="text" maxLength={120} placeholder="לדוגמה: עבודה מהבית" value={note} onChange={(e) => setNote(e.target.value)} /></div>
+        {shift && !shift.end ? <p className="hint">המשמרת פעילה. השאירו &quot;יציאה&quot; ריק כדי להמשיך אותה.</p> : null}
+        <p className="hint">אם שעת היציאה מוקדמת משעת הכניסה, המשמרת נחשבת כמשמרת לילה שנגמרת למחרת.</p>
+        {err ? <p className="err" role="alert">{err}</p> : null}
+        <button className="btn primary" type="submit" disabled={busy}>{busy ? 'שומר…' : 'שמירה'}</button>
+        {onDelete ? (confirmDel ? (
+          <div className="confirm">
+            <span>למחוק את המשמרת?</span>
+            <span style={{ display: 'flex', gap: 8 }}>
+              <button type="button" className="btn sm ghost" onClick={() => setConfirmDel(false)}>ביטול</button>
+              <button type="button" className="btn sm out" onClick={del} disabled={busy}>מחיקה</button>
+            </span>
+          </div>
+        ) : (
+          <button type="button" className="btn danger-text" onClick={() => setConfirmDel(true)}>מחיקת משמרת</button>
+        )) : null}
+      </form>
+    </Sheet>
+  );
+}
+
+export function MonthNav({ title, onPrev, onNext }: { title: string; onPrev: () => void; onNext: () => void }) {
+  return (
+    <div className="bar" style={{ flexWrap: 'nowrap' }}>
+      <button className="iconbtn" type="button" onClick={onPrev} aria-label="חודש קודם">›</button>
+      <h2>{title}</h2>
+      <button className="iconbtn" type="button" onClick={onNext} aria-label="חודש הבא">‹</button>
+    </div>
+  );
+}
