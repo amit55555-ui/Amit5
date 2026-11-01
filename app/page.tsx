@@ -7,6 +7,7 @@ import {
 } from '@/lib/calc';
 import type { PublicSettings, PublicUser, Shift } from '@/lib/types';
 import { MonthNav, ShiftEditor, ShiftRow, useNow, useToast } from '@/components/ui';
+import { LocationPrompt } from '@/components/LocationPrompt';
 
 type Me = { user: PublicUser | null; companyName?: string; settings?: PublicSettings; active?: Shift | null; recent?: Shift[] };
 type LoggedIn = { user: PublicUser; settings: PublicSettings; active: Shift | null; recent: Shift[] };
@@ -71,6 +72,7 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
   const [tab, setTab] = useState<'today' | 'month'>('today');
   const [busy, setBusy] = useState(false);
   const [locating, setLocating] = useState(false);
+  const [locPrompt, setLocPrompt] = useState(0);
   useEffect(() => { setActive(me.active); setRecent(me.recent); }, [me]);
 
   async function clock(action: 'in' | 'out' | 'break') {
@@ -81,7 +83,7 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
       const g = await getLocation();
       setLocating(false);
       if ('error' in g) {
-        if (st.requireLocation) { toast(g.error); setBusy(false); return; }
+        if (st.requireLocation) { setLocPrompt((n) => n + 1); setBusy(false); return; }
       } else loc = g;
     }
     try {
@@ -162,6 +164,8 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
       ) : (
         <MyMonth user={user} st={st} now={now} toast={toast} onChange={reload} />
       )}
+
+      <LocationPrompt required={st.requireLocation} forceOpen={locPrompt} />
 
       <nav className="tabs" role="tablist">
         <div className="in">

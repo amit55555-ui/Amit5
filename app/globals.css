@@ -150,3 +150,7 @@ tfoot td { font-weight: 700; border-bottom: 0; }
 
 @media (prefers-reduced-motion: no-preference) { .pill.on::before { animation: pulse 1.6s ease-in-out infinite; } }
 @keyframes pulse { 50% { opacity: .3; } }
+
+/* חלון אישור מיקום */
+.steps { margin: 0; padding-inline-start: 22px; display: flex; flex-direction: column; gap: 8px; }
+.locicon { font-size: 2.6rem; text-align: center; line-height: 1; }
