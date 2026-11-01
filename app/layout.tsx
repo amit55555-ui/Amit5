@@ -4,6 +4,8 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'שעון נוכחות',
   description: 'דיווח שעות עבודה לעובדים ודוחות נוכחות ושכר למנהל',
+  icons: { apple: '/apple-touch-icon.png' },
+  appleWebApp: { capable: true, title: 'שעון נוכחות', statusBarStyle: 'default' },
 };
 
 export const viewport: Viewport = {

@@ -46,7 +46,7 @@ function Login({ company, onDone }: { company: string; onDone: () => void }) {
   return (
     <div className="wrap login">
       <div className="brand">
-        <span className="mark num">08:00</span>
+        <img src="/logo.jpg" alt="SPARTA" className="logo" width={120} height={120} />
         <h1>שעון נוכחות</h1>
         {company ? <span className="muted">{company}</span> : null}
       </div>
@@ -111,6 +111,7 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
   return (
     <div className="wrap">
       <header className="top">
+        <img src="/logo.jpg" alt="" className="logo-sm" width={40} height={40} />
         <div className="who"><h1>שלום, {user.name}</h1>{st.companyName ? <span className="muted">{st.companyName}</span> : null}</div>
         <button className="btn link" type="button" onClick={logout}>התנתקות</button>
       </header>

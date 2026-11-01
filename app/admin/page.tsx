@@ -31,7 +31,7 @@ function AdminLogin({ onDone }: { onDone: () => void }) {
   }
   return (
     <div className="wrap login">
-      <div className="brand"><span className="mark num">ADMIN</span><h1>ממשק מנהל</h1></div>
+      <div className="brand"><img src="/logo.jpg" alt="SPARTA" className="logo" width={120} height={120} /><h1>ממשק מנהל</h1></div>
       <form className="card form" onSubmit={submit}>
         <div className="field"><label className="label" htmlFor="ap">סיסמת מנהל</label>
           <input id="ap" type="password" autoComplete="current-password" value={pw} onChange={(e) => setPw(e.target.value)} required autoFocus /></div>
@@ -62,6 +62,7 @@ function AdminApp({ status, toast, onAuthLost }: { status: Status; toast: Toast;
   return (
     <div className="wrap wide">
       <header className="top">
+        <img src="/logo.jpg" alt="" className="logo-sm" width={40} height={40} />
         <div className="who"><h1>ממשק מנהל</h1>{rep?.settings.companyName ? <span className="muted">{rep.settings.companyName}</span> : null}</div>
         <button className="btn link" type="button" onClick={logout}>התנתקות</button>
       </header>

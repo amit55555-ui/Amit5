@@ -159,3 +159,9 @@ tfoot td { font-weight: 700; border-bottom: 0; }
 .statsub { font-size: .82rem; color: var(--muted); }
 .paytxt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
 .payline { align-items: flex-start; }
+
+/* לוגו */
+.logo { display: block; width: 120px; height: 120px; margin: 0 auto 6px; border-radius: 24px; object-fit: cover; box-shadow: 0 6px 20px rgba(0, 0, 0, .12); }
+.logo-sm { width: 40px; height: 40px; border-radius: 10px; object-fit: cover; flex: none; }
+.top { flex-wrap: nowrap; }
+.top .who { flex: 1; min-width: 0; }
