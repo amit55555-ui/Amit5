@@ -30,6 +30,20 @@ export type Shift = {
   updatedAt: number;
 };
 
+/** שעות פעילות ליום בשבוע; null = סגור */
+export type DayHours = { open: string; close: string } | null;
+
+/** משמרת מתוכננת בסידור העבודה */
+export type Plan = {
+  id: string;
+  userId: string;
+  day: string; // YYYY-MM-DD
+  start: string; // HH:MM
+  end: string; // HH:MM
+  note: string;
+  updatedAt: number;
+};
+
 export type Settings = {
   companyName: string;
   stdHours: number; // שעות תקן ליום
@@ -40,6 +54,7 @@ export type Settings = {
   travelPerDay: number;
   allowEmployeeEdit: boolean; // עובד יכול להוסיף/לתקן משמרות בעצמו
   showPayToEmployees: boolean;
+  businessHours: DayHours[]; // 0=ראשון … 6=שבת
   requireLocation: boolean; // רישום מיקום בכניסה וביציאה (כבוי = לא מבקשים מיקום בכלל)
   adminPassHash?: string;
 };
@@ -55,6 +70,15 @@ export const DEFAULT_SETTINGS: Settings = {
   allowEmployeeEdit: false,
   showPayToEmployees: true,
   requireLocation: false,
+  businessHours: [
+    { open: '09:00', close: '21:00' }, // ראשון
+    { open: '09:00', close: '21:00' },
+    { open: '09:00', close: '21:00' },
+    { open: '09:00', close: '21:00' },
+    { open: '09:00', close: '21:00' }, // חמישי
+    { open: '09:00', close: '13:30' }, // שישי
+    null, // שבת
+  ],
 };
 
 export type PublicSettings = Omit<Settings, 'adminPassHash'>;

@@ -4,7 +4,7 @@ import { neon, type NeonQueryFunction } from '@neondatabase/serverless';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { DEFAULT_SETTINGS, type Settings, type Shift, type User } from './types';
+import { DEFAULT_SETTINGS, type Plan, type Settings, type Shift, type User } from './types';
 
 type Q = { userId?: string; from?: number; to?: number };
 
@@ -21,6 +21,10 @@ interface Store {
   deleteShift(id: string): Promise<void>;
   settings(): Promise<Settings>;
   saveSettings(s: Settings): Promise<void>;
+  plans(q: { from: string; to: string; userId?: string }): Promise<Plan[]>; // to = כולל
+  planById(id: string): Promise<Plan | null>;
+  savePlan(p: Plan): Promise<void>;
+  deletePlan(id: string): Promise<void>;
 }
 
 function connectionString() {
@@ -47,6 +51,10 @@ function pgStore(): Store {
     await sql`CREATE INDEX IF NOT EXISTS att_shifts_user_start ON att_shifts (user_id, start_at)`;
     await sql`CREATE INDEX IF NOT EXISTS att_shifts_start ON att_shifts (start_at)`;
     await sql`CREATE TABLE IF NOT EXISTS att_settings (k TEXT PRIMARY KEY, v JSONB NOT NULL)`;
+    await sql`CREATE TABLE IF NOT EXISTS att_plans (
+      id TEXT PRIMARY KEY, user_id TEXT NOT NULL, day TEXT NOT NULL, start_t TEXT NOT NULL, end_t TEXT NOT NULL,
+      note TEXT NOT NULL DEFAULT '', updated_at BIGINT NOT NULL)`;
+    await sql`CREATE INDEX IF NOT EXISTS att_plans_day ON att_plans (day)`;
   })().catch((e) => { ready = null; throw e; }));
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -60,6 +68,10 @@ function pgStore(): Store {
     breaks: r.breaks || [], breakMin: Number(r.break_min), note: r.note || '', editedBy: r.edited_by, updatedAt: Number(r.updated_at),
     inLoc: r.in_loc || null, outLoc: r.out_loc || null,
   });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const toPlan = (r: any): Plan => ({
+    id: r.id, userId: r.user_id, day: r.day, start: r.start_t, end: r.end_t, note: r.note || '', updatedAt: Number(r.updated_at),
+  });
 
   return {
     async users() { await init(); return (await sql`SELECT * FROM att_users ORDER BY name`).map(toUser); },
@@ -72,7 +84,7 @@ function pgStore(): Store {
         ON CONFLICT (id) DO UPDATE SET username=EXCLUDED.username, name=EXCLUDED.name, pass_hash=EXCLUDED.pass_hash,
         wage=EXCLUDED.wage, travel=EXCLUDED.travel, active=EXCLUDED.active`;
     },
-    async deleteUser(id) { await init(); await sql`DELETE FROM att_shifts WHERE user_id=${id}`; await sql`DELETE FROM att_users WHERE id=${id}`; },
+    async deleteUser(id) { await init(); await sql`DELETE FROM att_shifts WHERE user_id=${id}`; await sql`DELETE FROM att_plans WHERE user_id=${id}`; await sql`DELETE FROM att_users WHERE id=${id}`; },
     async shifts({ userId, from, to }) {
       await init();
       const f = from ?? 0, t = to ?? 8.64e15;
@@ -108,11 +120,27 @@ function pgStore(): Store {
       await init();
       await sql`INSERT INTO att_settings (k, v) VALUES ('main', ${JSON.stringify(s)}::jsonb) ON CONFLICT (k) DO UPDATE SET v=EXCLUDED.v`;
     },
+    async plans({ from, to, userId }) {
+      await init();
+      const r = userId
+        ? await sql`SELECT * FROM att_plans WHERE day>=${from} AND day<=${to} AND user_id=${userId} ORDER BY day, start_t`
+        : await sql`SELECT * FROM att_plans WHERE day>=${from} AND day<=${to} ORDER BY day, start_t`;
+      return r.map(toPlan);
+    },
+    async planById(id) { await init(); const r = await sql`SELECT * FROM att_plans WHERE id=${id}`; return r[0] ? toPlan(r[0]) : null; },
+    async savePlan(p) {
+      await init();
+      await sql`INSERT INTO att_plans (id, user_id, day, start_t, end_t, note, updated_at)
+        VALUES (${p.id}, ${p.userId}, ${p.day}, ${p.start}, ${p.end}, ${p.note}, ${p.updatedAt})
+        ON CONFLICT (id) DO UPDATE SET user_id=EXCLUDED.user_id, day=EXCLUDED.day, start_t=EXCLUDED.start_t,
+        end_t=EXCLUDED.end_t, note=EXCLUDED.note, updated_at=EXCLUDED.updated_at`;
+    },
+    async deletePlan(id) { await init(); await sql`DELETE FROM att_plans WHERE id=${id}`; },
   };
 }
 
 /* ---------- קובץ JSON (פיתוח מקומי) ---------- */
-type FileData = { users: User[]; shifts: Shift[]; settings: Partial<Settings> };
+type FileData = { users: User[]; shifts: Shift[]; settings: Partial<Settings>; plans?: Plan[] };
 function fileStore(): Store {
   const file = path.join(process.env.DATA_DIR || path.join(os.tmpdir(), 'attendance'), 'data.json');
   let queue: Promise<unknown> = Promise.resolve();
@@ -135,7 +163,7 @@ function fileStore(): Store {
     async userById(id) { return (await load()).users.find((u) => u.id === id) || null; },
     async userByUsername(n) { return (await load()).users.find((u) => u.username.toLowerCase() === n.toLowerCase()) || null; },
     async saveUser(u) { await mutate((d) => upsert(d.users, u)); },
-    async deleteUser(id) { await mutate((d) => { d.users = d.users.filter((u) => u.id !== id); d.shifts = d.shifts.filter((s) => s.userId !== id); }); },
+    async deleteUser(id) { await mutate((d) => { d.users = d.users.filter((u) => u.id !== id); d.shifts = d.shifts.filter((s) => s.userId !== id); d.plans = (d.plans || []).filter((p) => p.userId !== id); }); },
     async shifts({ userId, from, to }) {
       return (await load()).shifts
         .filter((s) => (!userId || s.userId === userId) && s.start >= (from ?? 0) && s.start < (to ?? 8.64e15))
@@ -147,6 +175,14 @@ function fileStore(): Store {
     async deleteShift(id) { await mutate((d) => { d.shifts = d.shifts.filter((s) => s.id !== id); }); },
     async settings() { return { ...DEFAULT_SETTINGS, ...(await load()).settings }; },
     async saveSettings(s) { await mutate((d) => { d.settings = s; }); },
+    async plans({ from, to, userId }) {
+      return ((await load()).plans || [])
+        .filter((p) => p.day >= from && p.day <= to && (!userId || p.userId === userId))
+        .sort((a, b) => (a.day + a.start < b.day + b.start ? -1 : 1));
+    },
+    async planById(id) { return ((await load()).plans || []).find((p) => p.id === id) || null; },
+    async savePlan(p) { await mutate((d) => { d.plans ||= []; upsert(d.plans, p); }); },
+    async deletePlan(id) { await mutate((d) => { d.plans = (d.plans || []).filter((p) => p.id !== id); }); },
   };
 }
 

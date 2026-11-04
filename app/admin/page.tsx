@@ -2,7 +2,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, downloadCsv } from '@/lib/client';
 import { breakMs, clockT, dayKey, DAYNAMES, hm, hmLong, hmShort, hours, money, monthKey, monthTitle, shiftMonth, summarize, workMs, zparts } from '@/lib/calc';
-import type { PublicSettings, PublicUser, Shift } from '@/lib/types';
+import type { DayHours, PublicSettings, PublicUser, Shift } from '@/lib/types';
+import { AdminSchedule } from '@/components/AdminSchedule';
 import { HoursStat, mapUrl, MonthNav, PayBreakdown, Sheet, ShiftEditor, ShiftRow, useNow, useToast } from '@/components/ui';
 
 type Status = { admin: boolean; defaultPassword: boolean; database: boolean };
@@ -46,7 +47,7 @@ function AdminLogin({ onDone }: { onDone: () => void }) {
 type Report = { month: string; settings: PublicSettings; users: PublicUser[]; shifts: Shift[]; active: Shift[] };
 
 function AdminApp({ status, toast, onAuthLost }: { status: Status; toast: Toast; onAuthLost: () => void }) {
-  const [tab, setTab] = useState<'report' | 'users' | 'settings'>('report');
+  const [tab, setTab] = useState<'report' | 'schedule' | 'users' | 'settings'>('report');
   const [month, setMonth] = useState(monthKey(Date.now()));
   const [rep, setRep] = useState<Report | null>(null);
 
@@ -71,12 +72,14 @@ function AdminApp({ status, toast, onAuthLost }: { status: Status; toast: Toast;
 
       {!rep ? <p className="muted">טוען…</p>
         : tab === 'report' ? <ReportView rep={rep} month={month} setMonth={setMonth} reload={load} toast={toast} />
+        : tab === 'schedule' ? <AdminSchedule toast={toast} />
         : tab === 'users' ? <UsersView users={rep.users} st={rep.settings} reload={load} toast={toast} />
         : <SettingsView st={rep.settings} reload={load} toast={toast} />}
 
       <nav className="tabs" role="tablist">
         <div className="in">
-          <button type="button" role="tab" aria-selected={tab === 'report'} onClick={() => setTab('report')}>דוח נוכחות</button>
+          <button type="button" role="tab" aria-selected={tab === 'report'} onClick={() => setTab('report')}>נוכחות</button>
+          <button type="button" role="tab" aria-selected={tab === 'schedule'} onClick={() => setTab('schedule')}>סידור</button>
           <button type="button" role="tab" aria-selected={tab === 'users'} onClick={() => setTab('users')}>עובדים</button>
           <button type="button" role="tab" aria-selected={tab === 'settings'} onClick={() => setTab('settings')}>הגדרות</button>
         </div>
@@ -364,6 +367,30 @@ function SettingsView({ st, reload, toast }: { st: PublicSettings; reload: () =>
         ) : null}
         <div className="field"><label className="label" htmlFor="sTravel">דמי נסיעה ליום עבודה (₪, ברירת מחדל)</label>
           <input id="sTravel" type="number" min={0} step={0.5} inputMode="decimal" value={f.travelPerDay} onChange={(e) => set('travelPerDay', Number(e.target.value))} /></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>שעות פעילות (לסידור המשמרות)</legend>
+        {DAYNAMES.map((name, i) => {
+          const h = f.businessHours?.[i] ?? null;
+          const setDay = (v: DayHours) => set('businessHours', (f.businessHours || Array(7).fill(null)).map((x, j) => (j === i ? v : x)));
+          return (
+            <div className="hoursrow" key={name}>
+              <label className="toggle" htmlFor={`bh${i}`}>
+                <input id={`bh${i}`} type="checkbox" checked={!!h} onChange={(e) => setDay(e.target.checked ? { open: '09:00', close: '17:00' } : null)} />
+                <span>{name}</span>
+              </label>
+              {h ? (
+                <span className="hourspair">
+                  <input aria-label={`פתיחה ביום ${name}`} type="time" step={900} value={h.open} onChange={(e) => setDay({ ...h, open: e.target.value })} />
+                  <span className="muted">עד</span>
+                  <input aria-label={`סגירה ביום ${name}`} type="time" step={900} value={h.close} onChange={(e) => setDay({ ...h, close: e.target.value })} />
+                </span>
+              ) : <span className="muted">סגור</span>}
+            </div>
+          );
+        })}
+        <p className="hint">משמרות בסידור חייבות להיות בתוך שעות הפעילות של אותו יום.</p>
       </fieldset>
 
       <fieldset>

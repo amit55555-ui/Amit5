@@ -137,3 +137,40 @@ export function dayLabel(key: string) {
   const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
   return { d, wd: DAYS[wd], name: DAYNAMES[wd] };
 }
+
+/* ---------- סידור משמרות: עבודה עם תאריך כמחרוזת YYYY-MM-DD ---------- */
+const keyToUTC = (key: string) => { const [y, m, d] = key.split('-').map(Number); return Date.UTC(y, m - 1, d); };
+const utcToKey = (t: number) => { const d = new Date(t); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`; };
+export const addDays = (key: string, n: number) => utcToKey(keyToUTC(key) + n * 86400000);
+export const weekdayOf = (key: string) => new Date(keyToUTC(key)).getUTCDay();
+/** יום ראשון של השבוע שבו נמצא התאריך */
+export const weekStartKey = (key: string) => addDays(key, -weekdayOf(key));
+export const toMin = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+export const fromMin = (m: number) => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+export const planMs = (p: { start: string; end: string }) => Math.max(0, toMin(p.end) - toMin(p.start)) * 60000;
+export const shortDate = (key: string) => { const [, m, d] = key.split('-').map(Number); return `${d}.${m}`; };
+
+export function weekTitle(startKey: string) {
+  const end = addDays(startKey, 6);
+  const [y1, m1, d1] = startKey.split('-').map(Number);
+  const [y2, m2, d2] = end.split('-').map(Number);
+  if (m1 === m2) return `${d1}–${d2} ב${MONTHS[m1 - 1]} ${y1}`;
+  if (y1 === y2) return `${d1} ב${MONTHS[m1 - 1]} – ${d2} ב${MONTHS[m2 - 1]} ${y1}`;
+  return `${d1}.${m1}.${y1} – ${d2}.${m2}.${y2}`;
+}
+
+/** שעות פעילות שלא שובץ בהן אף עובד */
+export function coverageGaps(hours: { open: string; close: string } | null, plans: { start: string; end: string }[]) {
+  if (!hours) return [];
+  const open = toMin(hours.open), close = toMin(hours.close);
+  const iv = plans.map((p) => [Math.max(open, toMin(p.start)), Math.min(close, toMin(p.end))] as const)
+    .filter(([a, b]) => b > a).sort((a, b) => a[0] - b[0]);
+  const gaps: { start: string; end: string }[] = [];
+  let cur = open;
+  for (const [a, b] of iv) {
+    if (a > cur) gaps.push({ start: fromMin(cur), end: fromMin(a) });
+    cur = Math.max(cur, b);
+  }
+  if (cur < close) gaps.push({ start: fromMin(cur), end: fromMin(close) });
+  return gaps;
+}

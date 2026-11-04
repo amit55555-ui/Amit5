@@ -6,6 +6,17 @@ import { publicSettings, type Settings } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
+const T = /^\d{2}:\d{2}$/;
+function parseHours(v: unknown, cur: Settings['businessHours']): Settings['businessHours'] {
+  if (!Array.isArray(v) || v.length !== 7) return cur;
+  return v.map((d) => {
+    if (!d || typeof d !== 'object') return null;
+    const { open, close } = d as Record<string, unknown>;
+    if (typeof open !== 'string' || typeof close !== 'string' || !T.test(open) || !T.test(close) || close <= open) return null;
+    return { open, close };
+  });
+}
+
 export async function GET() {
   const st = await store().settings();
   if (!(await isAdmin(st))) return fail('נדרשת כניסת מנהל', 401);
@@ -28,6 +39,7 @@ export async function PUT(req: Request) {
     allowEmployeeEdit: Boolean(b.allowEmployeeEdit),
     showPayToEmployees: Boolean(b.showPayToEmployees),
     requireLocation: Boolean(b.requireLocation),
+    businessHours: parseHours(b.businessHours, st.businessHours),
   };
   const newPw = typeof b.newAdminPassword === 'string' ? b.newAdminPassword : '';
   if (newPw) {
