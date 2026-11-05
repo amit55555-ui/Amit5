@@ -88,13 +88,13 @@ export const DEFAULT_SETTINGS: Settings = {
     { open: '09:00', close: '21:00' },
     { open: '09:00', close: '21:00' },
     { open: '09:00', close: '21:00' }, // חמישי
-    { open: '09:00', close: '13:30' }, // שישי
+    { open: '09:00', close: '13:00' }, // שישי
     null, // שבת
   ],
   slots: [
-    { id: 'm', name: 'בוקר', start: '09:00', end: '15:00', days: [0, 1, 2, 3, 4] },
-    { id: 'e', name: 'ערב', start: '15:00', end: '21:00', days: [0, 1, 2, 3, 4] },
-    { id: 'f', name: 'שישי', start: '09:00', end: '13:30', days: [5] },
+    { id: 'm', name: 'בוקר', start: '09:00', end: '16:00', days: [0, 1, 2, 3, 4] },
+    { id: 'e', name: 'ערב', start: '16:00', end: '21:00', days: [0, 1, 2, 3, 4] },
+    { id: 'f', name: 'שישי', start: '09:00', end: '13:00', days: [5] },
   ],
   submitDay: 4, // חמישי
   submitTime: '12:00',
@@ -110,4 +110,16 @@ export function publicUser(u: User): PublicUser {
 export function publicSettings(s: Settings): PublicSettings {
   const { adminPassHash: _h, ...rest } = s;
   return rest;
+}
+
+/** הגדרות שנשמרו עם ערכי ברירת המחדל הישנים מתעדכנות לחדשים (רק אם לא שונו ידנית) */
+const OLD_SLOTS = '[{"id":"m","name":"בוקר","start":"09:00","end":"15:00","days":[0,1,2,3,4]},{"id":"e","name":"ערב","start":"15:00","end":"21:00","days":[0,1,2,3,4]},{"id":"f","name":"שישי","start":"09:00","end":"13:30","days":[5]}]';
+export function migrateSettings(s: Settings): Settings {
+  const out = { ...s };
+  if (JSON.stringify(out.slots) === OLD_SLOTS) out.slots = DEFAULT_SETTINGS.slots;
+  const fri = out.businessHours?.[5];
+  if (fri && fri.open === '09:00' && fri.close === '13:30' && JSON.stringify(out.slots) === JSON.stringify(DEFAULT_SETTINGS.slots)) {
+    out.businessHours = out.businessHours.map((h, i) => (i === 5 ? { open: '09:00', close: '13:00' } : h));
+  }
+  return out;
 }

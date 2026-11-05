@@ -4,7 +4,7 @@ import { neon, type NeonQueryFunction } from '@neondatabase/serverless';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { DEFAULT_SETTINGS, type Avail, type Plan, type Settings, type Shift, type User } from './types';
+import { DEFAULT_SETTINGS, migrateSettings, type Avail, type Plan, type Settings, type Shift, type User } from './types';
 
 type Q = { userId?: string; from?: number; to?: number };
 
@@ -122,7 +122,7 @@ function pgStore(): Store {
     async settings() {
       await init();
       const r = await sql`SELECT v FROM att_settings WHERE k='main'`;
-      return { ...DEFAULT_SETTINGS, ...(r[0]?.v || {}) };
+      return migrateSettings({ ...DEFAULT_SETTINGS, ...(r[0]?.v || {}) });
     },
     async saveSettings(s) {
       await init();
@@ -203,7 +203,7 @@ function fileStore(): Store {
     async activeShifts(userId) { return (await load()).shifts.filter((s) => s.end == null && (!userId || s.userId === userId)); },
     async saveShift(s) { await mutate((d) => upsert(d.shifts, s)); },
     async deleteShift(id) { await mutate((d) => { d.shifts = d.shifts.filter((s) => s.id !== id); }); },
-    async settings() { return { ...DEFAULT_SETTINGS, ...(await load()).settings }; },
+    async settings() { return migrateSettings({ ...DEFAULT_SETTINGS, ...(await load()).settings }); },
     async saveSettings(s) { await mutate((d) => { d.settings = s; }); },
     async plans({ from, to, userId }) {
       return ((await load()).plans || [])
