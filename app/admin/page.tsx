@@ -1,8 +1,8 @@
 'use client';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, downloadCsv } from '@/lib/client';
-import { breakMs, clockT, dayKey, DAYNAMES, hm, hmLong, hmShort, hours, money, monthKey, monthTitle, shiftMonth, summarize, workMs, zparts } from '@/lib/calc';
-import type { DayHours, PublicSettings, PublicUser, Shift } from '@/lib/types';
+import { breakMs, clockT, dayKey, DAYNAMES, DAYS, planMs, hm, hmLong, hmShort, hours, money, monthKey, monthTitle, shiftMonth, summarize, workMs, zparts } from '@/lib/calc';
+import type { DayHours, Plan, PublicSettings, PublicUser, Shift } from '@/lib/types';
 import { AdminSchedule } from '@/components/AdminSchedule';
 import { HoursStat, mapUrl, MonthNav, PayBreakdown, Sheet, ShiftEditor, ShiftRow, useNow, useToast } from '@/components/ui';
 
@@ -44,7 +44,7 @@ function AdminLogin({ onDone }: { onDone: () => void }) {
   );
 }
 
-type Report = { month: string; settings: PublicSettings; users: PublicUser[]; shifts: Shift[]; active: Shift[] };
+type Report = { month: string; settings: PublicSettings; users: PublicUser[]; shifts: Shift[]; active: Shift[]; plans?: Plan[] };
 
 function AdminApp({ status, toast, onAuthLost }: { status: Status; toast: Toast; onAuthLost: () => void }) {
   const [tab, setTab] = useState<'report' | 'schedule' | 'users' | 'settings'>('report');
@@ -99,17 +99,19 @@ function ReportView({ rep, month, setMonth, reload, toast }: { rep: Report; mont
     return m;
   }, [rep.shifts]);
   const rows = rep.users
-    .map((u) => ({ u, sum: summarize(byUser.get(u.id) || [], st, u.wage, u.travel, now) }))
+    .map((u) => ({ u, sum: summarize(byUser.get(u.id) || [], st, u.wage, u.travel, now),
+      planned: (rep.plans || []).filter((p) => p.userId === u.id).reduce((a, p) => a + planMs(p), 0) }))
     .filter((r) => r.u.active || r.sum.nDays > 0);
+  const plannedTot = rows.reduce((a, r) => a + r.planned, 0);
   const tot = rows.reduce((a, r) => ({ days: a.days + r.sum.nDays, ms: a.ms + r.sum.tot, ot1: a.ot1 + r.sum.ot1, ot2: a.ot2 + r.sum.ot2, pay: a.pay + r.sum.pay.total }),
     { days: 0, ms: 0, ot1: 0, ot2: 0, pay: 0 });
   const names = new Map(rep.users.map((u) => [u.id, u.name]));
   const r1 = Math.round(st.ot1Rate * 100), r2 = Math.round(st.ot2Rate * 100);
 
   function exportSummary() {
-    const out: (string | number)[][] = [[`דוח נוכחות ${monthTitle(month)}`], [], ['עובד', 'שם משתמש', 'ימי עבודה', 'סה"כ (שעות ודקות)', 'סה"כ שעות (עשרוני)', 'שעות רגילות', `נוספות ${r1}%`, `נוספות ${r2}%`, 'שכר לשעה', 'נסיעות', 'שכר משוער']];
-    for (const { u, sum } of rows) out.push([u.name, u.username, sum.nDays, hmLong(sum.tot), hours(sum.tot), hours(sum.reg), hours(sum.ot1), hours(sum.ot2), u.wage, sum.pay.travel.toFixed(2), sum.pay.total.toFixed(2)]);
-    out.push(['סה"כ', '', tot.days, hmLong(tot.ms), hours(tot.ms), '', hours(tot.ot1), hours(tot.ot2), '', '', tot.pay.toFixed(2)]);
+    const out: (string | number)[][] = [[`דוח נוכחות ${monthTitle(month)}`], [], ['עובד', 'שם משתמש', 'ימי עבודה', 'מתוכנן בסידור', 'סה"כ (שעות ודקות)', 'סה"כ שעות (עשרוני)', 'שעות רגילות', `נוספות ${r1}%`, `נוספות ${r2}%`, 'שכר לשעה', 'נסיעות', 'שכר משוער']];
+    for (const { u, sum, planned } of rows) out.push([u.name, u.username, sum.nDays, planned ? hmLong(planned) : '', hmLong(sum.tot), hours(sum.tot), hours(sum.reg), hours(sum.ot1), hours(sum.ot2), u.wage, sum.pay.travel.toFixed(2), sum.pay.total.toFixed(2)]);
+    out.push(['סה"כ', '', tot.days, plannedTot ? hmLong(plannedTot) : '', hmLong(tot.ms), hours(tot.ms), '', hours(tot.ot1), hours(tot.ot2), '', '', tot.pay.toFixed(2)]);
     downloadCsv(`attendance-summary-${month}.csv`, out);
   }
   function exportDetail() {
@@ -157,19 +159,19 @@ function ReportView({ rep, month, setMonth, reload, toast }: { rep: Report; mont
           <div className="tablewrap">
             <table>
               <thead><tr>
-                <th>עובד</th><th className="n">ימים</th><th>שעות</th><th>נוספות {r1}%</th><th>נוספות {r2}%</th><th className="n">שכר משוער</th>
+                <th>עובד</th><th className="n">ימים</th><th>מתוכנן</th><th>שעות בפועל</th><th>נוספות {r1}%</th><th>נוספות {r2}%</th><th className="n">שכר משוער</th>
               </tr></thead>
               <tbody>
-                {rows.map(({ u, sum }) => (
+                {rows.map(({ u, sum, planned }) => (
                   <tr key={u.id} onClick={() => setOpenUser(u.id)} tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter') setOpenUser(u.id); }}>
                     <td>{u.name}{!u.active ? <span className="tag edit" style={{ marginInlineStart: 6 }}>מושבת</span> : null}</td>
-                    <td className="n">{sum.nDays}</td><td className="hm">{hmShort(sum.tot)}</td><td className="hm">{hmShort(sum.ot1)}</td><td className="hm">{hmShort(sum.ot2)}</td>
+                    <td className="n">{sum.nDays}</td><td className="hm muted">{planned ? hmShort(planned) : '—'}</td><td className="hm">{hmShort(sum.tot)}</td><td className="hm">{hmShort(sum.ot1)}</td><td className="hm">{hmShort(sum.ot2)}</td>
                     <td className="n">{money(sum.pay.total)}</td>
                   </tr>
                 ))}
               </tbody>
               <tfoot><tr>
-                <td>סה״כ</td><td className="n">{tot.days}</td><td className="hm">{hmShort(tot.ms)}</td><td className="hm">{hmShort(tot.ot1)}</td><td className="hm">{hmShort(tot.ot2)}</td><td className="n">{money(tot.pay)}</td>
+                <td>סה״כ</td><td className="n">{tot.days}</td><td className="hm muted">{plannedTot ? hmShort(plannedTot) : '—'}</td><td className="hm">{hmShort(tot.ms)}</td><td className="hm">{hmShort(tot.ot1)}</td><td className="hm">{hmShort(tot.ot2)}</td><td className="n">{money(tot.pay)}</td>
               </tr></tfoot>
             </table>
           </div>
@@ -391,6 +393,43 @@ function SettingsView({ st, reload, toast }: { st: PublicSettings; reload: () =>
           );
         })}
         <p className="hint">משמרות בסידור חייבות להיות בתוך שעות הפעילות של אותו יום.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>סוגי משמרות להגשה</legend>
+        <p className="hint">אלה המשמרות שהעובדים מסמנים בהגשה, ושמופיעות בסידור.</p>
+        {(f.slots || []).map((sl, i) => {
+          const upd = (v: Partial<typeof sl>) => set('slots', f.slots.map((x, j) => (j === i ? { ...x, ...v } : x)));
+          return (
+            <div className="slotedit" key={sl.id}>
+              <div className="grid3">
+                <div className="field"><label className="label" htmlFor={`sn${i}`}>שם</label>
+                  <input id={`sn${i}`} value={sl.name} maxLength={30} onChange={(e) => upd({ name: e.target.value })} /></div>
+                <div className="field"><label className="label" htmlFor={`ss${i}`}>התחלה</label>
+                  <input id={`ss${i}`} type="time" step={900} value={sl.start} onChange={(e) => upd({ start: e.target.value })} /></div>
+                <div className="field"><label className="label" htmlFor={`se${i}`}>סיום</label>
+                  <input id={`se${i}`} type="time" step={900} value={sl.end} onChange={(e) => upd({ end: e.target.value })} /></div>
+              </div>
+              <div className="chips">
+                {DAYS.map((dn, wd) => (
+                  <button key={dn} type="button" className={`btn sm ${sl.days.includes(wd) ? 'primary' : 'ghost'}`} aria-pressed={sl.days.includes(wd)}
+                    onClick={() => upd({ days: sl.days.includes(wd) ? sl.days.filter((x) => x !== wd) : [...sl.days, wd].sort() })}>{dn}</button>
+                ))}
+                <button type="button" className="btn sm danger-text" onClick={() => set('slots', f.slots.filter((_, j) => j !== i))}>הסרה</button>
+              </div>
+            </div>
+          );
+        })}
+        <button type="button" className="btn ghost" onClick={() => set('slots', [...(f.slots || []), { id: Math.random().toString(36).slice(2, 8), name: 'משמרת', start: '09:00', end: '15:00', days: [0, 1, 2, 3, 4] }])}>+ הוספת סוג משמרת</button>
+        <div className="grid2">
+          <div className="field"><label className="label" htmlFor="sDay">ההגשה נסגרת ביום</label>
+            <select id="sDay" value={f.submitDay} onChange={(e) => set('submitDay', Number(e.target.value))}>
+              {DAYNAMES.map((n, i) => <option key={n} value={i}>{n}</option>)}
+            </select></div>
+          <div className="field"><label className="label" htmlFor="sTime">בשעה</label>
+            <input id="sTime" type="time" step={900} value={f.submitTime} onChange={(e) => set('submitTime', e.target.value)} /></div>
+        </div>
+        <p className="hint">העובדים מגישים לשבוע הבא עד היום והשעה האלה בשבוע הנוכחי.</p>
       </fieldset>
 
       <fieldset>

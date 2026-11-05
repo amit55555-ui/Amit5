@@ -5,10 +5,12 @@ import {
   breakMs, clockT, DAYNAMES, dayKey, hm, hmLong, hms, MONTHS, money, monthKey, monthTitle, onBreak,
   shiftMonth, summarize, weekStart, workMs, zparts,
 } from '@/lib/calc';
-import type { Plan, PublicSettings, PublicUser, Shift } from '@/lib/types';
+import type { PublicSettings, PublicUser, Shift } from '@/lib/types';
 import { HoursStat, MonthNav, PayBreakdown, ShiftEditor, ShiftRow, useNow, useToast } from '@/components/ui';
 import { LocationPrompt } from '@/components/LocationPrompt';
-import { addDays, DAYS, hmShort as hmS, planMs, shortDate, weekdayOf, weekStartKey } from '@/lib/calc';
+import { addDays, weekStartKey } from '@/lib/calc';
+import { SubmitShifts } from '@/components/SubmitShifts';
+import { TeamSchedule, type TeamData } from '@/components/TeamSchedule';
 
 type Me = { user: PublicUser | null; companyName?: string; settings?: PublicSettings; active?: Shift | null; recent?: Shift[] };
 type LoggedIn = { user: PublicUser; settings: PublicSettings; active: Shift | null; recent: Shift[] };
@@ -70,15 +72,15 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
   const { user, settings: st } = me;
   const [active, setActive] = useState<Shift | null>(me.active);
   const [recent, setRecent] = useState<Shift[]>(me.recent);
-  const [tab, setTab] = useState<'today' | 'plan' | 'month'>('today');
-  const [plans, setPlans] = useState<Plan[] | null>(null);
+  const [tab, setTab] = useState<'today' | 'submit' | 'plan' | 'month'>('today');
+  const [team, setTeam] = useState<TeamData | null>(null);
   const todayKey = dayKey(Date.now());
   const planFrom = weekStartKey(todayKey);
   useEffect(() => {
-    api<{ plans: Plan[] }>(`/api/schedule?from=${planFrom}&to=${addDays(planFrom, 13)}`)
-      .then((r) => setPlans(r.plans)).catch(() => setPlans([]));
+    api<TeamData>(`/api/schedule?from=${planFrom}&to=${addDays(planFrom, 13)}`)
+      .then(setTeam).catch(() => setTeam({ plans: [], names: {}, me: '', businessHours: [], published: {} }));
   }, [planFrom]);
-  const todayPlans = (plans || []).filter((x) => x.day === todayKey);
+  const todayPlans = (team?.plans || []).filter((x) => x.day === todayKey && x.userId === team?.me);
   const [busy, setBusy] = useState(false);
   const [locating, setLocating] = useState(false);
   const [locPrompt, setLocPrompt] = useState(0);
@@ -176,7 +178,9 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
           </div>
         </>
       ) : tab === 'plan' ? (
-        <MySchedule plans={plans} from={planFrom} today={todayKey} />
+        <TeamSchedule data={team} from={planFrom} today={todayKey} />
+      ) : tab === 'submit' ? (
+        <SubmitShifts toast={toast} />
       ) : (
         <MyMonth user={user} st={st} now={now} toast={toast} onChange={reload} />
       )}
@@ -186,8 +190,9 @@ function Dashboard({ me, reload, toast }: { me: LoggedIn; reload: () => Promise<
       <nav className="tabs" role="tablist">
         <div className="in">
           <button type="button" role="tab" aria-selected={tab === 'today'} onClick={() => setTab('today')}>היום</button>
-          <button type="button" role="tab" aria-selected={tab === 'plan'} onClick={() => setTab('plan')}>הסידור שלי</button>
-          <button type="button" role="tab" aria-selected={tab === 'month'} onClick={() => setTab('month')}>החודש שלי</button>
+          <button type="button" role="tab" aria-selected={tab === 'submit'} onClick={() => setTab('submit')}>הגשה</button>
+          <button type="button" role="tab" aria-selected={tab === 'plan'} onClick={() => setTab('plan')}>סידור</button>
+          <button type="button" role="tab" aria-selected={tab === 'month'} onClick={() => setTab('month')}>החודש</button>
         </div>
       </nav>
     </div>
@@ -265,42 +270,3 @@ function MyMonth({ user, st, now, toast, onChange }: { user: PublicUser; st: Pub
   );
 }
 
-/** המשמרות המתוכננות של העובד: השבוע והשבוע הבא */
-function MySchedule({ plans, from, today }: { plans: Plan[] | null; from: string; today: string }) {
-  if (plans === null) return <p className="muted">טוען…</p>;
-  const weeks = [{ title: 'השבוע', start: from }, { title: 'שבוע הבא', start: addDays(from, 7) }];
-  return (
-    <>
-      {weeks.map((w) => {
-        const list = plans.filter((x) => x.day >= w.start && x.day <= addDays(w.start, 6));
-        const total = list.reduce((a, x) => a + planMs(x), 0);
-        return (
-          <div className="card" key={w.start}>
-            <div className="bar" style={{ marginBottom: 6 }}>
-              <h2>{w.title} <span className="hint num" style={{ fontWeight: 400 }}>{shortDate(w.start)}–{shortDate(addDays(w.start, 6))}</span></h2>
-              {list.length ? <span className="hint">סה״כ {hmS(total)}</span> : null}
-            </div>
-            {list.length === 0 ? <p className="muted" style={{ margin: 0 }}>עדיין לא שובצו לך משמרות.</p> : (
-              <div className="list">
-                {list.map((x) => (
-                  <div key={x.id} className="planrow" style={x.day < today ? { opacity: .55 } : undefined}>
-                    <div className="day"><b>{Number(x.day.slice(8))}</b><small>{DAYS[weekdayOf(x.day)]}</small></div>
-                    <div className="mid">
-                      <span className="num" style={{ textAlign: 'right', fontWeight: 600 }}>{x.start} – {x.end}</span>
-                      {x.note ? <span className="note">{x.note}</span> : null}
-                    </div>
-                    <div className="tot">
-                      <span className="hint">{hmS(planMs(x))}</span>
-                      {x.day === today ? <span className="tag live">היום</span> : null}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
-      <p className="hint" style={{ textAlign: 'center' }}>הסידור נקבע על ידי המנהל. לשינויים פנו אליו.</p>
-    </>
-  );
-}

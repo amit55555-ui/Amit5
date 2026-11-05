@@ -7,6 +7,20 @@ import { publicSettings, type Settings } from '@/lib/types';
 export const dynamic = 'force-dynamic';
 
 const T = /^\d{2}:\d{2}$/;
+function parseSlots(v: unknown, cur: Settings['slots']): Settings['slots'] {
+  if (!Array.isArray(v)) return cur;
+  const out: Settings['slots'] = [];
+  for (const x of v.slice(0, 12)) {
+    if (!x || typeof x !== 'object') continue;
+    const o = x as Record<string, unknown>;
+    const name = str(o.name, 30), start = String(o.start || ''), end = String(o.end || '');
+    if (!name || !T.test(start) || !T.test(end) || end <= start) continue;
+    const days = Array.isArray(o.days) ? [...new Set(o.days.map(Number).filter((d) => d >= 0 && d <= 6))].sort() : [];
+    const id = typeof o.id === 'string' && /^[\w-]{1,24}$/.test(o.id) ? o.id : Math.random().toString(36).slice(2, 8);
+    out.push({ id, name, start, end, days });
+  }
+  return out;
+}
 function parseHours(v: unknown, cur: Settings['businessHours']): Settings['businessHours'] {
   if (!Array.isArray(v) || v.length !== 7) return cur;
   return v.map((d) => {
@@ -40,6 +54,9 @@ export async function PUT(req: Request) {
     showPayToEmployees: Boolean(b.showPayToEmployees),
     requireLocation: Boolean(b.requireLocation),
     businessHours: parseHours(b.businessHours, st.businessHours),
+    slots: parseSlots(b.slots, st.slots),
+    submitDay: Math.min(6, Math.max(0, Math.round(num(b.submitDay, st.submitDay)))),
+    submitTime: typeof b.submitTime === 'string' && T.test(b.submitTime) ? b.submitTime : st.submitTime,
   };
   const newPw = typeof b.newAdminPassword === 'string' ? b.newAdminPassword : '';
   if (newPw) {

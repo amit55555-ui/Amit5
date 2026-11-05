@@ -4,7 +4,7 @@ import { neon, type NeonQueryFunction } from '@neondatabase/serverless';
 import { promises as fs } from 'fs';
 import path from 'path';
 import os from 'os';
-import { DEFAULT_SETTINGS, type Plan, type Settings, type Shift, type User } from './types';
+import { DEFAULT_SETTINGS, type Avail, type Plan, type Settings, type Shift, type User } from './types';
 
 type Q = { userId?: string; from?: number; to?: number };
 
@@ -25,6 +25,10 @@ interface Store {
   planById(id: string): Promise<Plan | null>;
   savePlan(p: Plan): Promise<void>;
   deletePlan(id: string): Promise<void>;
+  avail(q: { week: string; userId?: string }): Promise<Avail[]>;
+  saveAvail(a: Avail): Promise<void>;
+  published(weeks: string[]): Promise<Record<string, number>>; // שבוע → זמן פרסום
+  setPublished(week: string, at: number | null): Promise<void>;
 }
 
 function connectionString() {
@@ -55,6 +59,10 @@ function pgStore(): Store {
       id TEXT PRIMARY KEY, user_id TEXT NOT NULL, day TEXT NOT NULL, start_t TEXT NOT NULL, end_t TEXT NOT NULL,
       note TEXT NOT NULL DEFAULT '', updated_at BIGINT NOT NULL)`;
     await sql`CREATE INDEX IF NOT EXISTS att_plans_day ON att_plans (day)`;
+    await sql`CREATE TABLE IF NOT EXISTS att_avail (
+      user_id TEXT NOT NULL, week TEXT NOT NULL, marks JSONB NOT NULL DEFAULT '{}'::jsonb, note TEXT NOT NULL DEFAULT '',
+      submitted_at BIGINT NOT NULL, PRIMARY KEY (user_id, week))`;
+    await sql`CREATE TABLE IF NOT EXISTS att_weeks (week TEXT PRIMARY KEY, published_at BIGINT)`;
   })().catch((e) => { ready = null; throw e; }));
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -84,7 +92,7 @@ function pgStore(): Store {
         ON CONFLICT (id) DO UPDATE SET username=EXCLUDED.username, name=EXCLUDED.name, pass_hash=EXCLUDED.pass_hash,
         wage=EXCLUDED.wage, travel=EXCLUDED.travel, active=EXCLUDED.active`;
     },
-    async deleteUser(id) { await init(); await sql`DELETE FROM att_shifts WHERE user_id=${id}`; await sql`DELETE FROM att_plans WHERE user_id=${id}`; await sql`DELETE FROM att_users WHERE id=${id}`; },
+    async deleteUser(id) { await init(); await sql`DELETE FROM att_shifts WHERE user_id=${id}`; await sql`DELETE FROM att_plans WHERE user_id=${id}`; await sql`DELETE FROM att_avail WHERE user_id=${id}`; await sql`DELETE FROM att_users WHERE id=${id}`; },
     async shifts({ userId, from, to }) {
       await init();
       const f = from ?? 0, t = to ?? 8.64e15;
@@ -136,11 +144,33 @@ function pgStore(): Store {
         end_t=EXCLUDED.end_t, note=EXCLUDED.note, updated_at=EXCLUDED.updated_at`;
     },
     async deletePlan(id) { await init(); await sql`DELETE FROM att_plans WHERE id=${id}`; },
+    async avail({ week, userId }) {
+      await init();
+      const r = userId
+        ? await sql`SELECT * FROM att_avail WHERE week=${week} AND user_id=${userId}`
+        : await sql`SELECT * FROM att_avail WHERE week=${week}`;
+      return r.map((x) => ({ userId: x.user_id, week: x.week, marks: x.marks || {}, note: x.note || '', submittedAt: Number(x.submitted_at) }));
+    },
+    async saveAvail(a) {
+      await init();
+      await sql`INSERT INTO att_avail (user_id, week, marks, note, submitted_at) VALUES (${a.userId}, ${a.week}, ${JSON.stringify(a.marks)}::jsonb, ${a.note}, ${a.submittedAt})
+        ON CONFLICT (user_id, week) DO UPDATE SET marks=EXCLUDED.marks, note=EXCLUDED.note, submitted_at=EXCLUDED.submitted_at`;
+    },
+    async published(weeks) {
+      await init();
+      if (!weeks.length) return {};
+      const r = await sql`SELECT week, published_at FROM att_weeks WHERE week = ANY(${weeks}) AND published_at IS NOT NULL`;
+      return Object.fromEntries(r.map((x) => [x.week, Number(x.published_at)]));
+    },
+    async setPublished(week, at) {
+      await init();
+      await sql`INSERT INTO att_weeks (week, published_at) VALUES (${week}, ${at}) ON CONFLICT (week) DO UPDATE SET published_at=EXCLUDED.published_at`;
+    },
   };
 }
 
 /* ---------- קובץ JSON (פיתוח מקומי) ---------- */
-type FileData = { users: User[]; shifts: Shift[]; settings: Partial<Settings>; plans?: Plan[] };
+type FileData = { users: User[]; shifts: Shift[]; settings: Partial<Settings>; plans?: Plan[]; avail?: Avail[]; weeks?: Record<string, number | null> };
 function fileStore(): Store {
   const file = path.join(process.env.DATA_DIR || path.join(os.tmpdir(), 'attendance'), 'data.json');
   let queue: Promise<unknown> = Promise.resolve();
@@ -163,7 +193,7 @@ function fileStore(): Store {
     async userById(id) { return (await load()).users.find((u) => u.id === id) || null; },
     async userByUsername(n) { return (await load()).users.find((u) => u.username.toLowerCase() === n.toLowerCase()) || null; },
     async saveUser(u) { await mutate((d) => upsert(d.users, u)); },
-    async deleteUser(id) { await mutate((d) => { d.users = d.users.filter((u) => u.id !== id); d.shifts = d.shifts.filter((s) => s.userId !== id); d.plans = (d.plans || []).filter((p) => p.userId !== id); }); },
+    async deleteUser(id) { await mutate((d) => { d.users = d.users.filter((u) => u.id !== id); d.shifts = d.shifts.filter((s) => s.userId !== id); d.plans = (d.plans || []).filter((p) => p.userId !== id); d.avail = (d.avail || []).filter((a) => a.userId !== id); }); },
     async shifts({ userId, from, to }) {
       return (await load()).shifts
         .filter((s) => (!userId || s.userId === userId) && s.start >= (from ?? 0) && s.start < (to ?? 8.64e15))
@@ -183,6 +213,18 @@ function fileStore(): Store {
     async planById(id) { return ((await load()).plans || []).find((p) => p.id === id) || null; },
     async savePlan(p) { await mutate((d) => { d.plans ||= []; upsert(d.plans, p); }); },
     async deletePlan(id) { await mutate((d) => { d.plans = (d.plans || []).filter((p) => p.id !== id); }); },
+    async avail({ week, userId }) { return ((await load()).avail || []).filter((a) => a.week === week && (!userId || a.userId === userId)); },
+    async saveAvail(a) {
+      await mutate((d) => {
+        d.avail = (d.avail || []).filter((x) => !(x.userId === a.userId && x.week === a.week));
+        d.avail.push(a);
+      });
+    },
+    async published(weeks) {
+      const w = (await load()).weeks || {};
+      return Object.fromEntries(weeks.filter((k) => w[k]).map((k) => [k, w[k] as number]));
+    },
+    async setPublished(week, at) { await mutate((d) => { d.weeks ||= {}; d.weeks[week] = at; }); },
   };
 }
 

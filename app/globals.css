@@ -187,3 +187,31 @@ tfoot td { font-weight: 700; border-bottom: 0; }
 .planrow { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
 .planrow:first-child { border-top: 0; }
 .todayplan { background: var(--sunk); border-radius: 10px; padding: 8px 12px; text-align: center; font-weight: 600; }
+
+/* הגשת משמרות ושיבוץ */
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; background: var(--sunk); border-radius: 12px; padding: 4px; }
+.seg button { border: 0; background: transparent; border-radius: 9px; padding: 8px 6px; min-height: 40px; font-weight: 700; font-size: .88rem; color: var(--muted); white-space: nowrap; }
+.seg button.on { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+.seg button.can.on { background: var(--on); color: var(--surface); }
+.seg button.pref.on { background: var(--brk); color: var(--surface); }
+.seg button.cant.on { background: var(--danger); color: var(--surface); }
+.seg button:disabled { cursor: default; }
+.seg.wide button { font-size: 1rem; }
+.slotrow { display: flex; flex-direction: column; gap: 6px; padding-top: 10px; border-top: 1px solid var(--line); }
+.slotrow:first-of-type { border-top: 0; padding-top: 0; }
+.slotbox { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.nm { border-radius: 999px; padding: 6px 12px; font-weight: 600; font-size: .9rem; border: 1px solid transparent; min-height: 36px; }
+.nm.assigned { background: var(--accent); color: var(--accent-ink); }
+.nm.avail { background: transparent; border-color: var(--on); color: var(--on); }
+.nm.avail.pref { border-color: var(--brk); color: var(--brk); }
+.nm:disabled { opacity: .5; }
+.pubcard { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-color: var(--brk); background: var(--brk-soft); }
+.pubcard.on { border-color: var(--on); background: var(--on-soft); }
+.notebox { background: var(--sunk); border-radius: 10px; padding: 8px 12px; font-size: .92rem; }
+.teamrow { display: grid; grid-template-columns: auto 1fr; gap: 2px 12px; padding: 8px 0; border-top: 1px solid var(--line); align-items: baseline; }
+.teamrow:first-child { border-top: 0; }
+.teamrow .note { grid-column: 2; }
+.teamrow.me { background: var(--on-soft); border-radius: 8px; padding-inline: 8px; border-top-color: transparent; }
+.teamrow.me .tname { font-weight: 700; color: var(--on); }
+.slotedit { display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--line); }
+.tabs button { font-size: .95rem; }

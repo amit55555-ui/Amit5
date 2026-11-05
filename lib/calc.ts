@@ -174,3 +174,28 @@ export function coverageGaps(hours: { open: string; close: string } | null, plan
   if (cur < close) gaps.push({ start: fromMin(cur), end: fromMin(close) });
   return gaps;
 }
+
+/* ---------- הגשת משמרות ---------- */
+import type { Slot } from './types';
+
+/** מועד סגירת ההגשה לשבוע (יום ושעה בשבוע שלפניו, שעון ישראל) */
+export function deadlineFor(week: string, st: { submitDay: number; submitTime: string }) {
+  return zonedTime(addDays(week, -7 + (st.submitDay ?? 4)), st.submitTime || '12:00');
+}
+/** השבוע הקרוב שעדיין פתוח להגשה */
+export function submitWeek(now: number, st: { submitDay: number; submitTime: string }) {
+  let w = addDays(weekStartKey(dayKey(now)), 7);
+  while (deadlineFor(w, st) <= now) w = addDays(w, 7);
+  return w;
+}
+/** סוגי המשמרות של יום מסוים (רק בימים שהעסק פתוח) */
+export function slotsForDay(day: string, st: { slots: Slot[]; businessHours: ({ open: string; close: string } | null)[] }) {
+  const wd = weekdayOf(day);
+  if (!st.businessHours?.[wd]) return [];
+  return (st.slots || []).filter((s) => s.days.includes(wd)).sort((a, b) => toMin(a.start) - toMin(b.start));
+}
+export const markKey = (day: string, slotId: string) => `${day}|${slotId}`;
+export function deadlineText(t: number) {
+  const p = zparts(t);
+  return `יום ${DAYNAMES[p.wd]} ${p.d}.${p.m} בשעה ${pad(p.h)}:${pad(p.mi)}`;
+}

@@ -2,7 +2,7 @@
 import { isAdmin } from '@/lib/auth';
 import { store } from '@/lib/store';
 import { fail, ok } from '@/lib/http';
-import { monthKey, monthRange } from '@/lib/calc';
+import { addDays, monthKey, monthRange, shiftMonth } from '@/lib/calc';
 import { publicSettings, publicUser } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -13,6 +13,9 @@ export async function GET(req: Request) {
   const month = new URL(req.url).searchParams.get('month') || monthKey(Date.now());
   if (!/^\d{4}-\d{2}$/.test(month)) return fail('חודש לא תקין');
   const { from, to } = monthRange(month);
-  const [users, shifts, active] = await Promise.all([store().users(), store().shifts({ from, to }), store().activeShifts()]);
-  return ok({ month, settings: publicSettings(st), users: users.map(publicUser), shifts, active });
+  const lastDay = addDays(`${shiftMonth(month, 1)}-01`, -1);
+  const [users, shifts, active, plans] = await Promise.all([
+    store().users(), store().shifts({ from, to }), store().activeShifts(), store().plans({ from: `${month}-01`, to: lastDay }),
+  ]);
+  return ok({ month, settings: publicSettings(st), users: users.map(publicUser), shifts, active, plans });
 }

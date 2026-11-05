@@ -44,6 +44,15 @@ export type Plan = {
   updatedAt: number;
 };
 
+/** סוג משמרת קבוע שעובדים מגישים אליו (בוקר / ערב …) */
+export type Slot = { id: string; name: string; start: string; end: string; days: number[] };
+
+/** סימון זמינות: יכול / מעדיף / לא יכול */
+export type Mark = 'can' | 'pref' | 'cant';
+
+/** הגשת משמרות של עובד לשבוע. מפתח הסימון: "YYYY-MM-DD|slotId" */
+export type Avail = { userId: string; week: string; marks: Record<string, Mark>; note: string; submittedAt: number };
+
 export type Settings = {
   companyName: string;
   stdHours: number; // שעות תקן ליום
@@ -55,6 +64,9 @@ export type Settings = {
   allowEmployeeEdit: boolean; // עובד יכול להוסיף/לתקן משמרות בעצמו
   showPayToEmployees: boolean;
   businessHours: DayHours[]; // 0=ראשון … 6=שבת
+  slots: Slot[]; // סוגי המשמרות להגשה
+  submitDay: number; // יום סגירת ההגשה בשבוע שלפני (0=ראשון)
+  submitTime: string; // שעת סגירת ההגשה
   requireLocation: boolean; // רישום מיקום בכניסה וביציאה (כבוי = לא מבקשים מיקום בכלל)
   adminPassHash?: string;
 };
@@ -79,6 +91,13 @@ export const DEFAULT_SETTINGS: Settings = {
     { open: '09:00', close: '13:30' }, // שישי
     null, // שבת
   ],
+  slots: [
+    { id: 'm', name: 'בוקר', start: '09:00', end: '15:00', days: [0, 1, 2, 3, 4] },
+    { id: 'e', name: 'ערב', start: '15:00', end: '21:00', days: [0, 1, 2, 3, 4] },
+    { id: 'f', name: 'שישי', start: '09:00', end: '13:30', days: [5] },
+  ],
+  submitDay: 4, // חמישי
+  submitTime: '12:00',
 };
 
 export type PublicSettings = Omit<Settings, 'adminPassHash'>;
